@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   AppBar, 
   Toolbar, 
@@ -9,19 +9,22 @@ import {
   useTheme,
   useMediaQuery,
   Menu,
-  MenuItem
+  MenuItem,
+  CircularProgress
 } from '@mui/material';
 import { 
   Menu as MenuIcon,
   KeyboardArrowDown as ArrowDownIcon
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const departments = [
     { name: 'Reception', path: '/reception' },
@@ -40,9 +43,27 @@ const Header = () => {
     setAnchorEl(null);
   };
 
-  const handleDepartmentClick = (path) => {
-    navigate(path);
-    handleMenuClose();
+  const handleDepartmentClick = async (path) => {
+    try {
+      setIsNavigating(true);
+      await navigate(path);
+    } catch (error) {
+      console.error('Navigation error:', error);
+    } finally {
+      setIsNavigating(false);
+      handleMenuClose();
+    }
+  };
+
+  const handleHomeClick = async () => {
+    try {
+      setIsNavigating(true);
+      await navigate('/');
+    } catch (error) {
+      console.error('Navigation error:', error);
+    } finally {
+      setIsNavigating(false);
+    }
   };
 
   return (
@@ -64,15 +85,19 @@ const Header = () => {
               fontWeight: 700,
               color: 'white',
               textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
             }}
-            onClick={() => navigate('/')}
+            onClick={handleHomeClick}
           >
             Tosh Hospital
+            {isNavigating && <CircularProgress size={20} color="inherit" />}
           </Typography>
           <Button 
             color="inherit" 
-            onClick={() => navigate('/')}
+            onClick={handleHomeClick}
             sx={{ 
               display: { xs: 'none', sm: 'block' },
               '&:hover': {
@@ -95,13 +120,14 @@ const Header = () => {
               <Button
                 key={dept.name}
                 color="inherit"
-                onClick={() => navigate(dept.path)}
+                onClick={() => handleDepartmentClick(dept.path)}
                 sx={{
                   '&:hover': {
                     backgroundColor: 'rgba(255,255,255,0.1)',
                     transform: 'translateY(-2px)',
                     transition: 'all 0.3s ease'
-                  }
+                  },
+                  backgroundColor: location.pathname === dept.path ? 'rgba(255,255,255,0.1)' : 'transparent'
                 }}
               >
                 {dept.name}
@@ -147,6 +173,9 @@ const Header = () => {
                 <MenuItem 
                   key={dept.name}
                   onClick={() => handleDepartmentClick(dept.path)}
+                  sx={{
+                    backgroundColor: location.pathname === dept.path ? 'rgba(26,35,126,0.1)' : 'transparent'
+                  }}
                 >
                   {dept.name}
                 </MenuItem>

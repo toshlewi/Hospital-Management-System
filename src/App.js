@@ -8,7 +8,7 @@ import theme from './styles/theme';
 import Home from './pages/Home';
 import Reception from './pages/Reception';
 import Clinicians from './pages/Clinicians';
-import Laboratory from './pages/Laboratory';
+import Lab from './pages/Lab';
 import Imaging from './pages/Imaging';
 import Pharmacy from './pages/Pharmacy';
 import Cashier from './pages/Cashier';
@@ -40,7 +40,7 @@ function App() {
                   <Route path="/" element={<Home />} />
                   <Route path="/reception" element={<Reception />} />
                   <Route path="/clinicians" element={<Clinicians />} />
-                  <Route path="/laboratory" element={<Laboratory />} />
+                  <Route path="/laboratory" element={<Lab />} />
                   <Route path="/imaging" element={<Imaging />} />
                   <Route path="/pharmacy" element={<Pharmacy />} />
                   <Route path="/cashier" element={<Cashier />} />

@@ -26,10 +26,15 @@ import {
   useTheme,
   useMediaQuery,
   TextareaAutosize,
-  CircularProgress
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert
 } from '@mui/material';
 import {
-  PhotoCamera,
+  Science,
   History,
   AutoFixHigh,
   CheckCircle,
@@ -48,40 +53,54 @@ import {
   Send,
   LocalHospital,
   Description,
-  Image
+  Image,
+  Email,
+  AttachFile
 } from '@mui/icons-material';
-import DICOMViewer from '../components/imaging/DICOMViewer';
 
-const Imaging = () => {
+const Lab = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [selectedTest, setSelectedTest] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [reportText, setReportText] = useState('');
   const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [openSendDialog, setOpenSendDialog] = useState(false);
+  const [sendSuccess, setSendSuccess] = useState(false);
 
-  // Mock data for imaging patients
-  const imagingPatients = [
+  // Mock data for lab tests
+  const labTests = [
     {
-      id: 'IMG001',
+      id: 'LAB001',
       patientName: 'John Doe',
       patientId: 'P1001',
       age: 45,
       gender: 'Male',
-      studyDate: '2024-03-15',
-      modality: 'CT',
-      bodyPart: 'Chest',
+      testDate: '2024-03-15',
+      testType: 'Complete Blood Count',
       status: 'completed',
       priority: 'routine',
-      referringPhysician: 'Dr. Smith',
-      differentialDiagnosis: ['Pneumonia', 'Pulmonary embolism', 'Lung cancer'],
-      report: 'No significant findings. Lungs are clear. No evidence of consolidation or mass lesions.',
-      imageUrl: 'https://example.com/ct-chest.jpg',
+      requestingPhysician: 'Dr. Smith',
+      results: {
+        wbc: '7.5 x10^9/L',
+        rbc: '4.8 x10^12/L',
+        hgb: '14.2 g/dL',
+        hct: '42%',
+        plt: '250 x10^9/L'
+      },
+      referenceRanges: {
+        wbc: '4.5-11.0 x10^9/L',
+        rbc: '4.5-5.5 x10^12/L',
+        hgb: '13.5-17.5 g/dL',
+        hct: '41-50%',
+        plt: '150-450 x10^9/L'
+      },
+      report: 'All values within normal reference ranges.',
       aiAnalysis: {
-        imageAnalysis: 'Normal lung parenchyma. No significant abnormalities detected.',
+        testAnalysis: 'Normal CBC results. No significant abnormalities detected.',
         reportAnalysis: 'Report is consistent with normal findings.',
-        diagnosis: 'Normal chest CT',
+        diagnosis: 'Normal CBC',
         recommendations: [
           'No immediate follow-up required',
           'Routine annual screening recommended'
@@ -89,79 +108,94 @@ const Imaging = () => {
       }
     },
     {
-      id: 'IMG002',
+      id: 'LAB002',
       patientName: 'Jane Smith',
       patientId: 'P1002',
       age: 32,
       gender: 'Female',
-      studyDate: '2024-03-15',
-      modality: 'MRI',
-      bodyPart: 'Brain',
+      testDate: '2024-03-15',
+      testType: 'Comprehensive Metabolic Panel',
       status: 'pending',
       priority: 'urgent',
-      referringPhysician: 'Dr. Johnson',
-      differentialDiagnosis: ['Multiple sclerosis', 'Brain tumor', 'Vascular malformation'],
+      requestingPhysician: 'Dr. Johnson',
+      results: null,
+      referenceRanges: null,
       report: 'Pending',
-      imageUrl: null,
       aiAnalysis: null
     },
     {
-      id: 'IMG003',
+      id: 'LAB003',
       patientName: 'Robert Brown',
       patientId: 'P1003',
       age: 58,
       gender: 'Male',
-      studyDate: '2024-03-14',
-      modality: 'X-Ray',
-      bodyPart: 'Chest',
+      testDate: '2024-03-14',
+      testType: 'Lipid Panel',
       status: 'completed',
       priority: 'routine',
-      referringPhysician: 'Dr. Williams',
-      report: 'Bilateral pulmonary infiltrates consistent with pneumonia.',
-      imageUrl: 'https://example.com/chest-xray.jpg',
+      requestingPhysician: 'Dr. Williams',
+      results: {
+        totalCholesterol: '240 mg/dL',
+        hdl: '45 mg/dL',
+        ldl: '160 mg/dL',
+        triglycerides: '180 mg/dL'
+      },
+      referenceRanges: {
+        totalCholesterol: '<200 mg/dL',
+        hdl: '>40 mg/dL',
+        ldl: '<100 mg/dL',
+        triglycerides: '<150 mg/dL'
+      },
+      report: 'Elevated total cholesterol and LDL levels. Borderline high triglycerides.',
       aiAnalysis: {
-        imageAnalysis: 'Bilateral infiltrates present. No pleural effusion.',
-        reportAnalysis: 'Findings consistent with pneumonia.',
-        diagnosis: 'Community-acquired pneumonia',
+        testAnalysis: 'Abnormal lipid panel with elevated cholesterol and LDL.',
+        reportAnalysis: 'Findings consistent with hyperlipidemia.',
+        diagnosis: 'Hyperlipidemia',
         recommendations: [
-          'Antibiotic therapy recommended',
-          'Follow-up chest X-ray in 2 weeks',
-          'Consider CT if no improvement'
+          'Lifestyle modifications recommended',
+          'Consider statin therapy',
+          'Follow-up lipid panel in 3 months'
         ]
       }
     }
   ];
 
-  const handlePatientSelect = (patient) => {
-    setSelectedPatient(patient);
-    setReportText(patient.report);
-    setAiAnalysis(patient.aiAnalysis);
+  const handleTestSelect = (test) => {
+    setSelectedTest(test);
+    setReportText(test.report);
+    setAiAnalysis(test.aiAnalysis);
   };
 
   const handleReportChange = (event) => {
     setReportText(event.target.value);
   };
 
-  const handleSubmitToDoctor = () => {
-    // In a real app, this would send the report to the doctor
-    console.log('Submitting report to doctor:', reportText);
+  const handleSendToDoctor = () => {
+    setOpenSendDialog(true);
   };
 
-  const handleImageUpload = (event) => {
+  const handleConfirmSend = () => {
+    // In a real app, this would send the results to the doctor
+    console.log('Sending results to doctor:', selectedTest.requestingPhysician);
+    setOpenSendDialog(false);
+    setSendSuccess(true);
+    setTimeout(() => setSendSuccess(false), 3000);
+  };
+
+  const handleCancelSend = () => {
+    setOpenSendDialog(false);
+  };
+
+  const handleResultUpload = (event) => {
     // In a real app, this would handle file upload
-    console.log('Uploading image:', event.target.files[0]);
+    console.log('Uploading results:', event.target.files[0]);
   };
 
-  const handleReportUpload = (event) => {
-    // In a real app, this would handle file upload
-    console.log('Uploading report:', event.target.files[0]);
-  };
-
-  // Filter patients based on search query and status
-  const filteredPatients = imagingPatients.filter(patient => {
-    const matchesSearch = patient.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         patient.patientId.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || patient.status === filterStatus;
+  // Filter tests based on search query and status
+  const filteredTests = labTests.filter(test => {
+    const matchesSearch = test.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         test.patientId.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = filterStatus === 'all' || test.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
@@ -169,14 +203,33 @@ const Imaging = () => {
     <Container 
       maxWidth="xl" 
       sx={{ 
-        py: 3,
-        mt: 8,
+        py: 4,
+        mt: 12,
         minHeight: 'calc(100vh - 64px)',
-        backgroundColor: '#f5f5f5'
+        backgroundColor: '#f5f5f5',
+        '& .MuiCard-root': {
+          height: 'calc(100vh - 140px)'
+        }
       }}
     >
+      {sendSuccess && (
+        <Alert 
+          severity="success" 
+          sx={{ 
+            position: 'fixed', 
+            top: 100, 
+            left: '50%', 
+            transform: 'translateX(-50%)',
+            zIndex: 1000,
+            minWidth: 300
+          }}
+        >
+          Results sent successfully to {selectedTest?.requestingPhysician}
+        </Alert>
+      )}
+
       <Grid container spacing={3}>
-        {/* Left Sidebar - Patient List */}
+        {/* Left Sidebar - Test List */}
         <Grid item xs={12} md={3}>
           <Card sx={{ 
             boxShadow: 3,
@@ -197,14 +250,14 @@ const Imaging = () => {
                 mb: 2,
                 color: 'primary.main'
               }}>
-                <PhotoCamera sx={{ mr: 1 }} /> Imaging Patients
+                <Science sx={{ mr: 1 }} /> Lab Tests
               </Typography>
 
               {/* Search Bar */}
               <TextField
                 fullWidth
                 size="small"
-                placeholder="Search patients..."
+                placeholder="Search tests..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 InputProps={{
@@ -233,7 +286,7 @@ const Imaging = () => {
 
               <Divider sx={{ my: 2 }} />
 
-              {/* Patient List */}
+              {/* Test List */}
               <List sx={{ 
                 flex: 1,
                 overflow: 'auto',
@@ -245,12 +298,12 @@ const Imaging = () => {
                   }
                 }
               }}>
-                {filteredPatients.map((patient) => (
-                  <React.Fragment key={patient.id}>
+                {filteredTests.map((test) => (
+                  <React.Fragment key={test.id}>
                     <ListItem 
                       button 
-                      selected={selectedPatient?.id === patient.id}
-                      onClick={() => handlePatientSelect(patient)}
+                      selected={selectedTest?.id === test.id}
+                      onClick={() => handleTestSelect(test)}
                       sx={{
                         display: 'flex',
                         flexDirection: 'column',
@@ -264,19 +317,19 @@ const Imaging = () => {
                         mb: 1
                       }}>
                         <Typography variant="subtitle2">
-                          {patient.patientName}
+                          {test.patientName}
                         </Typography>
                         <Chip 
-                          label={patient.status} 
+                          label={test.status} 
                           size="small"
-                          color={patient.status === 'completed' ? 'success' : 'warning'}
+                          color={test.status === 'completed' ? 'success' : 'warning'}
                         />
                       </Box>
                       <Typography variant="body2" color="text.secondary">
-                        {patient.modality} - {patient.bodyPart}
+                        {test.testType}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {patient.studyDate} · {patient.referringPhysician}
+                        {test.testDate} · {test.requestingPhysician}
                       </Typography>
                     </ListItem>
                     <Divider component="li" />
@@ -287,16 +340,16 @@ const Imaging = () => {
           </Card>
         </Grid>
 
-        {/* Main Content - Patient Details and Imaging */}
+        {/* Main Content - Test Details */}
         <Grid item xs={12} md={6}>
-          {selectedPatient ? (
+          {selectedTest ? (
             <Card sx={{ 
               boxShadow: 3,
               height: 'calc(100vh - 100px)',
               overflow: 'auto'
             }}>
               <CardContent sx={{ p: 3 }}>
-                {/* Patient Header */}
+                {/* Test Header */}
                 <Box sx={{ 
                   display: 'flex', 
                   justifyContent: 'space-between', 
@@ -308,109 +361,97 @@ const Imaging = () => {
                 }}>
                   <Box>
                     <Typography variant="h5" sx={{ color: 'primary.main' }}>
-                      {selectedPatient.patientName}
+                      {selectedTest.patientName}
                     </Typography>
                     <Typography variant="subtitle2" color="text.secondary">
-                      ID: {selectedPatient.patientId} | Age: {selectedPatient.age} | Gender: {selectedPatient.gender}
+                      ID: {selectedTest.patientId} | Age: {selectedTest.age} | Gender: {selectedTest.gender}
                     </Typography>
                   </Box>
                   <Chip 
-                    label={selectedPatient.priority} 
-                    color={selectedPatient.priority === 'urgent' ? 'error' : 'primary'}
+                    label={selectedTest.priority} 
+                    color={selectedTest.priority === 'urgent' ? 'error' : 'primary'}
                   />
                 </Box>
 
-                {/* Differential Diagnosis */}
+                {/* Test Details */}
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="subtitle1" gutterBottom sx={{ 
                     display: 'flex', 
                     alignItems: 'center',
                     color: 'primary.main'
                   }}>
-                    <LocalHospital sx={{ mr: 1 }} /> Differential Diagnosis
+                    <Science sx={{ mr: 1 }} /> Test Details
                   </Typography>
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                    {selectedPatient.differentialDiagnosis?.map((diagnosis, index) => (
-                      <Chip
-                        key={index}
-                        label={diagnosis}
-                        color="primary"
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <Typography variant="body2" color="text.secondary">
+                        Test Type
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedTest.testType}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="body2" color="text.secondary">
+                        Requesting Physician
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedTest.requestingPhysician}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </Box>
+
+                {/* Results Section */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle1" gutterBottom sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    color: 'primary.main'
+                  }}>
+                    <Description sx={{ mr: 1 }} /> Test Results
+                  </Typography>
+                  {selectedTest.status === 'completed' ? (
+                    <>
+                      <TableContainer component={Paper} sx={{ mb: 2 }}>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Parameter</TableCell>
+                              <TableCell>Result</TableCell>
+                              <TableCell>Reference Range</TableCell>
+                              <TableCell>Status</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {Object.entries(selectedTest.results).map(([key, value]) => (
+                              <TableRow key={key}>
+                                <TableCell>{key.toUpperCase()}</TableCell>
+                                <TableCell>{value}</TableCell>
+                                <TableCell>{selectedTest.referenceRanges[key]}</TableCell>
+                                <TableCell>
+                                  <Chip 
+                                    label="Normal" 
+                                    size="small"
+                                    color="success"
+                                  />
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                      <TextField
+                        fullWidth
+                        multiline
+                        rows={4}
+                        value={reportText}
+                        onChange={handleReportChange}
                         variant="outlined"
+                        label="Interpretation"
+                        sx={{ mb: 2 }}
                       />
-                    ))}
-                  </Box>
-                </Box>
-
-                {/* Image Upload/Display */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle1" gutterBottom sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center',
-                    color: 'primary.main'
-                  }}>
-                    <Image sx={{ mr: 1 }} /> Imaging Study
-                  </Typography>
-                  {selectedPatient.imageUrl ? (
-                    <Box sx={{ 
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      borderRadius: 1,
-                      p: 1,
-                      textAlign: 'center'
-                    }}>
-                      <img 
-                        src={selectedPatient.imageUrl} 
-                        alt="Imaging study"
-                        style={{ maxWidth: '100%', maxHeight: '300px' }}
-                      />
-                    </Box>
-                  ) : (
-                    <Box sx={{ 
-                      border: '2px dashed',
-                      borderColor: 'divider',
-                      borderRadius: 1,
-                      p: 3,
-                      textAlign: 'center'
-                    }}>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        style={{ display: 'none' }}
-                        id="image-upload"
-                      />
-                      <label htmlFor="image-upload">
-                        <Button
-                          component="span"
-                          variant="outlined"
-                          startIcon={<Upload />}
-                        >
-                          Upload Image
-                        </Button>
-                      </label>
-                    </Box>
-                  )}
-                </Box>
-
-                {/* Report Section */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle1" gutterBottom sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center',
-                    color: 'primary.main'
-                  }}>
-                    <Description sx={{ mr: 1 }} /> Radiologist Report
-                  </Typography>
-                  {selectedPatient.status === 'completed' ? (
-                    <TextField
-                      fullWidth
-                      multiline
-                      rows={6}
-                      value={reportText}
-                      onChange={handleReportChange}
-                      variant="outlined"
-                      sx={{ mb: 2 }}
-                    />
+                    </>
                   ) : (
                     <Box sx={{ 
                       border: '2px dashed',
@@ -422,34 +463,43 @@ const Imaging = () => {
                       <input
                         type="file"
                         accept=".pdf,.doc,.docx"
-                        onChange={handleReportUpload}
+                        onChange={handleResultUpload}
                         style={{ display: 'none' }}
-                        id="report-upload"
+                        id="result-upload"
                       />
-                      <label htmlFor="report-upload">
+                      <label htmlFor="result-upload">
                         <Button
                           component="span"
                           variant="outlined"
                           startIcon={<Upload />}
                         >
-                          Upload Report
+                          Upload Results
                         </Button>
                       </label>
                     </Box>
                   )}
                 </Box>
 
-                {/* Submit Button */}
-                <Button
-                  variant="contained"
-                  color="primary"
-                  fullWidth
-                  startIcon={<Send />}
-                  onClick={handleSubmitToDoctor}
-                  disabled={selectedPatient.status === 'pending'}
-                >
-                  Submit to Doctor
-                </Button>
+                {/* Action Buttons */}
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<Send />}
+                    onClick={handleSendToDoctor}
+                    disabled={selectedTest.status === 'pending'}
+                    fullWidth
+                  >
+                    Send to {selectedTest.requestingPhysician}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<Download />}
+                    disabled={selectedTest.status === 'pending'}
+                  >
+                    Download
+                  </Button>
+                </Box>
               </CardContent>
             </Card>
           ) : (
@@ -463,7 +513,7 @@ const Imaging = () => {
             }}>
               <CardContent>
                 <Typography variant="h6" color="text.secondary" align="center">
-                  Select a patient from the left to view details
+                  Select a test from the left to view details
                 </Typography>
               </CardContent>
             </Card>
@@ -494,18 +544,18 @@ const Imaging = () => {
                 <AutoFixHigh sx={{ mr: 1 }} /> AI Analysis
               </Typography>
               
-              {selectedPatient ? (
+              {selectedTest ? (
                 <>
-                  {selectedPatient.status === 'pending' ? (
+                  {selectedTest.status === 'pending' ? (
                     <Typography variant="body2" color="text.secondary" align="center">
-                      Complete the study to get AI analysis
+                      Complete the test to get AI analysis
                     </Typography>
                   ) : aiAnalysis ? (
                     <>
-                      {/* Image Analysis */}
+                      {/* Test Analysis */}
                       <Box sx={{ mb: 3 }}>
                         <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
-                          Image Analysis
+                          Test Analysis
                         </Typography>
                         <Box sx={{ 
                           p: 1.5, 
@@ -515,7 +565,7 @@ const Imaging = () => {
                           boxShadow: 1
                         }}>
                           <Typography variant="body2">
-                            {aiAnalysis.imageAnalysis}
+                            {aiAnalysis.testAnalysis}
                           </Typography>
                         </Box>
                       </Box>
@@ -588,15 +638,39 @@ const Imaging = () => {
                 </>
               ) : (
                 <Typography variant="body2" color="text.secondary" align="center">
-                  Select a patient to view AI analysis
+                  Select a test to view AI analysis
                 </Typography>
               )}
             </CardContent>
           </Card>
         </Grid>
       </Grid>
+
+      {/* Send to Doctor Dialog */}
+      <Dialog open={openSendDialog} onClose={handleCancelSend}>
+        <DialogTitle>Send Results to Doctor</DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" gutterBottom>
+            Are you sure you want to send the test results to {selectedTest?.requestingPhysician}?
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            The results will be sent via the hospital's secure messaging system.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelSend}>Cancel</Button>
+          <Button 
+            onClick={handleConfirmSend} 
+            variant="contained" 
+            color="primary"
+            startIcon={<Send />}
+          >
+            Send Results
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
 
-export default Imaging;
+export default Lab; 

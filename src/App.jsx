@@ -1,40 +1,52 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
-import { Box, CssBaseline } from '@mui/material';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { Provider } from 'react-redux';
+import store from './store/store';
+import theme from './styles/theme';
+import Home from './pages/Home';
+import Reception from './pages/Reception';
+import Clinicians from './pages/Clinicians';
+import Lab from './pages/Lab';
+import Imaging from './pages/Imaging';
+import Pharmacy from './pages/Pharmacy';
+import Cashier from './pages/Cashier';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
-import AppRoutes from './routes';
+import Footer from './components/layout/Footer';
 
-const App = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
+function App() {
   return (
-    <Router>
-      <CssBaseline />
-      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-        <Header toggleSidebar={toggleSidebar} />
-        <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            p: 3,
-            width: '100%',
-            minHeight: '100vh',
-            backgroundColor: 'var(--bg-secondary)',
-            transition: 'margin 0.3s ease-in-out',
-            marginRight: isSidebarOpen ? '300px' : 0
-          }}
-        >
-          <AppRoutes />
-        </Box>
-      </Box>
-    </Router>
+    <Provider store={store}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Router future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true
+        }}>
+          <div className="app">
+            <Header />
+            <div className="main-content">
+              <Sidebar />
+              <main className="content">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/reception" element={<Reception />} />
+                  <Route path="/clinicians/*" element={<Clinicians />} />
+                  <Route path="/laboratory" element={<Lab />} />
+                  <Route path="/imaging" element={<Imaging />} />
+                  <Route path="/pharmacy" element={<Pharmacy />} />
+                  <Route path="/cashier" element={<Cashier />} />
+                </Routes>
+              </main>
+            </div>
+            <Footer />
+          </div>
+        </Router>
+      </ThemeProvider>
+    </Provider>
   );
-};
+}
 
-export default App; 
+export default App;

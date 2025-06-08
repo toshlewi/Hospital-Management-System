@@ -1,26 +1,18 @@
 import React from 'react';
-import { Container, Typography, Box, Grid, Card, CardContent } from '@mui/material';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import ClinicianPortal from './Clinicians/ClinicianPortal';
+import Outpatient from './Clinicians/Outpatient';
+import Inpatient from './Clinicians/Inpatient';
 
 const Clinicians = () => {
   return (
-    <Container maxWidth="xl" sx={{ py: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Clinicians
-      </Typography>
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6">Patient Records</Typography>
-              <Typography variant="body2" color="text.secondary">
-                Access patient records and manage treatments here.
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-    </Container>
+    <Routes>
+      <Route index element={<ClinicianPortal />} />
+      <Route path="outpatient" element={<Outpatient />} />
+      <Route path="inpatient" element={<Inpatient />} />
+      <Route path="*" element={<Navigate to="/clinicians" replace />} />
+    </Routes>
   );
 };
 
-export default Clinicians; 
+export default Clinicians;
