@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Box,
@@ -26,7 +26,8 @@ import {
   useTheme,
   useMediaQuery,
   TextareaAutosize,
-  CircularProgress
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import {
   PhotoCamera,
@@ -51,105 +52,102 @@ import {
   Image
 } from '@mui/icons-material';
 import DICOMViewer from '../components/imaging/DICOMViewer'; // Correct path for DICOMViewer
+import { patientAPI, aiAPI } from '../services/api';
 
 const Imaging = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [imagingPatients, setImagingPatients] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [reportText, setReportText] = useState('');
   const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [imageUploadLoading, setImageUploadLoading] = useState(false);
+  const [imageUploadSuccess, setImageUploadSuccess] = useState('');
+  const [imageUploadError, setImageUploadError] = useState('');
+  const [reportSubmitLoading, setReportSubmitLoading] = useState(false);
+  const [reportSubmitSuccess, setReportSubmitSuccess] = useState('');
+  const [reportSubmitError, setReportSubmitError] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState('');
 
-  // Mock data for imaging patients
-  const imagingPatients = [
-    {
-      id: 'IMG001',
-      patientName: 'John Doe',
-      patientId: 'P1001',
-      age: 45,
-      gender: 'Male',
-      studyDate: '2024-03-15',
-      modality: 'CT',
-      bodyPart: 'Chest',
-      status: 'completed',
-      priority: 'routine',
-      referringPhysician: 'Dr. Smith',
-      differentialDiagnosis: ['Pneumonia', 'Pulmonary embolism', 'Lung cancer'],
-      report: 'No significant findings. Lungs are clear. No evidence of consolidation or mass lesions.',
-      imageUrl: 'https://example.com/ct-chest.jpg',
-      aiAnalysis: {
-        imageAnalysis: 'Normal lung parenchyma. No significant abnormalities detected.',
-        reportAnalysis: 'Report is consistent with normal findings.',
-        diagnosis: 'Normal chest CT',
-        recommendations: [
-          'No immediate follow-up required',
-          'Routine annual screening recommended'
-        ]
-      }
-    },
-    {
-      id: 'IMG002',
-      patientName: 'Jane Smith',
-      patientId: 'P1002',
-      age: 32,
-      gender: 'Female',
-      studyDate: '2024-03-15',
-      modality: 'MRI',
-      bodyPart: 'Brain',
-      status: 'pending',
-      priority: 'urgent',
-      referringPhysician: 'Dr. Johnson',
-      differentialDiagnosis: ['Multiple sclerosis', 'Brain tumor', 'Vascular malformation'],
-      report: 'Pending',
-      imageUrl: null,
-      aiAnalysis: null
-    },
-    {
-      id: 'IMG003',
-      patientName: 'Robert Brown',
-      patientId: 'P1003',
-      age: 58,
-      gender: 'Male',
-      studyDate: '2024-03-14',
-      modality: 'X-Ray',
-      bodyPart: 'Chest',
-      status: 'completed',
-      priority: 'routine',
-      referringPhysician: 'Dr. Williams',
-      report: 'Bilateral pulmonary infiltrates consistent with pneumonia.',
-      imageUrl: 'https://example.com/chest-xray.jpg',
-      aiAnalysis: {
-        imageAnalysis: 'Bilateral infiltrates present. No pleural effusion.',
-        reportAnalysis: 'Findings consistent with pneumonia.',
-        diagnosis: 'Community-acquired pneumonia',
-        recommendations: [
-          'Antibiotic therapy recommended',
-          'Follow-up chest X-ray in 2 weeks',
-          'Consider CT if no improvement'
-        ]
-      }
+  const fetchImagingOrders = useCallback(async () => {
+    try {
+      const data = await patientAPI.getAllImagingOrders();
+      setImagingPatients(data);
+    } catch (err) {
+      setImagingPatients([]);
     }
-  ];
+  }, []);
+
+  useEffect(() => {
+    fetchImagingOrders();
+  }, [fetchImagingOrders]);
+
+  useEffect(() => {
+    if (selectedPatient && selectedPatient.status === 'completed' && reportText) {
+      setAiLoading(true);
+      setAiError('');
+      aiAPI.diagnose({ note_text: reportText })
+        .then(result => setAiAnalysis(result))
+        .catch(() => setAiError('AI analysis failed.'))
+        .finally(() => setAiLoading(false));
+    } else {
+      setAiAnalysis(null);
+    }
+  }, [selectedPatient, reportText]);
 
   const handlePatientSelect = (patient) => {
     setSelectedPatient(patient);
-    setReportText(patient.report);
-    setAiAnalysis(patient.aiAnalysis);
+    setReportText(patient.result || '');
+    setAiAnalysis(null); // Will be set after AI call
   };
 
   const handleReportChange = (event) => {
     setReportText(event.target.value);
   };
 
-  const handleSubmitToDoctor = () => {
-    // In a real app, this would send the report to the doctor
-    console.log('Submitting report to doctor:', reportText);
+  const handleSubmitToDoctor = async () => {
+    if (!selectedPatient) return;
+    setReportSubmitLoading(true);
+    setReportSubmitSuccess('');
+    setReportSubmitError('');
+    try {
+      await patientAPI.updateTestOrder(selectedPatient.order_id, {
+        result: reportText,
+        status: 'completed'
+      });
+      setReportSubmitSuccess('Report submitted and test marked as completed!');
+      fetchImagingOrders();
+    } catch (err) {
+      setReportSubmitError('Failed to submit report.');
+    } finally {
+      setReportSubmitLoading(false);
+    }
   };
 
-  const handleImageUpload = (event) => {
-    // In a real app, this would handle file upload
-    console.log('Uploading image:', event.target.files[0]);
+  const handleImageUpload = async (event) => {
+    if (!selectedPatient) return;
+    setImageUploadLoading(true);
+    setImageUploadSuccess('');
+    setImageUploadError('');
+    try {
+      const file = event.target.files[0];
+      if (!file) return;
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('doctor_id', selectedPatient.doctor_id || 1); // fallback
+      formData.append('description', 'Imaging study upload');
+      formData.append('test_order_id', selectedPatient.order_id);
+      await patientAPI.addImaging(selectedPatient.patient_id, formData);
+      setImageUploadSuccess('Image uploaded successfully!');
+      fetchImagingOrders();
+    } catch (err) {
+      setImageUploadError('Failed to upload image.');
+    } finally {
+      setImageUploadLoading(false);
+    }
   };
 
   const handleReportUpload = (event) => {
@@ -159,8 +157,8 @@ const Imaging = () => {
 
   // Filter patients based on search query and status
   const filteredPatients = imagingPatients.filter(patient => {
-    const matchesSearch = patient.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         patient.patientId.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (patient.first_name + ' ' + patient.last_name).toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         String(patient.patient_id).includes(searchQuery);
     const matchesStatus = filterStatus === 'all' || patient.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -264,7 +262,7 @@ const Imaging = () => {
                         mb: 1
                       }}>
                         <Typography variant="subtitle2">
-                          {patient.patientName}
+                          {patient.first_name} {patient.last_name}
                         </Typography>
                         <Chip 
                           label={patient.status} 
@@ -308,10 +306,10 @@ const Imaging = () => {
                 }}>
                   <Box>
                     <Typography variant="h5" sx={{ color: 'primary.main' }}>
-                      {selectedPatient.patientName}
+                      {selectedPatient.first_name} {selectedPatient.last_name}
                     </Typography>
                     <Typography variant="subtitle2" color="text.secondary">
-                      ID: {selectedPatient.patientId} | Age: {selectedPatient.age} | Gender: {selectedPatient.gender}
+                      ID: {selectedPatient.patient_id} | Age: {selectedPatient.age} | Gender: {selectedPatient.gender}
                     </Typography>
                   </Box>
                   <Chip 
@@ -390,6 +388,8 @@ const Imaging = () => {
                       </label>
                     </Box>
                   )}
+                  {imageUploadSuccess && <Alert severity="success" sx={{ mt: 2 }}>{imageUploadSuccess}</Alert>}
+                  {imageUploadError && <Alert severity="error" sx={{ mt: 2 }}>{imageUploadError}</Alert>}
                 </Box>
 
                 {/* Report Section */}
@@ -450,6 +450,8 @@ const Imaging = () => {
                 >
                   Submit to Doctor
                 </Button>
+                {reportSubmitSuccess && <Alert severity="success" sx={{ mt: 2 }}>{reportSubmitSuccess}</Alert>}
+                {reportSubmitError && <Alert severity="error" sx={{ mt: 2 }}>{reportSubmitError}</Alert>}
               </CardContent>
             </Card>
           ) : (
@@ -500,6 +502,12 @@ const Imaging = () => {
                     <Typography variant="body2" color="text.secondary" align="center">
                       Complete the study to get AI analysis
                     </Typography>
+                  ) : aiLoading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                      <CircularProgress />
+                    </Box>
+                  ) : aiError ? (
+                    <Alert severity="error">{aiError}</Alert>
                   ) : aiAnalysis ? (
                     <>
                       {/* Image Analysis */}

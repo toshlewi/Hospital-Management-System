@@ -1,1170 +1,880 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Send,
-  FileText,
-  Upload,
-  TestTube,
-  Scan,
-  Pill,
-  User,
-  Calendar,
-  Clock,
-  Plus,
-  Save,
-  Bot,
-  MessageCircle,
-  Eye,
-  Activity,
-  Stethoscope,
-  AlertCircle,
-} from 'lucide-react';
+  Container, Typography, Box, Tabs, Tab, Card, CardContent, Button, Grid, Avatar, TextField, InputAdornment, Divider, CircularProgress, Alert, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, MenuItem, Select, FormControl, InputLabel
+} from '@mui/material';
+import { Person as PersonIcon, Search as SearchIcon, History as HistoryIcon, NoteAdd as NoteAddIcon, Science as ScienceIcon, Medication as MedicationIcon, SmartToy as AIIcon, Image as ImageIcon, AutoFixHigh, Info } from '@mui/icons-material';
+import { patientAPI, aiAPI } from '../../services/api';
+import { useTheme } from '@mui/material/styles';
+import { useDebounce } from 'use-debounce';
 
-const OutpatientSystem = () => {
+const Outpatient = () => {
+  const [patients, setPatients] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const [activeTab, setActiveTab] = useState('history');
-  const [history, setHistory] = useState('');
-  const [labRequests, setLabRequests] = useState([]);
-  const [imagingRequests, setImagingRequests] = useState([]);
-  const [prescriptions, setPrescriptions] = useState([]);
-  const [aiSuggestions, setAiSuggestions] = useState([]);
-  const [chatMessages, setChatMessages] = useState([]);
-  const [chatInput, setChatInput] = useState('');
-  const [newLabRequest, setNewLabRequest] = useState('');
-  const [newImagingRequest, setNewImagingRequest] = useState('');
-  const [newPrescription, setNewPrescription] = useState({
-    medication: '',
-    dosage: '',
-    frequency: '',
-    duration: '',
-  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [tab, setTab] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [notes, setNotes] = useState([]);
+  const [tests, setTests] = useState([]);
+  const [medications, setMedications] = useState([]);
+  const [imaging, setImaging] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState('');
+  const [doctorId, setDoctorId] = useState(1); // For demo, default to 1
+  const [noteText, setNoteText] = useState('');
+  const [diagnosis, setDiagnosis] = useState('');
+  const [advice, setAdvice] = useState('');
+  const [noteLoading, setNoteLoading] = useState(false);
+  const [noteSuccess, setNoteSuccess] = useState('');
+  const [noteError, setNoteError] = useState('');
+  const [testTypes, setTestTypes] = useState([]);
+  const [selectedTestType, setSelectedTestType] = useState('');
+  const [testOrderLoading, setTestOrderLoading] = useState(false);
+  const [testOrderSuccess, setTestOrderSuccess] = useState('');
+  const [testOrderError, setTestOrderError] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const [imageDescription, setImageDescription] = useState('');
+  const [imageUploadLoading, setImageUploadLoading] = useState(false);
+  const [imageUploadSuccess, setImageUploadSuccess] = useState('');
+  const [imageUploadError, setImageUploadError] = useState('');
+  const [aiInput, setAiInput] = useState('');
+  const [aiResult, setAiResult] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState('');
+  const [aiMedResult, setAiMedResult] = useState(null);
+  const [aiMedLoading, setAiMedLoading] = useState(false);
+  const [aiMedError, setAiMedError] = useState('');
+  const theme = useTheme();
 
-  const [patients] = useState([
-    {
-      id: 1,
-      name: 'John Doe',
-      age: 45,
-      condition: 'Hypertension',
-      lastVisit: '2025-06-10',
-      status: 'Waiting',
-      mrn: 'MRN001',
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      age: 32,
-      condition: 'Type 2 Diabetes',
-      lastVisit: '2025-06-08',
-      status: 'In Progress',
-      mrn: 'MRN002',
-    },
-    {
-      id: 3,
-      name: 'Mike Johnson',
-      age: 28,
-      condition: 'Asthma',
-      lastVisit: '2025-06-05',
-      status: 'Completed',
-      mrn: 'MRN003',
-    },
-    {
-      id: 4,
-      name: 'Sarah Wilson',
-      age: 38,
-      condition: 'Migraine',
-      lastVisit: '2025-06-12',
-      status: 'Waiting',
-      mrn: 'MRN004',
-    },
-  ]);
-
-  // Simulate AI suggestions based on what's being typed
-  useEffect(() => {
-    if (history.length > 10) {
-      const suggestions = generateAISuggestions(history);
-      setAiSuggestions(suggestions);
-    }
-  }, [history]);
-
-  const generateAISuggestions = (text) => {
-    const suggestions = [];
-    const lowerText = text.toLowerCase();
-
-    if (lowerText.includes('chest pain') || lowerText.includes('cardiac')) {
-      suggestions.push({
-        type: 'diagnosis',
-        text: 'Consider: Angina, MI, Pericarditis',
-        confidence: 85,
-      });
-      suggestions.push({
-        type: 'lab',
-        text: 'Recommended: Troponin, CK-MB, D-dimer',
-        confidence: 90,
-      });
-      suggestions.push({
-        type: 'imaging',
-        text: 'Consider: ECG, Chest X-ray, Echo',
-        confidence: 88,
-      });
-    }
-
-    if (lowerText.includes('diabetes') || lowerText.includes('glucose')) {
-      suggestions.push({
-        type: 'diagnosis',
-        text: 'Monitor: HbA1c, diabetic complications',
-        confidence: 92,
-      });
-      suggestions.push({
-        type: 'lab',
-        text: 'Recommended: HbA1c, FBG, Lipid profile',
-        confidence: 95,
-      });
-    }
-
-    if (lowerText.includes('hypertension') || lowerText.includes('bp')) {
-      suggestions.push({
-        type: 'prescription',
-        text: 'Consider: ACE inhibitors, ARBs',
-        confidence: 87,
-      });
-    }
-
-    return suggestions;
-  };
-
-  const handlePatientSelect = (patient) => {
-    setSelectedPatient(patient);
-    setActiveTab('history');
-    // Reset forms when switching patients
-    setHistory('');
-    setLabRequests([]);
-    setImagingRequests([]);
-    setPrescriptions([]);
-    setAiSuggestions([]);
-  };
-
-  const addLabRequest = () => {
-    if (newLabRequest.trim()) {
-      setLabRequests([
-        ...labRequests,
-        {
-          id: Date.now(),
-          test: newLabRequest,
-          status: 'Pending',
-          requestedAt: new Date().toLocaleString(),
-        },
-      ]);
-      setNewLabRequest('');
-    }
-  };
-
-  const addImagingRequest = () => {
-    if (newImagingRequest.trim()) {
-      setImagingRequests([
-        ...imagingRequests,
-        {
-          id: Date.now(),
-          study: newImagingRequest,
-          status: 'Pending',
-          requestedAt: new Date().toLocaleString(),
-        },
-      ]);
-      setNewImagingRequest('');
-    }
-  };
-
-  const addPrescription = () => {
-    if (newPrescription.medication.trim()) {
-      setPrescriptions([
-        ...prescriptions,
-        {
-          id: Date.now(),
-          ...newPrescription,
-          prescribedAt: new Date().toLocaleString(),
-        },
-      ]);
-      setNewPrescription({
-        medication: '',
-        dosage: '',
-        frequency: '',
-        duration: '',
-      });
-    }
-  };
-
-  const sendChatMessage = () => {
-    if (chatInput.trim()) {
-      const userMessage = { id: Date.now(), type: 'user', text: chatInput };
-      const aiResponse = {
-        id: Date.now() + 1,
-        type: 'ai',
-        text: generateAIResponse(chatInput),
-      };
-      setChatMessages([...chatMessages, userMessage, aiResponse]);
-      setChatInput('');
-    }
-  };
-
-  const generateAIResponse = (input) => {
-    const responses = [
-      'Based on the symptoms, I recommend ordering CBC and comprehensive metabolic panel.',
-      "The patient's history suggests a follow-up cardiac workup would be beneficial.",
-      'Consider prescribing a proton pump inhibitor for the gastric symptoms.',
-      'The vital signs indicate monitoring blood pressure is essential.',
-      'I suggest scheduling a specialist consultation based on these findings.',
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Waiting':
-        return 'status-waiting';
-      case 'In Progress':
-        return 'status-progress';
-      case 'Completed':
-        return 'status-completed';
-      default:
-        return 'status-default';
-    }
-  };
-
-  const tabs = [
-    { id: 'history', label: 'History', icon: FileText },
-    { id: 'labs', label: 'Lab Orders', icon: TestTube },
-    { id: 'imaging', label: 'Imaging', icon: Scan },
-    { id: 'prescriptions', label: 'Prescriptions', icon: Pill },
+  // Add these constants for tab labels and icons
+  const tabConfig = [
+    { label: 'History', icon: <HistoryIcon /> },
+    { label: 'New Note', icon: <NoteAddIcon /> },
+    { label: 'Order Test', icon: <ScienceIcon /> },
+    { label: 'Test Results', icon: <AutoFixHigh /> },
+    { label: 'Prescribe', icon: <MedicationIcon /> },
+    { label: 'Images', icon: <ImageIcon /> }
   ];
 
+  const commonMeds = [
+    'Paracetamol',
+    'Amoxicillin',
+    'Ibuprofen',
+    'Ciprofloxacin',
+    'Metformin',
+    'Amlodipine',
+    'Custom...'
+  ];
+  const [medName, setMedName] = useState('');
+  const [customMedName, setCustomMedName] = useState('');
+  const [medDosage, setMedDosage] = useState('');
+  const [medInstructions, setMedInstructions] = useState('');
+  const [medLoading, setMedLoading] = useState(false);
+  const [medSuccess, setMedSuccess] = useState('');
+  const [medError, setMedError] = useState('');
+
+  // Debounced values for AI analysis
+  const [debouncedNoteText] = useDebounce(noteText, 600);
+  const [debouncedDiagnosis] = useDebounce(diagnosis, 600);
+  const [debouncedAdvice] = useDebounce(advice, 600);
+  const [debouncedMedName] = useDebounce(medName, 600);
+  const [debouncedMedDosage] = useDebounce(medDosage, 600);
+  const [debouncedMedInstructions] = useDebounce(medInstructions, 600);
+
+  const commonLabTests = [
+    { id: 1, name: 'CBC' },
+    { id: 2, name: 'Malaria' },
+    { id: 3, name: 'Blood Sugar' },
+    { id: 4, name: 'Liver Function Test' },
+    { id: 5, name: 'Renal Function Test' },
+    { id: 6, name: 'HIV Test' },
+    { id: 7, name: 'Urinalysis' },
+  ];
+  const imagingStudies = [
+    'Chest X-ray',
+    'Abdominal Ultrasound',
+    'CT Scan',
+    'MRI',
+    'Echocardiogram',
+    'Mammogram',
+    'Pelvic Ultrasound',
+    'Other...'
+  ];
+  const [selectedLabTest, setSelectedLabTest] = useState('');
+  const [selectedImaging, setSelectedImaging] = useState('');
+  const [imagingOrderLoading, setImagingOrderLoading] = useState(false);
+  const [imagingOrderSuccess, setImagingOrderSuccess] = useState('');
+  const [imagingOrderError, setImagingOrderError] = useState('');
+
+  useEffect(() => {
+    fetchPatients();
+  }, []);
+
+  const fetchPatients = async () => {
+    try {
+      setLoading(true);
+      const data = await patientAPI.getAllPatients();
+      setPatients(data);
+      setError('');
+    } catch (err) {
+      setError('Failed to fetch patients');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePatientSelect = (id) => {
+    const patient = patients.find(p => p.patient_id === Number(id));
+    setSelectedPatient(patient);
+  };
+
+  // Fetch patient history when selectedPatient changes
+  useEffect(() => {
+    if (selectedPatient) {
+      fetchHistory(selectedPatient.patient_id);
+    } else {
+      setNotes([]); setTests([]); setMedications([]); setImaging([]);
+    }
+  }, [selectedPatient]);
+
+  const fetchHistory = async (patientId) => {
+    setHistoryLoading(true);
+    setHistoryError('');
+    try {
+      const [notesData, testsData, medsData, imagingData] = await Promise.all([
+        patientAPI.getMedicalNotes(patientId),
+        patientAPI.getTestOrders(patientId),
+        patientAPI.getMedications(patientId),
+        patientAPI.getImaging(patientId)
+      ]);
+      setNotes(notesData);
+      setTests(testsData);
+      setMedications(medsData);
+      setImaging(imagingData);
+    } catch (err) {
+      setHistoryError('Failed to load patient history.');
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  // Handle new note submit
+  const handleNoteSubmit = async (e) => {
+    e.preventDefault();
+    setNoteLoading(true);
+    setNoteSuccess('');
+    setNoteError('');
+    try {
+      await patientAPI.addMedicalNote(selectedPatient.patient_id, {
+        doctor_id: doctorId,
+        note_text: noteText,
+        diagnosis,
+        advice
+      });
+      setNoteSuccess('Note saved successfully!');
+      setNoteText(''); setDiagnosis(''); setAdvice('');
+      fetchHistory(selectedPatient.patient_id); // Refresh history
+    } catch (err) {
+      setNoteError('Failed to save note.');
+    } finally {
+      setNoteLoading(false);
+    }
+  };
+
+  // Fetch test types on mount
+  useEffect(() => {
+    fetchTestTypes();
+  }, []);
+
+  const fetchTestTypes = async () => {
+    try {
+      const response = await patientAPI.getAllTestTypes ? await patientAPI.getAllTestTypes() : [];
+      setTestTypes(response);
+    } catch (err) {
+      setTestTypes([]);
+    }
+  };
+
+  // Handle test order submit
+  const handleTestOrderSubmit = async (e) => {
+    e.preventDefault();
+    setTestOrderLoading(true);
+    setTestOrderSuccess('');
+    setTestOrderError('');
+    try {
+      await patientAPI.addTestOrder(selectedPatient.patient_id, {
+        doctor_id: doctorId,
+        test_type_id: Number(selectedLabTest),
+        order_type: 'lab'
+      });
+      setTestOrderSuccess('Test ordered successfully!');
+      setSelectedLabTest('');
+      fetchHistory(selectedPatient.patient_id);
+    } catch (err) {
+      setTestOrderError('Failed to order test.');
+    } finally {
+      setTestOrderLoading(false);
+    }
+  };
+
+  // Handle imaging order submit
+  const handleImagingOrderSubmit = async (e) => {
+    e.preventDefault();
+    setImagingOrderLoading(true);
+    setImagingOrderSuccess('');
+    setImagingOrderError('');
+    if (!selectedImaging) {
+      setImagingOrderError('Please select an imaging study.');
+      setImagingOrderLoading(false);
+      return;
+    }
+    try {
+      await patientAPI.addTestOrder(selectedPatient.patient_id, {
+        doctor_id: doctorId,
+        test_type_id: null,
+        test_name: selectedImaging,
+        order_type: 'imaging'
+      });
+      setImagingOrderSuccess('Imaging ordered successfully!');
+      setSelectedImaging('');
+      fetchHistory(selectedPatient.patient_id);
+    } catch (err) {
+      setImagingOrderError('Failed to order imaging.');
+    } finally {
+      setImagingOrderLoading(false);
+    }
+  };
+
+  // Prefill AI input with latest note when switching to AI tab
+  useEffect(() => {
+    if (tab === 4 && notes.length > 0 && !aiInput) {
+      setAiInput(notes[0].note_text || '');
+    }
+    // eslint-disable-next-line
+  }, [tab, notes]);
+
+  // Real-time AI analysis as doctor types
+  useEffect(() => {
+    if (tab === 1 && (debouncedNoteText || debouncedDiagnosis || debouncedAdvice)) {
+      setAiLoading(true);
+      setAiError('');
+      aiAPI.diagnose({
+        note_text: debouncedNoteText,
+        diagnosis: debouncedDiagnosis,
+        advice: debouncedAdvice
+      })
+        .then(result => setAiResult(result))
+        .catch(() => setAiError('AI diagnosis failed.'))
+        .finally(() => setAiLoading(false));
+    }
+    // eslint-disable-next-line
+  }, [debouncedNoteText, debouncedDiagnosis, debouncedAdvice]);
+
+  // Real-time AI analysis for medication
+  useEffect(() => {
+    if (tab === 4 && (debouncedMedName || debouncedMedDosage || debouncedMedInstructions)) {
+      setAiMedLoading(true);
+      setAiMedError('');
+      setAiMedResult(null);
+      aiAPI.diagnose({
+        medication_name: debouncedMedName,
+        dosage: debouncedMedDosage,
+        instructions: debouncedMedInstructions
+      })
+        .then(result => setAiMedResult(result))
+        .catch(() => setAiMedError('AI analysis failed.'))
+        .finally(() => setAiMedLoading(false));
+    } else {
+      setAiMedResult(null);
+    }
+  }, [tab, debouncedMedName, debouncedMedDosage, debouncedMedInstructions]);
+
+  // Handle medication submit
+  const handleMedSubmit = async (e) => {
+    e.preventDefault();
+    setMedLoading(true);
+    setMedSuccess('');
+    setMedError('');
+    let medication_name = medName === 'Custom...' ? customMedName : medName;
+    if (!medication_name) {
+      setMedError('Please enter a medication name.');
+      setMedLoading(false);
+      return;
+    }
+    try {
+      await patientAPI.addMedication(selectedPatient.patient_id, {
+        doctor_id: doctorId,
+        medication_name,
+        dosage: medDosage,
+        instructions: medInstructions
+      });
+      setMedSuccess('Medication prescribed successfully!');
+      setMedName(''); setCustomMedName(''); setMedDosage(''); setMedInstructions('');
+      fetchHistory(selectedPatient.patient_id);
+    } catch (err) {
+      setMedError('Failed to prescribe medication.');
+    } finally {
+      setMedLoading(false);
+    }
+  };
+
+  // Status chip color
+  const statusColor = status => {
+    if (status === 'completed') return 'success';
+    if (status === 'ordered') return 'warning';
+    return 'default';
+  };
+
   return (
-    <>
-      <style>{`
-        .outpatient-container {
-          min-height: 100vh;
-          background-color: #f9fafb;
-          padding: 1rem;
-          padding-top: 80px; /* Avoid overlap with the header */
-          padding-bottom: 80px; /* Avoid overlap with the footer */
-        }
-
-        .max-container {
-          max-width: 1280px;
-          margin: 0 auto;
-        }
-
-        .header-card {
-          background: white;
-          border-radius: 0.5rem;
-          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-          margin-bottom: 1.5rem;
-          padding: 1.5rem;
-        }
-
-        .header-content {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-
-        .header-title {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-        }
-
-        .header-title h1 {
-          font-size: 1.875rem;
-          font-weight: bold;
-          color: #111827;
-          margin: 0;
-        }
-
-        .header-date {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-size: 0.875rem;
-          color: #6b7280;
-        }
-
-        .main-grid {
-          display: grid;
-          grid-template-columns: 1fr 2fr 1fr;
-          gap: 1.5rem;
-        }
-
-        .card {
-          background: white;
-          border-radius: 0.5rem;
-          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-        }
-
-        .card-header {
-          padding: 1rem;
-          border-bottom: 1px solid #e5e7eb;
-        }
-
-        .card-title {
-          font-size: 1.125rem;
-          font-weight: 600;
-          color: #111827;
-          display: flex;
-          align-items: center;
-          margin: 0;
-        }
-
-        .patient-list {
-          max-height: 24rem;
-          overflow-y: auto;
-        }
-
-        .patient-item {
-          padding: 1rem;
-          border-bottom: 1px solid #f3f4f6;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-
-        .patient-item:hover {
-          background-color: #f9fafb;
-        }
-
-        .patient-item.selected {
-          background-color: #eff6ff;
-          border-left: 4px solid #3b82f6;
-        }
-
-        .patient-info {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-        }
-
-        .patient-details h3 {
-          font-weight: 500;
-          color: #111827;
-          margin: 0 0 0.25rem 0;
-        }
-
-        .patient-details p {
-          font-size: 0.875rem;
-          color: #6b7280;
-          margin: 0.125rem 0;
-        }
-
-        .patient-details .last-visit {
-          font-size: 0.75rem;
-          color: #9ca3af;
-          margin-top: 0.25rem;
-        }
-
-        .status-badge {
-          padding: 0.25rem 0.5rem;
-          border-radius: 9999px;
-          font-size: 0.75rem;
-          font-weight: 500;
-        }
-
-        .status-waiting {
-          background-color: #fef3c7;
-          color: #92400e;
-        }
-
-        .status-progress {
-          background-color: #dbeafe;
-          color: #1e40af;
-        }
-
-        .status-completed {
-          background-color: #d1fae5;
-          color: #065f46;
-        }
-
-        .status-default {
-          background-color: #f3f4f6;
-          color: #374151;
-        }
-
-        .patient-header {
-          padding: 1rem;
-          border-bottom: 1px solid #e5e7eb;
-        }
-
-        .patient-header-content {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-
-        .patient-title {
-          h2 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #111827;
-            margin: 0;
-          }
-        }
-
-        .patient-subtitle {
-          font-size: 0.875rem;
-          color: #6b7280;
-          margin: 0;
-        }
-
-        .session-time {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-size: 0.875rem;
-          color: #6b7280;
-        }
-
-        .tabs-nav {
-          border-bottom: 1px solid #e5e7eb;
-        }
-
-        .tabs-list {
-          display: flex;
-          gap: 2rem;
-          padding: 0 1rem;
-        }
-
-        .tab-button {
-          padding: 0.75rem 0.25rem;
-          border-bottom: 2px solid transparent;
-          font-weight: 500;
-          font-size: 0.875rem;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          background: none;
-          border-top: none;
-          border-left: none;
-          border-right: none;
-          cursor: pointer;
-          color: #6b7280;
-          transition: all 0.2s;
-        }
-
-        .tab-button:hover {
-          color: #374151;
-          border-bottom-color: #d1d5db;
-        }
-
-        .tab-button.active {
-          border-bottom-color: #3b82f6;
-          color: #2563eb;
-        }
-
-        .tab-content {
-          padding: 1rem;
-        }
-
-        .form-section {
-          margin-bottom: 1rem;
-        }
-
-        .form-section h3 {
-          font-size: 1.125rem;
-          font-weight: 500;
-          color: #111827;
-          margin: 0 0 1rem 0;
-        }
-
-        .form-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 1rem;
-        }
-
-        .upload-btn {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.5rem 0.75rem;
-          background-color: #f3f4f6;
-          border: none;
-          border-radius: 0.375rem;
-          font-size: 0.875rem;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-
-        .upload-btn:hover {
-          background-color: #e5e7eb;
-        }
-
-        .textarea {
-          width: 100%;
-          height: 16rem;
-          padding: 0.75rem;
-          border: 1px solid #d1d5db;
-          border-radius: 0.375rem;
-          resize: none;
-          font-family: inherit;
-          font-size: 0.875rem;
-          line-height: 1.5;
-        }
-
-        .textarea:focus {
-          outline: none;
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-        }
-
-        .input {
-          padding: 0.5rem;
-          border: 1px solid #d1d5db;
-          border-radius: 0.375rem;
-          font-size: 0.875rem;
-          line-height: 1.5;
-        }
-
-        .input:focus {
-          outline: none;
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-        }
-
-        .input-flex {
-          flex: 1;
-        }
-
-        .input-row {
-          display: flex;
-          gap: 0.5rem;
-          margin-bottom: 1rem;
-        }
-
-        .input-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-          margin-bottom: 1rem;
-        }
-
-        .btn {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.5rem 1rem;
-          border: none;
-          border-radius: 0.375rem;
-          font-size: 0.875rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-
-        .btn-blue {
-          background-color: #2563eb;
-          color: white;
-        }
-
-        .btn-blue:hover {
-          background-color: #1d4ed8;
-        }
-
-        .btn-green {
-          background-color: #16a34a;
-          color: white;
-        }
-
-        .btn-green:hover {
-          background-color: #15803d;
-        }
-
-        .btn-purple {
-          background-color: #9333ea;
-          color: white;
-        }
-
-        .btn-purple:hover {
-          background-color: #7c3aed;
-        }
-
-        .btn-indigo {
-          background-color: #4f46e5;
-          color: white;
-        }
-
-        .btn-indigo:hover {
-          background-color: #4338ca;
-        }
-
-        .btn-light {
-          background-color: #e0f2fe;
-          color: #0369a1;
-        }
-
-        .btn-light:hover {
-          background-color: #bae6fd;
-        }
-
-        .item-list {
-          margin-top: 1rem;
-        }
-
-        .item-card {
-          padding: 0.75rem;
-          background-color: #f9fafb;
-          border-radius: 0.375rem;
-          margin-bottom: 0.5rem;
-        }
-
-        .item-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-
-        .item-title {
-          font-weight: 500;
-          color: #111827;
-          margin: 0;
-        }
-
-        .item-subtitle {
-          font-size: 0.875rem;
-          color: #6b7280;
-          margin: 0.125rem 0;
-        }
-
-        .item-time {
-          font-size: 0.75rem;
-          color: #9ca3af;
-          margin: 0;
-        }
-
-        .empty-state {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          height: 24rem;
-          text-align: center;
-        }
-
-        .empty-content h2 {
-          font-size: 1.25rem;
-          color: #6b7280;
-          margin: 1rem 0 0 0;
-        }
-
-        .ai-panel {
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-        }
-
-        .ai-status {
-          display: flex;
-          align-items: center;
-          margin-top: 0.25rem;
-        }
-
-        .status-dot {
-          height: 0.5rem;
-          width: 0.5rem;
-          background-color: #4ade80;
-          border-radius: 50%;
-          margin-right: 0.5rem;
-        }
-
-        .status-text {
-          font-size: 0.75rem;
-          color: #6b7280;
-        }
-
-        .suggestions-section {
-          padding: 1rem;
-          border-bottom: 1px solid #e5e7eb;
-        }
-
-        .suggestions-title {
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: #374151;
-          margin: 0 0 0.75rem 0;
-          display: flex;
-          align-items: center;
-          gap: 0.25rem;
-        }
-
-        .suggestions-list {
-          max-height: 12rem;
-          overflow-y: auto;
-        }
-
-        .suggestion-item {
-          padding: 0.5rem;
-          background-color: #f9fafb;
-          border-radius: 0.375rem;
-          margin-bottom: 0.5rem;
-        }
-
-        .suggestion-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 0.25rem;
-        }
-
-        .suggestion-type {
-          font-size: 0.75rem;
-          font-weight: 500;
-          padding: 0.125rem 0.5rem;
-          border-radius: 9999px;
-        }
-
-        .type-diagnosis {
-          background-color: #fee2e2;
-          color: #991b1b;
-        }
-
-        .type-lab {
-          background-color: #dbeafe;
-          color: #1e40af;
-        }
-
-        .type-imaging {
-          background-color: #e9d5ff;
-          color: #7c2d12;
-        }
-
-        .type-prescription {
-          background-color: #d1fae5;
-          color: #065f46;
-        }
-
-        .suggestion-confidence {
-          font-size: 0.75rem;
-          color: #6b7280;
-        }
-
-        .suggestion-text {
-          font-size: 0.75rem;
-          color: #374151;
-          margin: 0;
-        }
-
-        .suggestions-empty {
-          font-size: 0.75rem;
-          color: #6b7280;
-          font-style: italic;
-        }
-
-        .chat-section {
-          flex: 1;
-          padding: 1rem;
-          overflow-y: auto;
-        }
-
-        .chat-title {
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: #374151;
-          margin: 0 0 0.75rem 0;
-          display: flex;
-          align-items: center;
-          gap: 0.25rem;
-        }
-
-        .chat-messages {
-          margin-bottom: 1rem;
-        }
-
-        .chat-message {
-          padding: 0.5rem;
-          border-radius: 0.375rem;
-          font-size: 0.875rem;
-          margin-bottom: 0.5rem;
-        }
-
-        .message-user {
-          background-color: #dbeafe;
-          color: #1e3a8a;
-          margin-left: 1rem;
-        }
-
-        .message-ai {
-          background-color: #f3f4f6;
-          color: #111827;
-          margin-right: 1rem;
-        }
-
-        .chat-input-section {
-          padding: 1rem;
-          border-top: 1px solid #e5e7eb;
-        }
-
-        .chat-input-row {
-          display: flex;
-          gap: 0.5rem;
-        }
-
-        .chat-input {
-          flex: 1;
-          padding: 0.5rem;
-          font-size: 0.875rem;
-          border: 1px solid #d1d5db;
-          border-radius: 0.375rem;
-        }
-
-        .chat-input:focus {
-          outline: none;
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-        }
-
-        .send-btn {
-          padding: 0.5rem 0.75rem;
-          background-color: #2563eb;
-          color: white;
-          border: none;
-          border-radius: 0.375rem;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-
-        .send-btn:hover {
-          background-color: #1d4ed8;
-        }
-      `}</style>
-
-      <div className="outpatient-container">
-        <div className="max-container">
-          {/* Header */}
-          <div className="header-card">
-            <div className="header-content">
-              <div className="header-title">
-                <Stethoscope size={32} color="#2563eb" />
-                <h1>Outpatient Care</h1>
-              </div>
-              <div className="header-date">
-                <Calendar size={16} />
-                <span>Today: {new Date().toLocaleDateString()}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="main-grid">
-            {/* Left Panel - Patient List */}
-            <div className="card">
-              <div className="card-header">
-                <h2 className="card-title">
-                  <User size={20} color="#2563eb" style={{ marginRight: '0.5rem' }} />
-                  Patient Queue
-                </h2>
-              </div>
-              <div className="patient-list">
-                {patients.map((patient) => (
-                  <div
-                    key={patient.id}
-                    onClick={() => handlePatientSelect(patient)}
-                    className={`patient-item ${selectedPatient?.id === patient.id ? 'selected' : ''}`}
-                  >
-                    <div className="patient-info">
-                      <div className="patient-details">
-                        <h3>{patient.name}</h3>
-                        <p>MRN: {patient.mrn}</p>
-                        <p>Age: {patient.age} • {patient.condition}</p>
-                        <p className="last-visit">Last visit: {patient.lastVisit}</p>
-                      </div>
-                      <span className={`status-badge ${getStatusColor(patient.status)}`}>
-                        {patient.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Middle Panel - Patient Details */}
-            <div className="card">
-              {selectedPatient ? (
-                <>
-                  {/* Patient Header */}
-                  <div className="patient-header">
-                    <div className="patient-header-content">
-                      <div className="patient-title">
-                        <h2>{selectedPatient.name}</h2>
-                        <p className="patient-subtitle">
-                          {selectedPatient.age} years old • {selectedPatient.condition} • MRN: {selectedPatient.mrn}
-                        </p>
-                      </div>
-                      <div className="session-time">
-                        <Clock size={16} />
-                        <span>Session started: {new Date().toLocaleTimeString()}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Tabs */}
-                  <div className="tabs-nav">
-                    <div className="tabs-list">
-                      {tabs.map((tab) => {
-                        const Icon = tab.icon;
-                        return (
-                          <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
-                          >
-                            <Icon size={16} />
-                            <span>{tab.label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Tab Content */}
-                  <div className="tab-content">
-                    {activeTab === 'history' && (
-                      <div>
-                        <div className="form-row">
-                          <h3>Patient History & Notes</h3>
-                          <button className="upload-btn">
-                            <Upload size={16} />
-                            <span>Upload Files</span>
-                          </button>
-                        </div>
-                        <textarea
-                          value={history}
-                          onChange={(e) => setHistory(e.target.value)}
-                          placeholder="Enter patient history, symptoms, examination findings..."
-                          className="textarea"
-                        />
-                        <button className="btn btn-blue" style={{ marginTop: '1rem' }}>
-                          <Save size={16} />
-                          <span>Save History</span>
-                        </button>
-                      </div>
-                    )}
-
-                    {activeTab === 'labs' && (
-                      <div>
-                        <h3>Laboratory Orders</h3>
-                        <div className="input-row">
-                          <input
-                            type="text"
-                            value={newLabRequest}
-                            onChange={(e) => setNewLabRequest(e.target.value)}
-                            placeholder="Enter lab test (e.g., CBC, CMP, Lipid Panel)"
-                            className="input input-flex"
-                          />
-                          <button onClick={addLabRequest} className="btn btn-green">
-                            <Plus size={16} />
-                            <span>Add</span>
-                          </button>
-                        </div>
-                        <div className="item-list">
-                          {labRequests.map((lab) => (
-                            <div key={lab.id} className="item-card">
-                              <div className="item-header">
-                                <div>
-                                  <p className="item-title">{lab.test}</p>
-                                  <p className="item-subtitle">Requested: {lab.requestedAt}</p>
-                                </div>
-                                <span className="status-badge status-waiting">
-                                  {lab.status}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {activeTab === 'imaging' && (
-                      <div>
-                        <h3>Imaging Orders</h3>
-                        <div className="input-row">
-                          <input
-                            type="text"
-                            value={newImagingRequest}
-                            onChange={(e) => setNewImagingRequest(e.target.value)}
-                            placeholder="Enter imaging study (e.g., Chest X-ray, CT Abdomen, MRI Brain)"
-                            className="input input-flex"
-                          />
-                          <button onClick={addImagingRequest} className="btn btn-purple">
-                            <Plus size={16} />
-                            <span>Add</span>
-                          </button>
-                        </div>
-                        <div className="item-list">
-                          {imagingRequests.map((imaging) => (
-                            <div key={imaging.id} className="item-card">
-                              <div className="item-header">
-                                <div>
-                                  <p className="item-title">{imaging.study}</p>
-                                  <p className="item-subtitle">Requested: {imaging.requestedAt}</p>
-                                </div>
-                                <span className="status-badge status-waiting">
-                                  {imaging.status}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {activeTab === 'prescriptions' && (
-                      <div>
-                        <h3>Prescriptions</h3>
-                        <div className="input-grid">
-                          <input
-                            type="text"
-                            value={newPrescription.medication}
-                            onChange={(e) => setNewPrescription({...newPrescription, medication: e.target.value})}
-                            placeholder="Medication name"
-                            className="input"
-                          />
-                          <input
-                            type="text"
-                            value={newPrescription.dosage}
-                            onChange={(e) => setNewPrescription({...newPrescription, dosage: e.target.value})}
-                            placeholder="Dosage (e.g., 10mg)"
-                            className="input"
-                          />
-                          <input
-                            type="text"
-                            value={newPrescription.frequency}
-                            onChange={(e) => setNewPrescription({...newPrescription, frequency: e.target.value})}
-                            placeholder="Frequency (e.g., twice daily)"
-                            className="input"
-                          />
-                          <input
-                            type="text"
-                            value={newPrescription.duration}
-                            onChange={(e) => setNewPrescription({...newPrescription, duration: e.target.value})}
-                            placeholder="Duration (e.g., 7 days)"
-                            className="input"
-                          />
-                        </div>
-                        <button onClick={addPrescription} className="btn btn-indigo">
-                          <Plus size={16} />
-                          <span>Add Prescription</span>
-                        </button>
-                        <div className="item-list">
-                          {prescriptions.map((prescription) => (
-                            <div key={prescription.id} className="item-card">
-                              <div className="item-header">
-                                <div>
-                                  <p className="item-title">{prescription.medication}</p>
-                                  <p className="item-subtitle">
-                                    {prescription.dosage} • {prescription.frequency} • {prescription.duration}
-                                  </p>
-                                  <p className="item-time">Prescribed: {prescription.prescribedAt}</p>
-                                </div>
-                                <button className="btn btn-light">
-                                  Print Rx
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <div className="empty-state">
-                  <div className="empty-content">
-                    <User size={64} color="#d1d5db" />
-                    <h2>Select a patient to begin consultation</h2>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Right Panel - AI Assistant */}
-            <div className="card ai-panel">
-              <div className="card-header">
-                <h2 className="card-title">
-                  <Bot size={20} color="#16a34a" style={{ marginRight: '0.5rem' }} />
-                  AI Clinical Assistant
-                </h2>
-                <div className="ai-status">
-                  <div className="status-dot"></div>
-                  <span className="status-text">Active & Monitoring</span>
-                </div>
-              </div>
-
-              {/* AI Suggestions */}
-              <div className="suggestions-section">
-                <h3 className="suggestions-title">
-                  <Activity size={16} />
-                  Real-time Suggestions
-                </h3>
-                <div className="suggestions-list">
-                  {aiSuggestions.length > 0 ? (
-                    aiSuggestions.map((suggestion, index) => (
-                      <div key={index} className="suggestion-item">
-                        <div className="suggestion-header">
-                          <span className={`suggestion-type ${
-                            suggestion.type === 'diagnosis' ? 'type-diagnosis' :
-                            suggestion.type === 'lab' ? 'type-lab' :
-                            suggestion.type === 'imaging' ? 'type-imaging' :
-                            'type-prescription'
-                          }`}>
-                            {suggestion.type.toUpperCase()}
-                          </span>
-                          <span className="suggestion-confidence">{suggestion.confidence}%</span>
-                        </div>
-                        <p className="suggestion-text">{suggestion.text}</p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="suggestions-empty">Start typing in the history section to get AI suggestions...</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Chat Messages */}
-              <div className="chat-section">
-                <h3 className="chat-title">
-                  <MessageCircle size={16} />
-                  AI Chat
-                </h3>
-                <div className="chat-messages">
-                  {chatMessages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`chat-message ${
-                        message.type === 'user' ? 'message-user' : 'message-ai'
-                      }`}
+    <Container maxWidth="xl" sx={{ py: 3, mt: 8, minHeight: 'calc(100vh - 64px)', backgroundColor: '#f5f5f5' }}>
+      <Grid container spacing={3}>
+        {/* Left Sidebar - Patient List */}
+        <Grid item xs={12} md={3}>
+          <Card sx={{ boxShadow: 3, height: 'calc(100vh - 100px)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', mb: 2, color: 'primary.main' }}>
+                <PersonIcon sx={{ mr: 1 }} /> Outpatients
+              </Typography>
+              <TextField
+                placeholder="Search patient..."
+                size="small"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                InputProps={{ startAdornment: <SearchIcon sx={{ mr: 1 }} /> }}
+                sx={{ mb: 2 }}
+              />
+              <Box sx={{ flex: 1, overflowY: 'auto' }}>
+                {loading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                    <CircularProgress />
+                  </Box>
+                ) : error ? (
+                  <Alert severity="error">{error}</Alert>
+                ) : patients.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">No patients found.</Typography>
+                ) : (
+                  patients.filter(p =>
+                    `${p.first_name} ${p.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    String(p.patient_id).includes(searchTerm)
+                  ).map(patient => (
+                    <Card
+                      key={patient.patient_id}
+                      sx={{
+                        mb: 1,
+                        cursor: 'pointer',
+                        backgroundColor: selectedPatient && selectedPatient.patient_id === patient.patient_id ? 'primary.light' : 'white',
+                        border: selectedPatient && selectedPatient.patient_id === patient.patient_id ? `2px solid ${theme.palette.primary.main}` : '1px solid #eee',
+                        transition: 'background 0.2s, border 0.2s'
+                      }}
+                      onClick={() => handlePatientSelect(patient.patient_id)}
                     >
-                      {message.text}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Chat Input */}
-              <div className="chat-input-section">
-                <div className="chat-input-row">
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && sendChatMessage()}
-                    placeholder="Ask AI assistant..."
-                    className="chat-input"
-                  />
-                  <button onClick={sendChatMessage} className="send-btn">
-                    <Send size={16} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
+                      <CardContent sx={{ display: 'flex', alignItems: 'center', py: 1 }}>
+                        <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
+                          {patient.first_name[0]}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="subtitle1">{patient.first_name} {patient.last_name}</Typography>
+                          <Typography variant="body2" color="text.secondary">ID: {patient.patient_id}</Typography>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+        {/* Main Area - Patient Details and Workflow */}
+        <Grid item xs={12} md={6}>
+          {selectedPatient ? (
+            <Card sx={{ boxShadow: 3, minHeight: 'calc(100vh - 100px)' }}>
+              <CardContent>
+                {/* Patient Overview */}
+                <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar sx={{ width: 56, height: 56, bgcolor: 'primary.main' }}>
+                    {selectedPatient.first_name[0]}
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h5">{selectedPatient.first_name} {selectedPatient.last_name}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Gender: {selectedPatient.gender} | DOB: {selectedPatient.date_of_birth} | Status: {selectedPatient.status}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Contact: {selectedPatient.contact_number} | Email: {selectedPatient.email}
+                    </Typography>
+                  </Box>
+                </Box>
+                {/* Tabs for workflow */}
+                <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+                  <Tabs 
+                    value={tab} 
+                    onChange={(e, newValue) => setTab(newValue)}
+                    variant="scrollable"
+                    scrollButtons="auto"
+                    allowScrollButtonsMobile
+                    aria-label="scrollable patient tabs"
+                    sx={{
+                      '& .MuiTabs-scrollButtons': {
+                        '&.Mui-disabled': { opacity: 0.3 }
+                      }
+                    }}
+                  >
+                    {tabConfig.map((config, index) => (
+                      <Tab
+                        key={config.label}
+                        icon={config.icon}
+                        label={config.label}
+                        id={`patient-tab-${index}`}
+                        aria-controls={`patient-tabpanel-${index}`}
+                        sx={{
+                          minHeight: '72px',
+                          textTransform: 'none',
+                          fontSize: '0.9rem',
+                          minWidth: { xs: '120px', sm: '160px' }
+                        }}
+                      />
+                    ))}
+                  </Tabs>
+                </Box>
+                <Divider sx={{ mb: 2 }} />
+                {/* Tab Panels */}
+                {tab === 0 && (
+                  <Box>
+                    <Typography variant="h6" sx={{ mb: 2 }}>Patient History</Typography>
+                    {historyLoading ? (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                        <CircularProgress />
+                      </Box>
+                    ) : historyError ? (
+                      <Alert severity="error">{historyError}</Alert>
+                    ) : (
+                      <Box>
+                        {/* Medical Notes */}
+                        <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, color: theme.palette.primary.main }}>Doctor Notes & Diagnoses</Typography>
+                        {notes.length === 0 ? <Typography color="text.secondary">No notes yet.</Typography> : (
+                          notes.map(note => (
+                            <Box key={note.note_id} sx={{ mb: 2, p: 2, border: '1px solid #eee', borderRadius: 2 }}>
+                              <Typography variant="body1"><b>Date:</b> {new Date(note.created_at).toLocaleString()}</Typography>
+                              <Typography variant="body2"><b>Note:</b> {note.note_text}</Typography>
+                              <Typography variant="body2"><b>Diagnosis:</b> {note.diagnosis}</Typography>
+                              <Typography variant="body2"><b>Advice:</b> {note.advice}</Typography>
+                            </Box>
+                          ))
+                        )}
+                        <Divider sx={{ my: 2 }} />
+                        {/* Test Orders */}
+                        <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, color: theme.palette.primary.main }}>Test Orders & Results</Typography>
+                        {tests.length === 0 ? <Typography color="text.secondary">No tests yet.</Typography> : (
+                          <TableContainer component={Paper} sx={{ mb: 2 }}>
+                            <Table>
+                              <TableHead>
+                                <TableRow>
+                                  <TableCell>Test Name</TableCell>
+                                  <TableCell>Status</TableCell>
+                                  <TableCell>Result</TableCell>
+                                  <TableCell>Ordered At</TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {tests.map(test => (
+                                  <TableRow key={test.order_id}>
+                                    <TableCell>{test.test_name}</TableCell>
+                                    <TableCell>
+                                      <Chip label={test.status} color={statusColor(test.status)} size="small" />
+                                    </TableCell>
+                                    <TableCell>{test.result || '-'}</TableCell>
+                                    <TableCell>{test.ordered_at && new Date(test.ordered_at).toLocaleString()}</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
+                        )}
+                        <Divider sx={{ my: 2 }} />
+                        {/* Medications */}
+                        <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, color: theme.palette.primary.main }}>Medications</Typography>
+                        {medications.length === 0 ? <Typography color="text.secondary">No medications yet.</Typography> : (
+                          <TableContainer component={Paper} sx={{ mb: 2 }}>
+                            <Table>
+                              <TableHead>
+                                <TableRow>
+                                  <TableCell>Medication</TableCell>
+                                  <TableCell>Dosage</TableCell>
+                                  <TableCell>Instructions</TableCell>
+                                  <TableCell>Prescribed At</TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {medications.map(med => (
+                                  <TableRow key={med.medication_id}>
+                                    <TableCell>{med.medication_name}</TableCell>
+                                    <TableCell>{med.dosage}</TableCell>
+                                    <TableCell>{med.instructions}</TableCell>
+                                    <TableCell>{med.prescribed_at && new Date(med.prescribed_at).toLocaleString()}</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
+                        )}
+                        <Divider sx={{ my: 2 }} />
+                        {/* Imaging */}
+                        <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, color: theme.palette.primary.main }}>Imaging</Typography>
+                        {imaging.length === 0 ? <Typography color="text.secondary">No images yet.</Typography> : (
+                          <Grid container spacing={2}>
+                            {imaging.map(img => (
+                              <Grid item key={img.image_id} xs={12} sm={6} md={4}>
+                                <Box sx={{ p: 1, border: '1px solid #eee', borderRadius: 2 }}>
+                                  <Typography variant="body2"><b>Date:</b> {new Date(img.uploaded_at).toLocaleString()}</Typography>
+                                  <Typography variant="body2"><b>Description:</b> {img.description}</Typography>
+                                  <Typography variant="body2"><b>File:</b> {img.image_path}</Typography>
+                                </Box>
+                              </Grid>
+                            ))}
+                          </Grid>
+                        )}
+                      </Box>
+                    )}
+                  </Box>
+                )}
+                {tab === 1 && (
+                  <CardContent sx={{ p: 0 }}>
+                    <Typography variant="h6" sx={{ mb: 2 }}>
+                      Add New Doctor Note / Diagnosis
+                    </Typography>
+                    <form onSubmit={handleNoteSubmit}>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            label="Doctor ID"
+                            value={doctorId}
+                            onChange={e => setDoctorId(e.target.value)}
+                            fullWidth
+                            required
+                            type="number"
+                            helperText="For demo, use 1 (Jane Doe)"
+                          />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <TextField
+                            label="Note"
+                            value={noteText}
+                            onChange={e => setNoteText(e.target.value)}
+                            fullWidth
+                            required
+                            multiline
+                            rows={3}
+                          />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            label="Diagnosis"
+                            value={diagnosis}
+                            onChange={e => setDiagnosis(e.target.value)}
+                            fullWidth
+                            required
+                          />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            label="Advice"
+                            value={advice}
+                            onChange={e => setAdvice(e.target.value)}
+                            fullWidth
+                            required
+                          />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Button
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            disabled={noteLoading}
+                          >
+                            {noteLoading ? 'Saving...' : 'Save Note'}
+                          </Button>
+                        </Grid>
+                      </Grid>
+                    </form>
+                    {noteSuccess && <Alert severity="success" sx={{ mt: 2 }}>{noteSuccess}</Alert>}
+                    {noteError && <Alert severity="error" sx={{ mt: 2 }}>{noteError}</Alert>}
+                  </CardContent>
+                )}
+                {tab === 2 && (
+                  <CardContent sx={{ p: 0 }}>
+                    <Typography variant="h6" sx={{ mb: 2 }}>
+                      Order New Test
+                    </Typography>
+                    <form onSubmit={handleTestOrderSubmit}>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} md={6}>
+                          <FormControl fullWidth required>
+                            <InputLabel id="lab-test-label">Lab Test</InputLabel>
+                            <Select
+                              labelId="lab-test-label"
+                              id="lab-test-select"
+                              value={selectedLabTest}
+                              label="Lab Test"
+                              onChange={e => setSelectedLabTest(e.target.value)}
+                            >
+                              {commonLabTests.map(tt => (
+                                <MenuItem key={tt.id} value={tt.id}>{tt.name}</MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            label="Doctor ID"
+                            value={doctorId}
+                            onChange={e => setDoctorId(e.target.value)}
+                            fullWidth
+                            required
+                            type="number"
+                            helperText="For demo, use 1 (Jane Doe)"
+                          />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Button
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            disabled={testOrderLoading}
+                          >
+                            {testOrderLoading ? 'Ordering...' : 'Order Lab Test'}
+                          </Button>
+                        </Grid>
+                      </Grid>
+                    </form>
+                    {testOrderSuccess && <Alert severity="success" sx={{ mt: 2 }}>{testOrderSuccess}</Alert>}
+                    {testOrderError && <Alert severity="error" sx={{ mt: 2 }}>{testOrderError}</Alert>}
+                    <Divider sx={{ my: 4 }} />
+                    <Typography variant="h6" sx={{ mb: 2 }}>
+                      Order Imaging Study
+                    </Typography>
+                    <form onSubmit={handleImagingOrderSubmit}>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} md={6}>
+                          <FormControl fullWidth required>
+                            <InputLabel id="imaging-study-label">Imaging Study</InputLabel>
+                            <Select
+                              labelId="imaging-study-label"
+                              id="imaging-study-select"
+                              value={selectedImaging}
+                              label="Imaging Study"
+                              onChange={e => setSelectedImaging(e.target.value)}
+                            >
+                              {imagingStudies.map(study => (
+                                <MenuItem key={study} value={study}>{study}</MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            label="Doctor ID"
+                            value={doctorId}
+                            onChange={e => setDoctorId(e.target.value)}
+                            fullWidth
+                            required
+                            type="number"
+                            helperText="For demo, use 1 (Jane Doe)"
+                          />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Button
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            disabled={imagingOrderLoading}
+                          >
+                            {imagingOrderLoading ? 'Ordering...' : 'Order Imaging'}
+                          </Button>
+                        </Grid>
+                      </Grid>
+                    </form>
+                    {imagingOrderSuccess && <Alert severity="success" sx={{ mt: 2 }}>{imagingOrderSuccess}</Alert>}
+                    {imagingOrderError && <Alert severity="error" sx={{ mt: 2 }}>{imagingOrderError}</Alert>}
+                  </CardContent>
+                )}
+                {tab === 3 && (
+                  <CardContent sx={{ p: 0 }}>
+                    <Typography variant="h6" sx={{ mb: 2 }}>
+                      Test Orders & Results
+                    </Typography>
+                    {historyLoading ? (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                        <CircularProgress />
+                      </Box>
+                    ) : historyError ? (
+                      <Alert severity="error">{historyError}</Alert>
+                    ) : (
+                      <Box>
+                        {tests.length === 0 ? <Typography color="text.secondary">No tests yet.</Typography> : (
+                          tests.map(test => (
+                            <Box key={test.order_id} sx={{ mb: 2, p: 2, border: '1px solid #eee', borderRadius: 2 }}>
+                              <Typography variant="body1"><b>Date:</b> {new Date(test.ordered_at).toLocaleString()}</Typography>
+                              <Typography variant="body2"><b>Test:</b> {test.test_name}</Typography>
+                              <Typography variant="body2"><b>Status:</b> {test.status}</Typography>
+                              {test.result && <Typography variant="body2"><b>Result:</b> {test.result}</Typography>}
+                            </Box>
+                          ))
+                        )}
+                      </Box>
+                    )}
+                  </CardContent>
+                )}
+                {tab === 4 && (
+                  <CardContent sx={{ p: 0 }}>
+                    <Typography variant="h6" sx={{ mb: 2 }}>
+                      Prescribe Medication
+                    </Typography>
+                    <form onSubmit={handleMedSubmit}>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} md={4}>
+                          <TextField
+                            label="Medication Name"
+                            value={medName}
+                            onChange={e => setMedName(e.target.value)}
+                            fullWidth
+                            required
+                            placeholder="Enter medication name"
+                          />
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                          <TextField
+                            label="Dosage"
+                            value={medDosage}
+                            onChange={e => setMedDosage(e.target.value)}
+                            fullWidth
+                            required
+                            placeholder="e.g. 500mg every 8 hours"
+                          />
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                          <TextField
+                            label="Instructions"
+                            value={medInstructions}
+                            onChange={e => setMedInstructions(e.target.value)}
+                            fullWidth
+                            required
+                            placeholder="e.g. Take after meals for 3 days"
+                          />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            label="Doctor ID"
+                            value={doctorId}
+                            onChange={e => setDoctorId(e.target.value)}
+                            fullWidth
+                            required
+                            type="number"
+                            helperText="For demo, use 1 (Jane Doe)"
+                          />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Button
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            disabled={medLoading}
+                            sx={{ minWidth: 180 }}
+                          >
+                            {medLoading ? 'Prescribing...' : 'Prescribe'}
+                          </Button>
+                        </Grid>
+                      </Grid>
+                    </form>
+                    {medSuccess && <Alert severity="success" sx={{ mt: 2 }}>{medSuccess}</Alert>}
+                    {medError && <Alert severity="error" sx={{ mt: 2 }}>{medError}</Alert>}
+                  </CardContent>
+                )}
+                {tab === 5 && (
+                  <CardContent sx={{ p: 0 }}>
+                    {/* ... Images ... */}
+                  </CardContent>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card sx={{ boxShadow: 3, minHeight: 'calc(100vh - 100px)', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.paper' }}>
+              <CardContent>
+                <Typography variant="h6" color="text.secondary" align="center">
+                  Select a patient from the left to view details
+                </Typography>
+              </CardContent>
+            </Card>
+          )}
+        </Grid>
+        {/* Right Sidebar - AI Analysis */}
+        <Grid item xs={12} md={3}>
+          <Card sx={{ boxShadow: 3, height: 'calc(100vh - 100px)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', mb: 2, color: 'primary.main' }}>
+                <AutoFixHigh sx={{ mr: 1 }} /> AI Analysis
+              </Typography>
+              {tab === 4 ? (
+                medName.trim() === '' && medDosage.trim() === '' && medInstructions.trim() === '' ? (
+                  <Typography variant="body2" color="text.secondary" align="center">
+                    Enter medication details to get AI analysis
+                  </Typography>
+                ) : aiMedLoading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                    <CircularProgress />
+                  </Box>
+                ) : aiMedError ? (
+                  <Alert severity="error">{aiMedError}</Alert>
+                ) : aiMedResult ? (
+                  <>
+                    {aiMedResult.diagnosis && (
+                      <Box sx={{ mb: 3 }}>
+                        <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
+                          AI Diagnosis
+                        </Typography>
+                        <Box sx={{ p: 1.5, mb: 1, borderRadius: 1, bgcolor: 'success.light', boxShadow: 1 }}>
+                          <Typography variant="body2">{aiMedResult.diagnosis}</Typography>
+                        </Box>
+                      </Box>
+                    )}
+                    {aiMedResult.recommendations && aiMedResult.recommendations.length > 0 && (
+                      <Box sx={{ mb: 3 }}>
+                        <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
+                          Recommendations
+                        </Typography>
+                        {aiMedResult.recommendations.map((rec, index) => (
+                          <Box key={index} sx={{ p: 1.5, mb: 1, borderRadius: 1, bgcolor: 'warning.light', boxShadow: 1 }}>
+                            <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start' }}>
+                              <Info fontSize="small" sx={{ mr: 1, mt: '2px' }} />
+                              {rec}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+                    {!aiMedResult.diagnosis && !aiMedResult.recommendations && (
+                      <Box sx={{ mb: 3 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          {typeof aiMedResult === 'string' ? aiMedResult : JSON.stringify(aiMedResult)}
+                        </Typography>
+                      </Box>
+                    )}
+                  </>
+                ) : (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                    <CircularProgress />
+                  </Box>
+                )
+              ) : (
+                <Typography variant="body2" color="text.secondary" align="center">
+                  Select the "Prescribe Medication" tab to view AI analysis
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Container>
   );
 };
 
-export default OutpatientSystem;
+export default Outpatient;

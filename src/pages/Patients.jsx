@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { 
   Container, 
   Typography, 
@@ -15,7 +16,8 @@ import {
   Divider,
   Tabs,
   Tab,
-  Badge
+  Badge,
+  Alert
 } from '@mui/material';
 import { 
   Search as SearchIcon, 
@@ -27,29 +29,59 @@ import {
   CalendarToday as CalendarIcon,
   AccessTime as TimeIcon
 } from '@mui/icons-material';
-import PatientForm from '../components/patient/PatientForm'; // Correct path for PatientForm
-import PatientTable from '../components/patient/PatientTable'; // Correct path for PatientTable
-import mockPatients from '../data/mockPatients'; // Correct path for mockPatients
+import PatientForm from '../components/patient/PatientForm';
+import PatientTable from '../components/patient/PatientTable';
+import { patientAPI } from '../services/api';
 
 const Patients = () => {
+  const location = useLocation();
   const [patients, setPatients] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [openForm, setOpenForm] = useState(false);
   const [selectedTab, setSelectedTab] = useState(0);
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  // Handle navigation state
+  useEffect(() => {
+    if (location.state?.openNewPatient) {
+      setOpenForm(true);
+    } else if (location.state?.editPatientId) {
+      const patientToEdit = patients.find(p => p.patient_id === location.state.editPatientId);
+      if (patientToEdit) {
+        setSelectedPatient(patientToEdit);
+        setOpenForm(true);
+      }
+    }
+  }, [location.state, patients]);
+
+  // Fetch patients from backend
+  const fetchPatients = async () => {
+    try {
+      setLoading(true);
+      const data = await patientAPI.getAllPatients();
+      setPatients(data);
+      setError('');
+    } catch (err) {
+      setError('Failed to fetch patients from database');
+      console.error('Error fetching patients:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Simulate API call
-    setPatients(mockPatients);
+    fetchPatients();
   }, []);
 
   const filteredPatients = patients.filter(patient => {
     const searchLower = searchTerm.toLowerCase();
     return (
-      (patient.firstName?.toLowerCase() || '').includes(searchLower) ||
-      (patient.lastName?.toLowerCase() || '').includes(searchLower) ||
+      (patient.first_name?.toLowerCase() || '').includes(searchLower) ||
+      (patient.last_name?.toLowerCase() || '').includes(searchLower) ||
       (patient.email?.toLowerCase() || '').includes(searchLower) ||
-      (patient.phone || '').includes(searchTerm)
+      (patient.contact_number || '').includes(searchTerm)
     );
   });
 
@@ -70,24 +102,35 @@ const Patients = () => {
     setSelectedPatient(null);
   };
 
-  const handleFormSubmit = (formData) => {
-    if (selectedPatient) {
-      // Update existing patient
-      setPatients(patients.map(p => 
-        p.id === selectedPatient.id ? { ...p, ...formData } : p
-      ));
-    } else {
-      // Add new patient
-      const newPatient = {
-        id: `patient-${Date.now()}`,
-        ...formData,
-        status: 'active',
-        lastVisit: new Date().toISOString(),
-      };
-      setPatients([...patients, newPatient]);
+  const handleFormSubmit = async (formData) => {
+    try {
+      if (selectedPatient) {
+        // Update existing patient
+        await patientAPI.updatePatient(selectedPatient.patient_id, formData);
+      } else {
+        // Add new patient
+        await patientAPI.createPatient(formData);
+      }
+      // Refresh the patient list
+      await fetchPatients();
+      handleFormClose();
+    } catch (err) {
+      console.error('Error saving patient:', err);
+      // Error handling is done in the PatientForm component
     }
-    handleFormClose();
   };
+
+  const handleRefresh = () => {
+    fetchPatients();
+  };
+
+  if (loading) {
+    return (
+      <Container maxWidth="xl" sx={{ py: 3 }}>
+        <Typography>Loading patients...</Typography>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="xl" sx={{ py: 3 }}>
@@ -103,6 +146,12 @@ const Patients = () => {
           New Patient
         </Button>
       </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
 
       <Grid container spacing={3}>
         {/* Summary Cards */}
@@ -196,7 +245,7 @@ const Patients = () => {
                 >
                   Filters
                 </Button>
-                <IconButton>
+                <IconButton onClick={handleRefresh}>
                   <RefreshIcon />
                 </IconButton>
               </Box>

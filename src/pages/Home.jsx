@@ -7,17 +7,20 @@ import {
   CardContent, 
   Box,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Button
 } from '@mui/material';
 import { 
-  Home as HomeIcon,
   Person as PersonIcon,
-  LocalHospital as HospitalIcon,
+  LocalHospital,
   Science as ScienceIcon,
   LocalPharmacy as PharmacyIcon,
   AttachMoney as CashierIcon,
   SmartToy as AIIcon,
-  PhotoCamera as ImagingIcon
+  PhotoCamera as ImagingIcon,
+  PeopleAlt as PatientsIcon,
+  Add as AddIcon,
+  ViewList as ListIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
@@ -25,6 +28,23 @@ const Home = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const patientActions = [
+    {
+      title: 'Register New Patient',
+      icon: <AddIcon sx={{ fontSize: 40 }} />,
+      description: 'Add a new patient to the system',
+      action: () => navigate('/patients?action=new'),
+      primary: true
+    },
+    {
+      title: 'View All Patients',
+      icon: <ListIcon sx={{ fontSize: 40 }} />,
+      description: 'View and manage existing patients',
+      action: () => navigate('/patients'),
+      primary: true
+    }
+  ];
 
   const departments = [
     {
@@ -35,7 +55,7 @@ const Home = () => {
     },
     {
       title: 'Clinicians',
-      icon: <HospitalIcon sx={{ fontSize: 40 }} />,
+      icon: <LocalHospital sx={{ fontSize: 40 }} />,
       description: 'Medical consultation and treatment',
       path: '/clinicians'
     },
@@ -69,7 +89,7 @@ const Home = () => {
     <Box sx={{ 
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%)',
-      pt: { xs: 8, sm: 10 },
+      pt: { xs: 4, sm: 6 },
       pb: { xs: 4, sm: 6 }
     }}>
       <Container maxWidth="lg">
@@ -101,124 +121,170 @@ const Home = () => {
           >
             Your trusted healthcare partner providing comprehensive medical services
           </Typography>
-          
-          {/* AI Badge */}
-          <Box sx={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            display: { xs: 'none', md: 'flex' },
-            alignItems: 'center',
-            gap: 1,
-            bgcolor: 'rgba(26,35,126,0.1)',
-            px: 2,
-            py: 1,
-            borderRadius: '20px',
-            backdropFilter: 'blur(10px)',
-            animation: 'pulse 2s infinite'
-          }}>
-            <AIIcon sx={{ color: '#1a237e' }} />
-            <Typography sx={{ color: '#1a237e', fontWeight: 600 }}>
-              AI-Powered Healthcare
-            </Typography>
-          </Box>
         </Box>
 
-        {/* Departments Grid */}
-        <Grid container spacing={3}>
-          {departments.map((dept) => (
-            <Grid item xs={12} sm={6} md={4} key={dept.title}>
-              <Card 
-                sx={{ 
-                  height: '100%',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  background: 'rgba(255,255,255,0.9)',
-                  backdropFilter: 'blur(10px)',
-                  '&:hover': {
-                    transform: 'translateY(-8px)',
-                    boxShadow: '0 12px 24px rgba(26,35,126,0.2)',
-                    '& .MuiSvgIcon-root': {
-                      color: '#64ffda',
-                      transform: 'scale(1.1)'
+        {/* Patient Management Section */}
+        <Box sx={{ mb: 6 }}>
+          <Typography 
+            variant="h4" 
+            sx={{ 
+              fontWeight: 700, 
+              color: '#1a237e',
+              mb: 3,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2
+            }}
+          >
+            <PatientsIcon sx={{ fontSize: 40 }} />
+            Patient Management
+          </Typography>
+          <Grid container spacing={3}>
+            {patientActions.map((action) => (
+              <Grid item xs={12} md={6} key={action.title}>
+                <Card 
+                  sx={{ 
+                    height: '100%',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    background: 'linear-gradient(135deg, #1a237e 0%, #0d47a1 100%)',
+                    color: 'white',
+                    '&:hover': {
+                      transform: 'translateY(-8px)',
+                      boxShadow: '0 12px 24px rgba(26,35,126,0.2)',
                     }
-                  }
-                }}
-                onClick={() => navigate(dept.path)}
-              >
-                <CardContent sx={{ p: 3 }}>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    mb: 2,
-                    gap: 2
-                  }}>
+                  }}
+                  onClick={action.action}
+                >
+                  <CardContent sx={{ p: 4 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                      <Box sx={{ 
+                        p: 2,
+                        borderRadius: '12px',
+                        bgcolor: 'rgba(255,255,255,0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {action.icon}
+                      </Box>
+                      <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                        {action.title}
+                      </Typography>
+                    </Box>
+                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                      {action.description}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
+        {/* Departments Section */}
+        <Box sx={{ mb: 4 }}>
+          <Typography 
+            variant="h4" 
+            sx={{ 
+              fontWeight: 700, 
+              color: '#1a237e',
+              mb: 3,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2
+            }}
+          >
+            <LocalHospital sx={{ fontSize: 40 }} />
+            Hospital Departments
+          </Typography>
+          <Grid container spacing={3}>
+            {departments.map((dept) => (
+              <Grid item xs={12} sm={6} md={4} key={dept.title}>
+                <Card 
+                  sx={{ 
+                    height: '100%',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    background: 'rgba(255,255,255,0.9)',
+                    backdropFilter: 'blur(10px)',
+                    '&:hover': {
+                      transform: 'translateY(-8px)',
+                      boxShadow: '0 12px 24px rgba(26,35,126,0.2)',
+                      '& .MuiSvgIcon-root': {
+                        color: '#64ffda',
+                        transform: 'scale(1.1)'
+                      }
+                    }
+                  }}
+                  onClick={() => navigate(dept.path)}
+                >
+                  <CardContent sx={{ p: 3 }}>
                     <Box sx={{ 
-                      p: 1.5,
-                      borderRadius: '12px',
-                      background: 'linear-gradient(135deg, #1a237e 0%, #0d47a1 100%)',
-                      color: 'white',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'all 0.3s ease'
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      mb: 2,
+                      gap: 2
                     }}>
-                      {dept.icon}
+                      <Box sx={{ 
+                        p: 1.5,
+                        borderRadius: '12px',
+                        background: 'linear-gradient(135deg, #1a237e 0%, #0d47a1 100%)',
+                        color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.3s ease'
+                      }}>
+                        {dept.icon}
+                      </Box>
+                      <Typography 
+                        variant="h5" 
+                        sx={{ 
+                          fontWeight: 700,
+                          color: '#1a237e'
+                        }}
+                      >
+                        {dept.title}
+                      </Typography>
                     </Box>
                     <Typography 
-                      variant="h5" 
+                      variant="body1" 
                       sx={{ 
-                        fontWeight: 700,
-                        color: '#1a237e'
+                        color: '#283593',
+                        opacity: 0.8
                       }}
                     >
-                      {dept.title}
+                      {dept.description}
                     </Typography>
-                  </Box>
-                  <Typography 
-                    variant="body1" 
-                    sx={{ 
-                      color: '#283593',
-                      opacity: 0.8
-                    }}
-                  >
-                    {dept.description}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-
-        {/* Status Section */}
-        <Box sx={{ 
-          mt: { xs: 4, sm: 6 },
-          p: 3,
-          borderRadius: '16px',
-          background: 'rgba(255,255,255,0.9)',
-          backdropFilter: 'blur(10px)',
-          boxShadow: '0 4px 12px rgba(26,35,126,0.1)'
-        }}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={4}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" sx={{ color: '#1a237e', fontWeight: 700 }}>24/7</Typography>
-                <Typography variant="body1" sx={{ color: '#283593' }}>Emergency Care</Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" sx={{ color: '#1a237e', fontWeight: 700 }}>100+</Typography>
-                <Typography variant="body1" sx={{ color: '#283593' }}>Expert Doctors</Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" sx={{ color: '#1a237e', fontWeight: 700 }}>50+</Typography>
-                <Typography variant="body1" sx={{ color: '#283593' }}>Specialties</Typography>
-              </Box>
-            </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
           </Grid>
+        </Box>
+
+        {/* AI Feature Badge */}
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          mt: 4
+        }}>
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            bgcolor: 'rgba(26,35,126,0.1)',
+            px: 3,
+            py: 2,
+            borderRadius: '20px',
+            backdropFilter: 'blur(10px)',
+          }}>
+            <AIIcon sx={{ color: '#1a237e', fontSize: 30 }} />
+            <Typography variant="h6" sx={{ color: '#1a237e', fontWeight: 600 }}>
+              AI-Powered Healthcare System
+            </Typography>
+          </Box>
         </Box>
       </Container>
     </Box>
