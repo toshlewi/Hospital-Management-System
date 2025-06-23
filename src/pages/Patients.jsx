@@ -27,9 +27,9 @@ import {
   CalendarToday as CalendarIcon,
   AccessTime as TimeIcon
 } from '@mui/icons-material';
-import PatientForm from '../components/patient/PatientForm';
-import PatientTable from '../components/patient/PatientTable';
-import mockPatients from '../data/mockPatients';
+import PatientForm from '../components/patient/PatientForm'; // Correct path for PatientForm
+import PatientTable from '../components/patient/PatientTable'; // Correct path for PatientTable
+import mockPatients from '../data/mockPatients'; // Correct path for mockPatients
 
 const Patients = () => {
   const [patients, setPatients] = useState([]);

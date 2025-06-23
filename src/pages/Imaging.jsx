@@ -50,7 +50,7 @@ import {
   Description,
   Image
 } from '@mui/icons-material';
-import DICOMViewer from '../components/imaging/DICOMViewer';
+import DICOMViewer from '../components/imaging/DICOMViewer'; // Correct path for DICOMViewer
 
 const Imaging = () => {
   const theme = useTheme();

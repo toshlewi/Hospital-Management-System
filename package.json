@@ -13,12 +13,15 @@
     "cornerstone-tools": "^6.0.8",
     "cornerstone-wado-image-loader": "^4.13.0",
     "dicom-parser": "^1.8.21",
+    "lucide-react": "^0.514.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.57.0",
+    "react-icons": "^4.10.1",
     "react-redux": "^8.0.5",
     "react-router-dom": "^6.11.1",
-    "react-scripts": "5.0.1"
+    "react-scripts": "5.0.1",
+    "styled-components": "^5.3.10"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -43,5 +46,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.5",
+    "tailwindcss": "^4.1.10"
   }
 }
