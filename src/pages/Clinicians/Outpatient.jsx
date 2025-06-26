@@ -6,6 +6,7 @@ import { Person as PersonIcon, Search as SearchIcon, History as HistoryIcon, Not
 import { patientAPI, aiAPI } from '../../services/api';
 import { useTheme } from '@mui/material/styles';
 import { useDebounce } from 'use-debounce';
+import Autocomplete from '@mui/material/Autocomplete';
 
 const Outpatient = () => {
   const [patients, setPatients] = useState([]);
@@ -44,6 +45,7 @@ const Outpatient = () => {
   const [aiMedResult, setAiMedResult] = useState(null);
   const [aiMedLoading, setAiMedLoading] = useState(false);
   const [aiMedError, setAiMedError] = useState('');
+  const [prescriptions, setPrescriptions] = useState([]);
   const theme = useTheme();
 
   // Add these constants for tab labels and icons
@@ -72,6 +74,7 @@ const Outpatient = () => {
   const [medLoading, setMedLoading] = useState(false);
   const [medSuccess, setMedSuccess] = useState('');
   const [medError, setMedError] = useState('');
+  const [medQuantity, setMedQuantity] = useState('');
 
   // Debounced values for AI analysis
   const [debouncedNoteText] = useDebounce(noteText, 600);
@@ -133,7 +136,7 @@ const Outpatient = () => {
     if (selectedPatient) {
       fetchHistory(selectedPatient.patient_id);
     } else {
-      setNotes([]); setTests([]); setMedications([]); setImaging([]);
+      setNotes([]); setTests([]); setMedications([]); setImaging([]); setPrescriptions([]);
     }
   }, [selectedPatient]);
 
@@ -141,16 +144,18 @@ const Outpatient = () => {
     setHistoryLoading(true);
     setHistoryError('');
     try {
-      const [notesData, testsData, medsData, imagingData] = await Promise.all([
+      const [notesData, testsData, medsData, imagingData, prescriptionsData] = await Promise.all([
         patientAPI.getMedicalNotes(patientId),
         patientAPI.getTestOrders(patientId),
         patientAPI.getMedications(patientId),
-        patientAPI.getImaging(patientId)
+        patientAPI.getImaging(patientId),
+        patientAPI.getPatientPrescriptions(patientId)
       ]);
       setNotes(notesData);
       setTests(testsData);
       setMedications(medsData);
       setImaging(imagingData);
+      setPrescriptions(prescriptionsData);
     } catch (err) {
       setHistoryError('Failed to load patient history.');
     } finally {
@@ -301,18 +306,26 @@ const Outpatient = () => {
       setMedLoading(false);
       return;
     }
+    if (!medQuantity || Number(medQuantity) <= 0) {
+      setMedError('Please enter a valid quantity (greater than 0).');
+      setMedLoading(false);
+      return;
+    }
     try {
-      await patientAPI.addMedication(selectedPatient.patient_id, {
+      const payload = {
         doctor_id: doctorId,
-        medication_name,
+        medications: medication_name,
         dosage: medDosage,
-        instructions: medInstructions
-      });
-      setMedSuccess('Medication prescribed successfully!');
-      setMedName(''); setCustomMedName(''); setMedDosage(''); setMedInstructions('');
+        instructions: medInstructions,
+        quantity: Number(medQuantity)
+      };
+      console.log('Prescription payload:', payload);
+      await patientAPI.createPrescription(selectedPatient.patient_id, payload);
+      setMedSuccess('Prescription created successfully!');
+      setMedName(''); setCustomMedName(''); setMedDosage(''); setMedInstructions(''); setMedQuantity('');
       fetchHistory(selectedPatient.patient_id);
     } catch (err) {
-      setMedError('Failed to prescribe medication.');
+      setMedError('Failed to create prescription.');
     } finally {
       setMedLoading(false);
     }
@@ -336,11 +349,15 @@ const Outpatient = () => {
                 <PersonIcon sx={{ mr: 1 }} /> Outpatients
               </Typography>
               <TextField
-                placeholder="Search patient..."
+                label="Search patients by name or ID"
+                variant="outlined"
                 size="small"
+                fullWidth
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                InputProps={{ startAdornment: <SearchIcon sx={{ mr: 1 }} /> }}
+                InputProps={{
+                  startAdornment: <SearchIcon sx={{ mr: 1, color: 'action.active' }} />,
+                }}
                 sx={{ mb: 2 }}
               />
               <Box sx={{ flex: 1, overflowY: 'auto' }}>
@@ -532,6 +549,38 @@ const Outpatient = () => {
                               </Grid>
                             ))}
                           </Grid>
+                        )}
+                        {/* Prescription History */}
+                        <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, color: theme.palette.primary.main }}>Prescription History</Typography>
+                        {prescriptions.length === 0 ? <Typography color="text.secondary">No prescriptions yet.</Typography> : (
+                          <TableContainer component={Paper} sx={{ mb: 2 }}>
+                            <Table>
+                              <TableHead>
+                                <TableRow>
+                                  <TableCell>Medication</TableCell>
+                                  <TableCell>Dosage</TableCell>
+                                  <TableCell>Instructions</TableCell>
+                                  <TableCell>Quantity</TableCell>
+                                  <TableCell>Status</TableCell>
+                                  <TableCell>Prescribed At</TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {prescriptions.map(presc => (
+                                  <TableRow key={presc.prescription_id}>
+                                    <TableCell>{presc.medications}</TableCell>
+                                    <TableCell>{presc.dosage}</TableCell>
+                                    <TableCell>{presc.instructions}</TableCell>
+                                    <TableCell>{presc.quantity}</TableCell>
+                                    <TableCell>
+                                      <Chip label={presc.status} color={presc.status === 'completed' ? 'success' : 'warning'} size="small" />
+                                    </TableCell>
+                                    <TableCell>{presc.prescribed_date && new Date(presc.prescribed_date).toLocaleString()}</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
                         )}
                       </Box>
                     )}
@@ -732,13 +781,20 @@ const Outpatient = () => {
                     <form onSubmit={handleMedSubmit}>
                       <Grid container spacing={2}>
                         <Grid item xs={12} md={4}>
-                          <TextField
-                            label="Medication Name"
+                          <Autocomplete
+                            freeSolo
+                            options={commonMeds}
                             value={medName}
-                            onChange={e => setMedName(e.target.value)}
-                            fullWidth
-                            required
-                            placeholder="Enter medication name"
+                            onInputChange={(event, newInputValue) => setMedName(newInputValue)}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                label="Medication Name"
+                                fullWidth
+                                required
+                                placeholder="Enter medication name"
+                              />
+                            )}
                           />
                         </Grid>
                         <Grid item xs={12} md={4}>
@@ -770,6 +826,22 @@ const Outpatient = () => {
                             required
                             type="number"
                             helperText="For demo, use 1 (Jane Doe)"
+                          />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            label="Quantity"
+                            type="number"
+                            required
+                            value={medQuantity}
+                            onChange={e => {
+                              // Only allow positive integers, default to 1 if blank
+                              const val = e.target.value.replace(/[^0-9]/g, '');
+                              setMedQuantity(val === '' ? '1' : val);
+                            }}
+                            fullWidth
+                            margin="normal"
+                            inputProps={{ min: 1 }}
                           />
                         </Grid>
                         <Grid item xs={12}>

@@ -73,6 +73,7 @@ pool.getConnection()
 
 // Routes
 require('./routes/patient.routes')(app);
+app.use('/api/pharmacy', require('./routes/pharmacy.routes'));
 
 // Simple test route
 app.get('/', (req, res) => {

@@ -56,6 +56,11 @@ export const aiService = {
       throw error;
     }
   },
+
+  pharmacyAICheck: async (drugs) => {
+    const response = await api.post('/ai/pharmacy-check', { drugs });
+    return response.data;
+  },
 };
 
 export default aiService; 

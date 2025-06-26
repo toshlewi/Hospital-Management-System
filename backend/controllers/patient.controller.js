@@ -46,7 +46,7 @@ exports.create = async (req, res) => {
 // Retrieve all Patients
 exports.findAll = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM patients');
+        const [rows] = await pool.query("SELECT * FROM patients WHERE status = 'active'");
         res.send(rows);
     } catch (err) {
         res.status(500).send({
@@ -98,10 +98,13 @@ exports.update = async (req, res) => {
     }
 };
 
-// Delete a Patient
+// "Delete" a Patient (soft delete)
 exports.delete = async (req, res) => {
     try {
-        const [result] = await pool.query('DELETE FROM patients WHERE patient_id = ?', [req.params.id]);
+        const [result] = await pool.query(
+            'UPDATE patients SET status = ? WHERE patient_id = ?',
+            ['inactive', req.params.id]
+        );
 
         if (result.affectedRows == 0) {
             res.status(404).send({
@@ -109,12 +112,12 @@ exports.delete = async (req, res) => {
             });
         } else {
             res.send({
-                message: "Patient deleted successfully!"
+                message: "Patient marked as inactive successfully!"
             });
         }
     } catch (err) {
         res.status(500).send({
-            message: "Could not delete Patient with id " + req.params.id
+            message: "Could not update Patient status for id " + req.params.id
         });
     }
 };
@@ -356,5 +359,243 @@ exports.addLabResult = async (req, res) => {
         res.status(201).send({ message: "Lab result uploaded", result_id: result.insertId, file_path });
     } catch (err) {
         res.status(500).send({ message: err.message || "Error uploading lab result." });
+    }
+};
+
+// Add a new Prescription
+exports.addPrescription = async (req, res) => {
+    try {
+        console.log('Received prescription payload:', req.body);
+        const { doctor_id, medications, dosage, instructions, quantity } = req.body;
+        const qty = Number(quantity);
+        if (!Number.isInteger(qty) || qty <= 0) {
+            return res.status(400).send({ message: 'Quantity must be a positive integer.' });
+        }
+        const [result] = await pool.query(
+            'INSERT INTO prescriptions (patient_id, doctor_id, prescribed_date, medications, dosage, instructions, quantity, status) VALUES (?, ?, NOW(), ?, ?, ?, ?, ?)',
+            [req.params.id, doctor_id, medications, dosage, instructions, qty, 'active']
+        );
+        res.status(201).send({ message: 'Prescription created', prescription_id: result.insertId });
+    } catch (err) {
+        res.status(500).send({ message: err.message || 'Error creating prescription.' });
+    }
+};
+
+// Add a procedure to a patient
+exports.addPatientProcedure = async (req, res) => {
+    try {
+        const { procedure_id } = req.body;
+        if (!procedure_id) {
+            return res.status(400).send({ message: 'procedure_id is required.' });
+        }
+        const [result] = await pool.query(
+            'INSERT INTO patient_procedures (patient_id, procedure_id) VALUES (?, ?)',
+            [req.params.id, procedure_id]
+        );
+        res.status(201).send({ message: 'Procedure added to patient.', id: result.insertId });
+    } catch (err) {
+        res.status(500).send({ message: err.message || 'Error adding procedure to patient.' });
+    }
+};
+
+// Get all procedures (with charges) for a patient
+exports.getPatientProcedures = async (req, res) => {
+    try {
+        const [rows] = await pool.query(
+            `SELECT pp.*, p.name, p.charge FROM patient_procedures pp
+             JOIN procedures p ON pp.procedure_id = p.id
+             WHERE pp.patient_id = ?`,
+            [req.params.id]
+        );
+        res.send(rows);
+    } catch (err) {
+        res.status(500).send({ message: err.message || 'Error retrieving patient procedures.' });
+    }
+};
+
+// Add a medication to a patient
+exports.addPatientMedication = async (req, res) => {
+    try {
+        const { medication_id, quantity } = req.body;
+        if (!medication_id || !quantity) {
+            return res.status(400).send({ message: 'medication_id and quantity are required.' });
+        }
+        const [result] = await pool.query(
+            'INSERT INTO patient_medications (patient_id, medication_id, quantity) VALUES (?, ?, ?)',
+            [req.params.id, medication_id, quantity]
+        );
+        res.status(201).send({ message: 'Medication added to patient.', id: result.insertId });
+    } catch (err) {
+        res.status(500).send({ message: err.message || 'Error adding medication to patient.' });
+    }
+};
+
+// Get all medications (with charges) for a patient
+exports.getPatientMedications = async (req, res) => {
+    try {
+        const [rows] = await pool.query(
+            `SELECT pm.*, m.name, m.charge FROM patient_medications pm
+             JOIN medications m ON pm.medication_id = m.medication_id
+             WHERE pm.patient_id = ?`,
+            [req.params.id]
+        );
+        res.send(rows);
+    } catch (err) {
+        res.status(500).send({ message: err.message || 'Error retrieving patient medications.' });
+    }
+};
+
+// Get all outstanding charges for a patient (procedures + medications + tests)
+exports.getPatientCharges = async (req, res) => {
+    try {
+        // Procedures
+        const [procedures] = await pool.query(
+            `SELECT 'procedure' as type, pp.id, p.name, p.charge, pp.status, pp.date_performed as date, NULL as quantity
+             FROM patient_procedures pp
+             JOIN procedures p ON pp.procedure_id = p.id
+             WHERE pp.patient_id = ? AND pp.status = 'pending'`,
+            [req.params.id]
+        );
+        // Medications
+        const [medications] = await pool.query(
+            `SELECT 'medication' as type, pm.id, m.name, m.charge, pm.status, pm.date_prescribed as date, pm.quantity
+             FROM patient_medications pm
+             JOIN medications m ON pm.medication_id = m.medication_id
+             WHERE pm.patient_id = ? AND pm.status = 'pending'`,
+            [req.params.id]
+        );
+        // Tests (Lab & Imaging)
+        const [tests] = await pool.query(
+            `SELECT 'test' as type, o.order_id as id, 
+                    COALESCE(tt.name, o.test_name) as name, 
+                    COALESCE(tt.cost, 0) as charge, 
+                    o.status, o.ordered_at as date, 1 as quantity
+             FROM test_orders o
+             LEFT JOIN test_types tt ON o.test_type_id = tt.test_type_id
+             WHERE o.patient_id = ? AND o.status = 'ordered'`,
+            [req.params.id]
+        );
+        res.send([...procedures, ...medications, ...tests]);
+    } catch (err) {
+        res.status(500).send({ message: err.message || 'Error retrieving patient charges.' });
+    }
+};
+
+// Mark all charges as paid for a patient (including tests)
+exports.markChargesPaid = async (req, res) => {
+    try {
+        await pool.query(
+            `UPDATE patient_procedures SET status = 'paid' WHERE patient_id = ? AND status = 'pending'`,
+            [req.params.id]
+        );
+        await pool.query(
+            `UPDATE patient_medications SET status = 'paid' WHERE patient_id = ? AND status = 'pending'`,
+            [req.params.id]
+        );
+        await pool.query(
+            `UPDATE test_orders SET status = 'paid' WHERE patient_id = ? AND status = 'ordered'`,
+            [req.params.id]
+        );
+        res.send({ message: 'All charges marked as paid for patient.' });
+    } catch (err) {
+        res.status(500).send({ message: err.message || 'Error marking charges as paid.' });
+    }
+};
+
+// Get payment history (paid charges) for a patient, with optional date range filtering (including tests)
+exports.getPaymentHistory = async (req, res) => {
+    try {
+        const { start, end } = req.query;
+        let proceduresQuery = `SELECT 'procedure' as type, pp.id, p.name, p.charge, pp.status, pp.date_performed as date, NULL as quantity
+            FROM patient_procedures pp
+            JOIN procedures p ON pp.procedure_id = p.id
+            WHERE pp.patient_id = ? AND pp.status = 'paid'`;
+        let medicationsQuery = `SELECT 'medication' as type, pm.id, m.name, m.charge, pm.status, pm.date_prescribed as date, pm.quantity
+            FROM patient_medications pm
+            JOIN medications m ON pm.medication_id = m.medication_id
+            WHERE pm.patient_id = ? AND pm.status = 'paid'`;
+        let testsQuery = `SELECT 'test' as type, o.order_id as id, COALESCE(tt.name, o.test_name) as name, COALESCE(tt.cost, 0) as charge, o.status, o.ordered_at as date, 1 as quantity
+            FROM test_orders o
+            LEFT JOIN test_types tt ON o.test_type_id = tt.test_type_id
+            WHERE o.patient_id = ? AND o.status = 'paid'`;
+        const params = [req.params.id];
+        if (start && end) {
+            proceduresQuery += ' AND pp.date_performed BETWEEN ? AND ?';
+            medicationsQuery += ' AND pm.date_prescribed BETWEEN ? AND ?';
+            testsQuery += ' AND o.ordered_at BETWEEN ? AND ?';
+            params.push(start, end);
+        }
+        const [procedures] = await pool.query(proceduresQuery, params);
+        const [medications] = await pool.query(medicationsQuery, params);
+        const [tests] = await pool.query(testsQuery, params);
+        res.send([...procedures, ...medications, ...tests]);
+    } catch (err) {
+        res.status(500).send({ message: err.message || 'Error retrieving payment history.' });
+    }
+};
+
+// Mark a single charge as paid (including tests)
+exports.markChargePaid = async (req, res) => {
+    try {
+        const { type, id } = req.body;
+        if (type === 'procedure') {
+            await pool.query('UPDATE patient_procedures SET status = "paid" WHERE id = ?', [id]);
+        } else if (type === 'medication') {
+            await pool.query('UPDATE patient_medications SET status = "paid" WHERE id = ?', [id]);
+        } else if (type === 'test') {
+            await pool.query('UPDATE test_orders SET status = "paid" WHERE order_id = ?', [id]);
+        } else {
+            return res.status(400).send({ message: 'Invalid charge type.' });
+        }
+        res.send({ message: 'Charge marked as paid.' });
+    } catch (err) {
+        res.status(500).send({ message: err.message || 'Error marking charge as paid.' });
+    }
+};
+
+// Refund a single charge (including tests)
+exports.refundCharge = async (req, res) => {
+    try {
+        const { type, id } = req.body;
+        if (type === 'procedure') {
+            await pool.query('UPDATE patient_procedures SET status = "pending" WHERE id = ?', [id]);
+        } else if (type === 'medication') {
+            await pool.query('UPDATE patient_medications SET status = "pending" WHERE id = ?', [id]);
+        } else if (type === 'test') {
+            await pool.query('UPDATE test_orders SET status = "ordered" WHERE order_id = ?', [id]);
+        } else {
+            return res.status(400).send({ message: 'Invalid charge type.' });
+        }
+        res.send({ message: 'Charge refunded.' });
+    } catch (err) {
+        res.status(500).send({ message: err.message || 'Error refunding charge.' });
+    }
+};
+
+// Get payment analytics (totals by day/week/month)
+exports.getPaymentAnalytics = async (req, res) => {
+    try {
+        const { period } = req.query; // 'day', 'week', 'month'
+        let groupBy = 'DATE(date)';
+        if (period === 'week') groupBy = 'YEARWEEK(date)';
+        if (period === 'month') groupBy = 'YEAR(date), MONTH(date)';
+        const [rows] = await pool.query(`
+            SELECT ${groupBy} as period, SUM(charge * IFNULL(quantity,1)) as total
+            FROM (
+                SELECT pp.date_performed as date, p.charge, NULL as quantity
+                FROM patient_procedures pp JOIN procedures p ON pp.procedure_id = p.id
+                WHERE pp.status = 'paid'
+                UNION ALL
+                SELECT pm.date_prescribed as date, m.charge, pm.quantity
+                FROM patient_medications pm JOIN medications m ON pm.medication_id = m.medication_id
+                WHERE pm.status = 'paid'
+            ) as charges
+            GROUP BY period
+            ORDER BY period DESC
+            LIMIT 30
+        `);
+        res.send(rows);
+    } catch (err) {
+        res.status(500).send({ message: err.message || 'Error retrieving analytics.' });
     }
 }; 

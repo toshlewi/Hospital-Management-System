@@ -157,10 +157,11 @@ const Imaging = () => {
 
   // Filter patients based on search query and status
   const filteredPatients = imagingPatients.filter(patient => {
-    const matchesSearch = (patient.first_name + ' ' + patient.last_name).toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         String(patient.patient_id).includes(searchQuery);
-    const matchesStatus = filterStatus === 'all' || patient.status === filterStatus;
-    return matchesSearch && matchesStatus;
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      (`${patient.first_name} ${patient.last_name}`).toLowerCase().includes(searchLower) ||
+      String(patient.patient_id).includes(searchQuery)
+    );
   });
 
   return (
@@ -200,13 +201,14 @@ const Imaging = () => {
 
               {/* Search Bar */}
               <TextField
-                fullWidth
+                label="Search patients by name or ID"
+                variant="outlined"
                 size="small"
-                placeholder="Search patients..."
+                fullWidth
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
                 InputProps={{
-                  startAdornment: <Search sx={{ color: 'action.active', mr: 1 }} />,
+                  startAdornment: <Search sx={{ mr: 1, color: 'action.active' }} />,
                 }}
                 sx={{ mb: 2 }}
               />

@@ -11,7 +11,8 @@ import {
 } from '@mui/material';
 import { 
   Home as HomeIcon,
-  PeopleAlt as PatientsIcon
+  PeopleAlt as PatientsIcon,
+  LocalPharmacy as PharmacyIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -75,6 +76,19 @@ const Header = () => {
             }}
           >
             {!isMobile && 'Patients'}
+          </Button>
+          <Button
+            color="inherit"
+            startIcon={<PharmacyIcon />}
+            onClick={() => navigate('/pharmacy')}
+            sx={{
+              backgroundColor: isActive('/pharmacy') ? 'rgba(255,255,255,0.1)' : 'transparent',
+              '&:hover': {
+                backgroundColor: 'rgba(255,255,255,0.2)'
+              }
+            }}
+          >
+            {!isMobile && 'Pharmacy'}
           </Button>
         </Box>
       </Toolbar>

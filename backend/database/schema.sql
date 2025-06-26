@@ -140,6 +140,7 @@ CREATE TABLE IF NOT EXISTS prescriptions (
     medications TEXT NOT NULL,
     dosage TEXT,
     instructions TEXT,
+    quantity INT NOT NULL,
     status ENUM('active', 'completed', 'cancelled') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -175,17 +176,41 @@ CREATE TABLE IF NOT EXISTS test_orders (
     FOREIGN KEY (test_type_id) REFERENCES test_types(test_type_id)
 );
 
+-- Procedures table
+CREATE TABLE IF NOT EXISTS procedures (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    charge DECIMAL(10,2) NOT NULL
+);
+
 -- Medications table
 CREATE TABLE IF NOT EXISTS medications (
-    medication_id INT PRIMARY KEY AUTO_INCREMENT,
-    patient_id INT,
-    doctor_id INT,
-    medication_name VARCHAR(100),
-    dosage VARCHAR(100),
-    instructions TEXT,
-    prescribed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    charge DECIMAL(10,2) NOT NULL
+);
+
+-- Patient Procedures table
+CREATE TABLE IF NOT EXISTS patient_procedures (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT NOT NULL,
+    procedure_id INT NOT NULL,
+    date_performed DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('pending', 'paid') DEFAULT 'pending',
     FOREIGN KEY (patient_id) REFERENCES patients(patient_id),
-    FOREIGN KEY (doctor_id) REFERENCES doctors(doctor_id)
+    FOREIGN KEY (procedure_id) REFERENCES procedures(id)
+);
+
+-- Patient Medications table
+CREATE TABLE IF NOT EXISTS patient_medications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT NOT NULL,
+    medication_id INT NOT NULL,
+    quantity INT NOT NULL,
+    date_prescribed DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('pending', 'paid') DEFAULT 'pending',
+    FOREIGN KEY (patient_id) REFERENCES patients(patient_id),
+    FOREIGN KEY (medication_id) REFERENCES medications(medication_id)
 );
 
 -- Imaging table

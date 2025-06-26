@@ -8,6 +8,7 @@ import {
   Typography,
   List,
   ListItem,
+  ListItemButton,
   ListItemText,
   Divider,
   Button,
@@ -21,7 +22,12 @@ import {
   TableRow,
   Paper,
   IconButton,
-  Badge
+  Badge,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert
 } from '@mui/material';
 import {
   LocalPharmacy,
@@ -33,171 +39,168 @@ import {
   Warning,
   Info,
   Add,
-  Remove
+  Remove,
+  Search
 } from '@mui/icons-material';
-
-// Mock AI Service
-const mockAIService = {
-  analyzePrescription: (patientHistory, currentPrescription) => {
-    // This would be replaced with actual AI calls in a real implementation
-    const interactions = [];
-    const suggestions = [];
-    
-    // Sample drug interaction check
-    if (currentPrescription.some(drug => drug.name === 'Simvastatin') && 
-        currentPrescription.some(drug => drug.name === 'Clarithromycin')) {
-      interactions.push({
-        severity: 'high',
-        message: 'Simvastatin + Clarithromycin: Risk of myopathy/rhabdomyolysis',
-        drugs: ['Simvastatin', 'Clarithromycin']
-      });
-    }
-    
-    // Sample dosage adjustment
-    if (patientHistory.some(med => med.name === 'Warfarin')) {
-      suggestions.push({
-        type: 'dosage',
-        message: 'Consider reduced Warfarin dosage due to potential interaction with new NSAID prescription',
-        drug: 'Warfarin'
-      });
-    }
-    
-    // Sample alternative suggestion
-    if (currentPrescription.some(drug => drug.name === 'Diphenhydramine' && drug.dosage > 50)) {
-      suggestions.push({
-        type: 'alternative',
-        message: 'Consider Cetirizine as alternative to Diphenhydramine for reduced sedation',
-        drugs: ['Diphenhydramine', 'Cetirizine']
-      });
-    }
-    
-    return { interactions, suggestions };
-  }
-};
+import pharmacyService from '../services/pharmacyService';
+import aiService from '../services/aiService';
+import Collapse from '@mui/material/Collapse';
 
 const Pharmacy = () => {
   // State
-  const [selectedPatient, setSelectedPatient] = useState(null);
-  const [stock, setStock] = useState([]);
-  const [newStockItem, setNewStockItem] = useState({ name: '', quantity: 0 });
-  const [aiInsights, setAiInsights] = useState({ interactions: [], suggestions: [] });
-  const [aiActivity, setAiActivity] = useState([]);
+  const [drugs, setDrugs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [openAdd, setOpenAdd] = useState(false);
+  const [newDrug, setNewDrug] = useState({ name: '', description: '', quantity: 0, unit: '' });
+  const [restockDrugId, setRestockDrugId] = useState(null);
+  const [restockQty, setRestockQty] = useState(0);
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [prescLoading, setPrescLoading] = useState(true);
+  const [prescError, setPrescError] = useState('');
+  const [dispenseLoading, setDispenseLoading] = useState(false);
+  const [aiDialogOpen, setAIDialogOpen] = useState(false);
+  const [aiResult, setAIResult] = useState(null);
+  const [aiLoading, setAILoading] = useState(false);
+  const [selectedPatientId, setSelectedPatientId] = useState(null);
+  const [dispensedIds, setDispensedIds] = useState([]);
+  const [dispenseQuantities, setDispenseQuantities] = useState({});
+  const [dispensedHistory, setDispensedHistory] = useState([]);
+  const [showStock, setShowStock] = useState(false);
+  const [stockSearch, setStockSearch] = useState('');
+  const [patientSearch, setPatientSearch] = useState('');
 
-  // Mock data
-  const pendingPrescriptions = [
-    {
-      id: 'RX1001',
-      patient: { id: 'P1001', name: 'John Doe', age: 38 },
-      date: '2023-06-15',
-      doctor: 'Dr. Sarah Johnson',
-      status: 'pending',
-      medications: [
-        { name: 'Amoxicillin', dosage: '500mg', frequency: '3 times daily', duration: '7 days' },
-        { name: 'Ibuprofen', dosage: '400mg', frequency: 'as needed', duration: '5 days' }
-      ]
-    },
-    {
-      id: 'RX1002',
-      patient: { id: 'P1002', name: 'Jane Smith', age: 32 },
-      date: '2023-06-16',
-      doctor: 'Dr. Michael Chen',
-      status: 'pending',
-      medications: [
-        { name: 'Simvastatin', dosage: '20mg', frequency: 'at bedtime', duration: '30 days' },
-        { name: 'Clarithromycin', dosage: '500mg', frequency: '2 times daily', duration: '14 days' }
-      ]
-    },
-    {
-      id: 'RX1003',
-      patient: { id: 'P1003', name: 'Robert Johnson', age: 45 },
-      date: '2023-06-17',
-      doctor: 'Dr. Emily Wilson',
-      status: 'pending',
-      medications: [
-        { name: 'Metformin', dosage: '1000mg', frequency: '2 times daily', duration: '30 days' },
-        { name: 'Lisinopril', dosage: '10mg', frequency: 'daily', duration: '30 days' }
-      ]
-    }
-  ];
-
-  const patientHistory = {
-    'P1001': [
-      { name: 'Amoxicillin', date: '2023-01-10', dosage: '500mg', duration: '7 days' },
-      { name: 'Ibuprofen', date: '2022-11-15', dosage: '400mg', duration: '5 days' }
-    ],
-    'P1002': [
-      { name: 'Simvastatin', date: '2022-09-01', dosage: '20mg', duration: 'Ongoing' },
-      { name: 'Warfarin', date: '2023-03-10', dosage: '5mg', duration: 'Ongoing' }
-    ],
-    'P1003': [
-      { name: 'Metformin', date: '2022-06-01', dosage: '500mg', duration: 'Ongoing' },
-      { name: 'Diphenhydramine', date: '2023-05-20', dosage: '50mg', duration: '7 days' }
-    ]
-  };
-
-  // Mock initial stock
-  useEffect(() => {
-    setStock([
-      { id: 'M001', name: 'Amoxicillin 500mg', quantity: 125, threshold: 50 },
-      { id: 'M002', name: 'Ibuprofen 400mg', quantity: 89, threshold: 30 },
-      { id: 'M003', name: 'Simvastatin 20mg', quantity: 42, threshold: 20 },
-      { id: 'M004', name: 'Clarithromycin 500mg', quantity: 37, threshold: 15 },
-      { id: 'M005', name: 'Metformin 1000mg', quantity: 68, threshold: 25 }
-    ]);
-  }, []);
-
-  // Handle prescription selection
-  const handleSelectPrescription = (prescription) => {
-    setSelectedPatient(prescription);
-    // Run AI analysis when prescription is selected
-    const analysis = mockAIService.analyzePrescription(
-      patientHistory[prescription.patient.id] || [],
-      prescription.medications
-    );
-    setAiInsights(analysis);
-    
-    // Add to AI activity log
-    const newActivity = {
-      timestamp: new Date().toLocaleTimeString(),
-      message: `Analyzing prescription for ${prescription.patient.name}`,
-      insights: analysis
-    };
-    setAiActivity(prev => [newActivity, ...prev].slice(0, 5)); // Keep last 5 items
-  };
-
-  // Handle stock update
-  const handleStockUpdate = (id, action) => {
-    setStock(prev => prev.map(item => 
-      item.id === id ? { 
-        ...item, 
-        quantity: action === 'add' ? item.quantity + 1 : Math.max(0, item.quantity - 1) 
-      } : item
-    ));
-  };
-
-  // Handle new stock item
-  const handleAddStockItem = () => {
-    if (newStockItem.name && newStockItem.quantity > 0) {
-      setStock(prev => [...prev, {
-        id: `M${100 + prev.length}`,
-        name: newStockItem.name,
-        quantity: newStockItem.quantity,
-        threshold: 10
-      }]);
-      setNewStockItem({ name: '', quantity: 0 });
+  // Fetch stock
+  const fetchDrugs = async () => {
+    setLoading(true);
+    try {
+      const data = await pharmacyService.getAllDrugs();
+      setDrugs(data);
+      setError('');
+    } catch (err) {
+      setError('Failed to load drugs');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Handle prescription fulfillment
-  const handleFulfillPrescription = (prescriptionId) => {
-    // In a real app, this would update the prescription status in the backend
-    console.log(`Fulfilled prescription ${prescriptionId}`);
-    setAiActivity(prev => [{
-      timestamp: new Date().toLocaleTimeString(),
-      message: `Prescription ${prescriptionId} fulfilled`,
-      type: 'fulfillment'
-    }, ...prev]);
+  // Fetch prescriptions
+  const fetchPrescriptions = async () => {
+    setPrescLoading(true);
+    try {
+      const data = await pharmacyService.getActivePrescriptions();
+      setPrescriptions(data);
+      setPrescError('');
+    } catch (err) {
+      setPrescError('Failed to load prescriptions');
+    } finally {
+      setPrescLoading(false);
+    }
   };
+
+  useEffect(() => { fetchDrugs(); fetchPrescriptions(); }, []);
+
+  // Group prescriptions by patient
+  const patientsWithPrescriptions = prescriptions.reduce((acc, presc) => {
+    const pid = presc.patient_id;
+    if (!acc[pid]) {
+      acc[pid] = {
+        patient_id: pid,
+        patient_first_name: presc.patient_first_name,
+        patient_last_name: presc.patient_last_name,
+        prescriptions: []
+      };
+    }
+    acc[pid].prescriptions.push(presc);
+    return acc;
+  }, {});
+  const patientList = Object.values(patientsWithPrescriptions);
+
+  // Add new drug
+  const handleAddDrug = async () => {
+    try {
+      await pharmacyService.addDrug(newDrug);
+      setOpenAdd(false);
+      setNewDrug({ name: '', description: '', quantity: 0, unit: '' });
+      fetchDrugs();
+    } catch (err) {
+      setError('Failed to add drug');
+    }
+  };
+
+  // Restock
+  const handleRestock = async () => {
+    try {
+      await pharmacyService.restockDrug(restockDrugId, restockQty);
+      setRestockDrugId(null);
+      setRestockQty(0);
+      fetchDrugs();
+    } catch (err) {
+      setError('Failed to restock drug');
+    }
+  };
+
+  // Dispense
+  const handleDispense = async (prescription) => {
+    setDispenseLoading(true);
+    try {
+      // Try exact match first
+      let drug = drugs.find(d => d.name.trim().toLowerCase() === prescription.medications.trim().toLowerCase());
+      // Then try includes
+      if (!drug) drug = drugs.find(d => d.name.toLowerCase().includes(prescription.medications.trim().toLowerCase()));
+      // Then try startsWith (for cases like 'Paracetamol 500mg')
+      if (!drug) drug = drugs.find(d => prescription.medications.toLowerCase().startsWith(d.name.toLowerCase()));
+
+      if (!drug) throw new Error(`Drug '${prescription.medications}' not found in stock. Please check the stock list or restock.`);
+
+      const quantityToDispense = dispenseQuantities[prescription.prescription_id] || prescription.quantity || 1;
+      await pharmacyService.dispenseDrug(drug.drug_id, quantityToDispense, prescription.prescription_id);
+      setDispensedIds(ids => [...ids, prescription.prescription_id]);
+      setDispensedHistory(hist => [
+        {
+          ...prescription,
+          dispensedAt: new Date().toLocaleString(),
+          quantityDispensed: quantityToDispense
+        },
+        ...hist
+      ]);
+      fetchDrugs();
+      fetchPrescriptions();
+      setError('');
+    } catch (err) {
+      setError('Failed to dispense drug: ' + (err.message || ''));
+      alert('Failed to dispense drug: ' + (err.message || ''));
+    } finally {
+      setDispenseLoading(false);
+    }
+  };
+
+  // AI Check
+  const handleAICheck = async (prescription) => {
+    setAILoading(true);
+    setAIResult(null);
+    setAIDialogOpen(true);
+    try {
+      const drugsArr = prescription.medications.split(',').map(d => d.trim().toLowerCase());
+      const result = await aiService.pharmacyAICheck(drugsArr);
+      setAIResult(result);
+    } catch (err) {
+      setAIResult({ interactions: [], suggestions: ['AI check failed.'] });
+    } finally {
+      setAILoading(false);
+    }
+  };
+
+  // Get prescriptions for selected patient
+  const selectedPatientPrescriptions = selectedPatientId && patientsWithPrescriptions[selectedPatientId]
+    ? patientsWithPrescriptions[selectedPatientId].prescriptions.filter(p => !dispensedIds.includes(p.prescription_id))
+    : [];
+
+  // Filter patient list based on search
+  const filteredPatientList = patientList.filter(patient =>
+    `${patient.patient_first_name} ${patient.patient_last_name}`.toLowerCase().includes(patientSearch.toLowerCase()) ||
+    String(patient.patient_id).includes(patientSearch)
+  );
 
   return (
     <Container 
@@ -241,59 +244,66 @@ const Pharmacy = () => {
                 mb: 2,
                 color: 'primary.main'
               }}>
-                <Badge badgeContent={pendingPrescriptions.length} color="primary">
+                <Badge badgeContent={filteredPatientList.length} color="primary">
                   <Medication sx={{ mr: 1 }} /> Pending Prescriptions
                 </Badge>
               </Typography>
-              <List sx={{ 
-                flex: 1,
-                overflow: 'auto',
-                '& .MuiListItem-root': {
-                  borderRadius: 1,
-                  mb: 0.5,
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                  }
-                }
-              }}>
-                {pendingPrescriptions.map((rx) => (
-                  <React.Fragment key={rx.id}>
-                    <ListItem 
-                      button 
-                      selected={selectedPatient?.id === rx.id}
-                      onClick={() => handleSelectPrescription(rx)}
-                      sx={{
-                        '&.Mui-selected': {
-                          bgcolor: 'primary.light',
-                          '&:hover': { bgcolor: 'primary.light' }
-                        }
-                      }}
-                    >
-                      <ListItemText
-                        primary={rx.patient.name}
-                        secondary={
-                          <>
-                            <Typography component="span" variant="body2" display="block">
-                              {rx.date} · {rx.doctor}
-                            </Typography>
-                            <Typography component="span" variant="body2">
-                              {rx.medications.length} medication(s)
-                            </Typography>
-                          </>
-                        }
-                      />
-                    </ListItem>
-                    <Divider component="li" />
-                  </React.Fragment>
-                ))}
-              </List>
+              <TextField
+                label="Search patients by name or ID"
+                variant="outlined"
+                size="small"
+                fullWidth
+                value={patientSearch}
+                onChange={e => setPatientSearch(e.target.value)}
+                InputProps={{
+                  startAdornment: <Search sx={{ mr: 1, color: 'action.active' }} />,
+                }}
+                sx={{ mb: 2 }}
+              />
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="h5" gutterBottom>Pending Prescriptions</Typography>
+                {prescError && <Alert severity="error">{prescError}</Alert>}
+                <TableContainer component={Paper} sx={{ mb: 2 }}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Patient</TableCell>
+                        <TableCell>Prescriptions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {prescLoading ? (
+                        <TableRow><TableCell colSpan={2}>Loading...</TableCell></TableRow>
+                      ) : filteredPatientList.length === 0 ? (
+                        <TableRow><TableCell colSpan={2}>No patients with pending prescriptions</TableCell></TableRow>
+                      ) : (
+                        <List>
+                          {filteredPatientList.map(patient => (
+                            <React.Fragment key={patient.patient_id}>
+                              <ListItem disablePadding>
+                                <ListItemButton
+                                  selected={selectedPatientId === patient.patient_id}
+                                  onClick={() => setSelectedPatientId(patient.patient_id)}
+                                >
+                                  <ListItemText primary={`${patient.patient_first_name} ${patient.patient_last_name}`} />
+                                </ListItemButton>
+                              </ListItem>
+                              <Divider />
+                            </React.Fragment>
+                          ))}
+                        </List>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
 
         {/* Main Content - Patient Prescription Details */}
         <Grid item xs={12} md={6}>
-          {selectedPatient ? (
+          {selectedPatientId && patientsWithPrescriptions[selectedPatientId] ? (
             <Card sx={{ 
               boxShadow: 3, 
               mb: 3,
@@ -311,23 +321,8 @@ const Pharmacy = () => {
                   borderColor: 'divider'
                 }}>
                   <Typography variant="h5" sx={{ color: 'primary.main' }}>
-                    {selectedPatient.patient.name} (Age: {selectedPatient.patient.age})
+                    {patientsWithPrescriptions[selectedPatientId].patient_first_name} {patientsWithPrescriptions[selectedPatientId].patient_last_name} (Age: {patientsWithPrescriptions[selectedPatientId].patient_age})
                   </Typography>
-                  <Button 
-                    variant="contained" 
-                    color="primary" 
-                    startIcon={<CheckCircle />}
-                    onClick={() => handleFulfillPrescription(selectedPatient.id)}
-                    sx={{
-                      px: 3,
-                      '&:hover': {
-                        transform: 'translateY(-2px)',
-                        boxShadow: 3
-                      }
-                    }}
-                  >
-                    Fulfill Prescription
-                  </Button>
                 </Box>
                 
                 <Typography variant="subtitle1" gutterBottom sx={{ 
@@ -339,23 +334,53 @@ const Pharmacy = () => {
                   <LocalPharmacy sx={{ mr: 1 }} /> Prescribed Medications
                 </Typography>
                 
-                <TableContainer component={Paper} sx={{ mb: 4, boxShadow: 2 }}>
-                  <Table>
-                    <TableHead sx={{ bgcolor: 'primary.main' }}>
+                <TableContainer component={Paper} sx={{ mb: 4, boxShadow: 2, borderRadius: 2 }}>
+                  <Table size="small">
+                    <TableHead sx={{ bgcolor: 'primary.light' }}>
                       <TableRow>
                         <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Medication</TableCell>
                         <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Dosage</TableCell>
                         <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Frequency</TableCell>
                         <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Duration</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Quantity Prescribed</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {selectedPatient.medications.map((med, index) => (
-                        <TableRow key={index} hover>
-                          <TableCell>{med.name}</TableCell>
-                          <TableCell>{med.dosage}</TableCell>
-                          <TableCell>{med.frequency}</TableCell>
-                          <TableCell>{med.duration}</TableCell>
+                      {selectedPatientPrescriptions.length === 0 ? (
+                        <TableRow><TableCell colSpan={6}>No pending prescriptions for this patient.</TableCell></TableRow>
+                      ) : selectedPatientPrescriptions.map(presc => (
+                        <TableRow key={presc.prescription_id}>
+                          <TableCell>{presc.medications}</TableCell>
+                          <TableCell>{presc.dosage}</TableCell>
+                          <TableCell>{presc.frequency || '-'}</TableCell>
+                          <TableCell>{presc.duration || '-'}</TableCell>
+                          <TableCell>{presc.quantity}</TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <TextField
+                                label="Qty"
+                                type="number"
+                                size="small"
+                                value={dispenseQuantities[presc.prescription_id] ?? presc.quantity}
+                                onChange={e => setDispenseQuantities(q => ({ ...q, [presc.prescription_id]: Number(e.target.value) }))}
+                                inputProps={{ min: 1, style: { width: 60 } }}
+                                sx={{ mr: 1 }}
+                              />
+                              {dispensedIds.includes(presc.prescription_id) ? (
+                                <Alert severity="success" sx={{ p: 0.5, m: 0 }}>Dispensed</Alert>
+                              ) : (
+                                <>
+                                  <Button variant="contained" size="small" disabled={dispenseLoading} onClick={() => handleDispense(presc)}>
+                                    Dispense
+                                  </Button>
+                                  <Button variant="outlined" size="small" sx={{ ml: 1 }} onClick={() => handleAICheck(presc)}>
+                                    AI Check
+                                  </Button>
+                                </>
+                              )}
+                            </Box>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -371,83 +396,44 @@ const Pharmacy = () => {
                   <History sx={{ mr: 1 }} /> Medication History
                 </Typography>
                 
-                {patientHistory[selectedPatient.patient.id]?.length > 0 ? (
-                  <List dense sx={{ 
-                    mb: 4,
-                    bgcolor: 'background.paper',
-                    borderRadius: 1,
-                    boxShadow: 1
-                  }}>
-                    {patientHistory[selectedPatient.patient.id].map((med, index) => (
-                      <ListItem key={index} divider={index !== patientHistory[selectedPatient.patient.id].length - 1}>
-                        <ListItemText
-                          primary={med.name}
-                          secondary={`${med.dosage} · ${med.date} · ${med.duration}`}
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
-                ) : (
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
-                    No previous medication history found.
-                  </Typography>
-                )}
+                {/* Add medication history display */}
 
                 {/* Stock Update Section */}
-                <Typography variant="subtitle1" gutterBottom sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center',
-                  color: 'primary.main',
-                  mb: 2
-                }}>
-                  <Inventory sx={{ mr: 1 }} /> Pharmacy Stock
-                </Typography>
-                
-                <TableContainer component={Paper} sx={{ mb: 3, boxShadow: 2 }}>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow sx={{ bgcolor: 'primary.light' }}>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Medication</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 'bold' }}>Quantity</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {stock.map((item) => (
-                        <TableRow key={item.id} hover>
-                          <TableCell>
-                            {item.name}
-                            {item.quantity < item.threshold && (
-                              <Chip 
-                                label="Low Stock" 
-                                size="small" 
-                                color="warning" 
-                                sx={{ ml: 1 }} 
-                              />
-                            )}
-                          </TableCell>
-                          <TableCell align="right">{item.quantity}</TableCell>
-                          <TableCell align="center">
-                            <IconButton 
-                              size="small" 
-                              onClick={() => handleStockUpdate(item.id, 'remove')}
-                              sx={{ '&:hover': { color: 'error.main' } }}
-                            >
-                              <Remove fontSize="small" />
-                            </IconButton>
-                            <IconButton 
-                              size="small" 
-                              onClick={() => handleStockUpdate(item.id, 'add')}
-                              sx={{ '&:hover': { color: 'success.main' } }}
-                            >
-                              <Add fontSize="small" />
-                            </IconButton>
-                          </TableCell>
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h5" gutterBottom>Pharmacy Stock</Typography>
+                  <TableContainer component={Paper}>
+                    <Table>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Name</TableCell>
+                          <TableCell>Description</TableCell>
+                          <TableCell>Quantity</TableCell>
+                          <TableCell>Unit</TableCell>
+                          <TableCell>Last Restocked</TableCell>
+                          <TableCell>Actions</TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                      </TableHead>
+                      <TableBody>
+                        {loading ? (
+                          <TableRow><TableCell colSpan={6}>Loading...</TableCell></TableRow>
+                        ) : drugs.length === 0 ? (
+                          <TableRow><TableCell colSpan={6}>No drugs in stock. (Check backend data and API mapping.)</TableCell></TableRow>
+                        ) : drugs.map(drug => (
+                          <TableRow key={drug.drug_id}>
+                            <TableCell>{drug.name}</TableCell>
+                            <TableCell>{drug.description}</TableCell>
+                            <TableCell>{drug.quantity}</TableCell>
+                            <TableCell>{drug.unit}</TableCell>
+                            <TableCell>{new Date(drug.last_restocked).toLocaleString()}</TableCell>
+                            <TableCell>
+                              <Button size="small" onClick={() => setRestockDrugId(drug.drug_id)}>Restock</Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Box>
                 
                 <Box sx={{ 
                   display: 'flex', 
@@ -461,8 +447,8 @@ const Pharmacy = () => {
                   <TextField
                     label="New Medication"
                     size="small"
-                    value={newStockItem.name}
-                    onChange={(e) => setNewStockItem({...newStockItem, name: e.target.value})}
+                    value={newDrug.name}
+                    onChange={(e) => setNewDrug({...newDrug, name: e.target.value})}
                     sx={{ flex: 1 }}
                   />
                   <TextField
@@ -470,13 +456,13 @@ const Pharmacy = () => {
                     type="number"
                     size="small"
                     sx={{ width: 100 }}
-                    value={newStockItem.quantity}
-                    onChange={(e) => setNewStockItem({...newStockItem, quantity: parseInt(e.target.value) || 0})}
+                    value={newDrug.quantity}
+                    onChange={(e) => setNewDrug({...newDrug, quantity: parseInt(e.target.value) || 0})}
                   />
                   <Button 
                     variant="contained" 
                     startIcon={<Add />}
-                    onClick={handleAddStockItem}
+                    onClick={() => setOpenAdd(true)}
                     sx={{
                       '&:hover': {
                         transform: 'translateY(-2px)',
@@ -500,7 +486,7 @@ const Pharmacy = () => {
             }}>
               <CardContent>
                 <Typography variant="h6" color="text.secondary" align="center">
-                  Select a prescription from the left to view details
+                  {selectedPatientId ? "No pending prescriptions for this patient." : "Select a patient from the left to view their prescriptions"}
                 </Typography>
               </CardContent>
             </Card>
@@ -531,15 +517,15 @@ const Pharmacy = () => {
                 <AutoFixHigh sx={{ mr: 1 }} /> AI Pharmacy Assistant
               </Typography>
               
-              {selectedPatient ? (
+              {selectedPatientId ? (
                 <>
                   {/* AI Insights */}
                   <Box sx={{ mb: 3 }}>
                     <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
                       Drug Interactions
                     </Typography>
-                    {aiInsights.interactions.length > 0 ? (
-                      aiInsights.interactions.map((interaction, index) => (
+                    {aiResult?.interactions && aiResult.interactions.length > 0 ? (
+                      aiResult.interactions.map((interaction, index) => (
                         <Box key={index} sx={{ 
                           p: 1.5, 
                           mb: 1, 
@@ -564,8 +550,8 @@ const Pharmacy = () => {
                     <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
                       Recommendations
                     </Typography>
-                    {aiInsights.suggestions.length > 0 ? (
-                      aiInsights.suggestions.map((suggestion, index) => (
+                    {aiResult?.suggestions && aiResult.suggestions.length > 0 ? (
+                      aiResult.suggestions.map((suggestion, index) => (
                         <Box key={index} sx={{ 
                           p: 1.5, 
                           mb: 1, 
@@ -599,30 +585,186 @@ const Pharmacy = () => {
                     p: 1,
                     boxShadow: 1
                   }}>
-                    {aiActivity.map((activity, index) => (
-                      <Box key={index} sx={{ 
-                        mb: 1.5,
-                        p: 1,
-                        borderRadius: 1,
-                        bgcolor: 'grey.50'
-                      }}>
-                        <Typography variant="caption" color="text.secondary" display="block">
-                          {activity.timestamp}
-                        </Typography>
-                        <Typography variant="body2">{activity.message}</Typography>
-                      </Box>
-                    ))}
+                    {/* Add AI activity log display */}
                   </Box>
                 </>
               ) : (
                 <Typography variant="body2" color="text.secondary" align="center">
-                  Select a prescription to activate AI analysis.
+                  Select a patient to activate AI analysis.
                 </Typography>
               )}
+              <Box sx={{ mt: 3 }}>
+                <Button
+                  variant="outlined"
+                  onClick={() => setShowStock(s => !s)}
+                  sx={{ mb: 2 }}
+                  fullWidth
+                >
+                  {showStock ? 'Hide Pharmacy Stock' : 'Show Pharmacy Stock'}
+                </Button>
+                <Collapse in={showStock}>
+                  <Typography variant="h6" gutterBottom>Pharmacy Stock</Typography>
+                  <TextField
+                    label="Search Drug"
+                    size="small"
+                    value={stockSearch}
+                    onChange={e => setStockSearch(e.target.value)}
+                    fullWidth
+                    sx={{ mb: 2 }}
+                  />
+                  <TableContainer component={Paper} sx={{ mb: 2 }}>
+                    <Table>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Name</TableCell>
+                          <TableCell>Description</TableCell>
+                          <TableCell>Quantity</TableCell>
+                          <TableCell>Unit</TableCell>
+                          <TableCell>Last Restocked</TableCell>
+                          <TableCell>Actions</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {(loading ? [] : drugs.filter(drug =>
+                          drug.name.toLowerCase().includes(stockSearch.toLowerCase()) ||
+                          (drug.description && drug.description.toLowerCase().includes(stockSearch.toLowerCase()))
+                        )).length === 0 ? (
+                          <TableRow><TableCell colSpan={6}>{loading ? 'Loading...' : 'No drugs found.'}</TableCell></TableRow>
+                        ) : (
+                          drugs.filter(drug =>
+                            drug.name.toLowerCase().includes(stockSearch.toLowerCase()) ||
+                            (drug.description && drug.description.toLowerCase().includes(stockSearch.toLowerCase()))
+                          ).map(drug => (
+                            <TableRow key={drug.drug_id}>
+                              <TableCell>{drug.name}</TableCell>
+                              <TableCell>{drug.description}</TableCell>
+                              <TableCell>{drug.quantity}</TableCell>
+                              <TableCell>{drug.unit}</TableCell>
+                              <TableCell>{new Date(drug.last_restocked).toLocaleString()}</TableCell>
+                              <TableCell>
+                                <Button size="small" onClick={() => setRestockDrugId(drug.drug_id)}>Restock</Button>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                  <Box sx={{ display: 'flex', gap: 2, mt: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1, boxShadow: 1 }}>
+                    <TextField
+                      label="New Medication"
+                      size="small"
+                      value={newDrug.name}
+                      onChange={(e) => setNewDrug({...newDrug, name: e.target.value})}
+                      sx={{ flex: 1 }}
+                    />
+                    <TextField
+                      label="Quantity"
+                      type="number"
+                      size="small"
+                      sx={{ width: 100 }}
+                      value={newDrug.quantity}
+                      onChange={(e) => setNewDrug({...newDrug, quantity: parseInt(e.target.value) || 0})}
+                    />
+                    <Button 
+                      variant="contained" 
+                      startIcon={<Add />}
+                      onClick={() => setOpenAdd(true)}
+                      sx={{'&:hover': {transform: 'translateY(-2px)', boxShadow: 2}}}
+                    >
+                      Add
+                    </Button>
+                  </Box>
+                </Collapse>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
+
+      {/* Add Drug Dialog */}
+      <Dialog open={openAdd} onClose={() => setOpenAdd(false)}>
+        <DialogTitle>Add New Drug</DialogTitle>
+        <DialogContent>
+          <TextField label="Name" fullWidth margin="dense" value={newDrug.name} onChange={e => setNewDrug({ ...newDrug, name: e.target.value })} />
+          <TextField label="Description" fullWidth margin="dense" value={newDrug.description} onChange={e => setNewDrug({ ...newDrug, description: e.target.value })} />
+          <TextField label="Quantity" type="number" fullWidth margin="dense" value={newDrug.quantity} onChange={e => setNewDrug({ ...newDrug, quantity: Number(e.target.value) })} />
+          <TextField label="Unit" fullWidth margin="dense" value={newDrug.unit} onChange={e => setNewDrug({ ...newDrug, unit: e.target.value })} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenAdd(false)}>Cancel</Button>
+          <Button onClick={handleAddDrug} variant="contained">Add</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Restock Dialog */}
+      <Dialog open={!!restockDrugId} onClose={() => setRestockDrugId(null)}>
+        <DialogTitle>Restock Drug</DialogTitle>
+        <DialogContent>
+          <TextField label="Quantity to Add" type="number" fullWidth margin="dense" value={restockQty} onChange={e => setRestockQty(Number(e.target.value))} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRestockDrugId(null)}>Cancel</Button>
+          <Button onClick={handleRestock} variant="contained">Restock</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* AI Result Dialog */}
+      <Dialog open={aiDialogOpen} onClose={() => setAIDialogOpen(false)}>
+        <DialogTitle>AI Pharmacy Check</DialogTitle>
+        <DialogContent>
+          {aiLoading ? (
+            <Typography>Loading AI check...</Typography>
+          ) : aiResult ? (
+            <>
+              <Typography variant="subtitle1">Drug Interactions:</Typography>
+              {aiResult.interactions && aiResult.interactions.length > 0 ? (
+                aiResult.interactions.map((i, idx) => <Alert key={idx} severity="warning">{i}</Alert>)
+              ) : <Typography>No significant interactions detected.</Typography>}
+              <Typography variant="subtitle1" sx={{ mt: 2 }}>Recommendations:</Typography>
+              {aiResult.suggestions && aiResult.suggestions.length > 0 ? (
+                aiResult.suggestions.map((s, idx) => <Alert key={idx} severity="info">{s}</Alert>)
+              ) : <Typography>No recommendations at this time.</Typography>}
+            </>
+          ) : null}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAIDialogOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dispensed History Section */}
+      {dispensedHistory.length > 0 && (
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="h6" gutterBottom>Dispensed History</Typography>
+          <TableContainer component={Paper} sx={{ boxShadow: 1, borderRadius: 2 }}>
+            <Table size="small">
+              <TableHead sx={{ bgcolor: 'grey.200' }}>
+                <TableRow>
+                  <TableCell>Medication</TableCell>
+                  <TableCell>Dosage</TableCell>
+                  <TableCell>Frequency</TableCell>
+                  <TableCell>Duration</TableCell>
+                  <TableCell>Quantity Dispensed</TableCell>
+                  <TableCell>Dispensed At</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {dispensedHistory.map((item, idx) => (
+                  <TableRow key={item.prescription_id + '-' + idx}>
+                    <TableCell>{item.medications}</TableCell>
+                    <TableCell>{item.dosage}</TableCell>
+                    <TableCell>{item.frequency || '-'}</TableCell>
+                    <TableCell>{item.duration || '-'}</TableCell>
+                    <TableCell>{item.quantityDispensed}</TableCell>
+                    <TableCell>{item.dispensedAt}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      )}
     </Container>
   );
 };

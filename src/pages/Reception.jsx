@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   Container,
   Typography,
@@ -27,6 +28,7 @@ import {
   PersonAdd,
   Search,
   Edit,
+  Delete,
   CalendarToday,
   LocalHospital,
   AssignmentInd,
@@ -35,33 +37,31 @@ import {
   Schedule
 } from '@mui/icons-material';
 import { patientAPI } from '../services/api';
+import { fetchPatientsStart, fetchPatientsSuccess, fetchPatientsFailure, deletePatient as deletePatientAction } from '../store/reducers/patientReducer';
 
 const Reception = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { patients, loading, error } = useSelector(state => state.patients);
   const [activeTab, setActiveTab] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
-  const [patients, setPatients] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // Fetch patients on component mount
   useEffect(() => {
-    fetchPatients();
-  }, []);
+    const fetchPatients = async () => {
+      dispatch(fetchPatientsStart());
+      try {
+        const data = await patientAPI.getAllPatients();
+        dispatch(fetchPatientsSuccess(data));
+      } catch (err) {
+        console.error('Error fetching patients:', err);
+        dispatch(fetchPatientsFailure('Failed to load patients. Please try again later.'));
+      }
+    };
 
-  const fetchPatients = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await patientAPI.getAllPatients();
-      setPatients(data);
-    } catch (err) {
-      console.error('Error fetching patients:', err);
-      setError('Failed to load patients. Please try again later.');
-    } finally {
-      setLoading(false);
+    if (patients.length === 0) {
+       fetchPatients();
     }
-  };
+  }, [dispatch, patients.length]);
 
   // Navigate to patient registration
   const handleAddNewPatient = () => {
@@ -71,6 +71,19 @@ const Reception = () => {
   // Navigate to patient edit
   const handleEditPatient = (patientId) => {
     navigate('/patients', { state: { editPatientId: patientId } });
+  };
+
+  // Delete a patient
+  const handleDeletePatient = async (patientId) => {
+    if (window.confirm('Are you sure you want to delete this patient?')) {
+      try {
+        await patientAPI.deletePatient(patientId);
+        dispatch(deletePatientAction(patientId));
+      } catch (err) {
+        console.error('Error deleting patient:', err);
+        // Optionally dispatch an error action
+      }
+    }
   };
 
   // Filter patients based on search term
@@ -183,8 +196,11 @@ const Reception = () => {
                               >
                                 <Edit />
                               </IconButton>
-                              <IconButton color="secondary">
-                                <MedicalServices />
+                              <IconButton 
+                                color="error" 
+                                onClick={() => handleDeletePatient(patient.patient_id)}
+                              >
+                                <Delete />
                               </IconButton>
                             </TableCell>
                           </TableRow>

@@ -25,6 +25,7 @@ import {
   Thermometer,
   Weight
 } from 'lucide-react';
+import { patientAPI } from '../../services/api';
 
 const InpatientSystem = () => {
   const [selectedPatient, setSelectedPatient] = useState(null);
@@ -218,22 +219,25 @@ const InpatientSystem = () => {
     }
   };
 
-  const addPrescription = () => {
-    if (newPrescription.medication.trim()) {
-      setPrescriptions([
-        ...prescriptions,
-        {
-          id: Date.now(),
-          ...newPrescription,
-          prescribedAt: new Date().toLocaleString(),
-        },
-      ]);
-      setNewPrescription({
-        medication: '',
-        dosage: '',
-        frequency: '',
-        duration: '',
-      });
+  const addPrescription = async () => {
+    if (newPrescription.medication.trim() && selectedPatient) {
+      try {
+        await patientAPI.createPrescription(selectedPatient.id, {
+          doctor_id: /* get doctor id from context or state */ 1,
+          medications: newPrescription.medication,
+          dosage: newPrescription.dosage,
+          instructions: `${newPrescription.frequency} for ${newPrescription.duration}`
+        });
+        // Optionally refresh local state or show a success message
+        setNewPrescription({
+          medication: '',
+          dosage: '',
+          frequency: '',
+          duration: '',
+        });
+      } catch (err) {
+        alert('Failed to create prescription');
+      }
     }
   };
 

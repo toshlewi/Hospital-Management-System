@@ -233,6 +233,12 @@ export const patientAPI = {
       console.error('Error uploading lab result:', error);
       throw error;
     }
+  },
+
+  // Create new prescription for a patient
+  createPrescription: async (patientId, prescriptionData) => {
+    const response = await api.post(`/patients/${patientId}/prescriptions`, prescriptionData);
+    return response.data;
   }
 };
 

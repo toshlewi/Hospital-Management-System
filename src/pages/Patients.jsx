@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import { 
   Container, 
   Typography, 
@@ -32,16 +33,22 @@ import {
 import PatientForm from '../components/patient/PatientForm';
 import PatientTable from '../components/patient/PatientTable';
 import { patientAPI } from '../services/api';
+import { 
+  fetchPatientsStart, 
+  fetchPatientsSuccess, 
+  fetchPatientsFailure, 
+  addPatient, 
+  updatePatient 
+} from '../store/reducers/patientReducer';
 
 const Patients = () => {
   const location = useLocation();
-  const [patients, setPatients] = useState([]);
+  const dispatch = useDispatch();
+  const { patients, loading, error } = useSelector(state => state.patients);
   const [searchTerm, setSearchTerm] = useState('');
   const [openForm, setOpenForm] = useState(false);
   const [selectedTab, setSelectedTab] = useState(0);
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
   // Handle navigation state
   useEffect(() => {
@@ -57,23 +64,22 @@ const Patients = () => {
   }, [location.state, patients]);
 
   // Fetch patients from backend
-  const fetchPatients = async () => {
-    try {
-      setLoading(true);
-      const data = await patientAPI.getAllPatients();
-      setPatients(data);
-      setError('');
-    } catch (err) {
-      setError('Failed to fetch patients from database');
-      console.error('Error fetching patients:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchPatients();
-  }, []);
+    const fetchPatients = async () => {
+      dispatch(fetchPatientsStart());
+      try {
+        const data = await patientAPI.getAllPatients();
+        dispatch(fetchPatientsSuccess(data));
+      } catch (err) {
+        dispatch(fetchPatientsFailure('Failed to fetch patients from database'));
+        console.error('Error fetching patients:', err);
+      }
+    };
+    
+    if (patients.length === 0) {
+      fetchPatients();
+    }
+  }, [dispatch, patients.length]);
 
   const filteredPatients = patients.filter(patient => {
     const searchLower = searchTerm.toLowerCase();
@@ -106,13 +112,13 @@ const Patients = () => {
     try {
       if (selectedPatient) {
         // Update existing patient
-        await patientAPI.updatePatient(selectedPatient.patient_id, formData);
+        const updatedPatient = await patientAPI.updatePatient(selectedPatient.patient_id, formData);
+        dispatch(updatePatient({ ...formData, patient_id: selectedPatient.patient_id }));
       } else {
         // Add new patient
-        await patientAPI.createPatient(formData);
+        const newPatient = await patientAPI.createPatient(formData);
+        dispatch(addPatient(newPatient));
       }
-      // Refresh the patient list
-      await fetchPatients();
       handleFormClose();
     } catch (err) {
       console.error('Error saving patient:', err);
@@ -121,6 +127,16 @@ const Patients = () => {
   };
 
   const handleRefresh = () => {
+    const fetchPatients = async () => {
+      dispatch(fetchPatientsStart());
+      try {
+        const data = await patientAPI.getAllPatients();
+        dispatch(fetchPatientsSuccess(data));
+      } catch (err) {
+        dispatch(fetchPatientsFailure('Failed to fetch patients from database'));
+        console.error('Error fetching patients:', err);
+      }
+    };
     fetchPatients();
   };
 

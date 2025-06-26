@@ -159,9 +159,11 @@ const Lab = () => {
 
   // Sidebar: Filtered patients
   const filteredPatients = patientsWithOrders.filter(p => {
-    const matchesSearch = (`${p.first_name} ${p.last_name}`).toLowerCase().includes(searchQuery.toLowerCase()) ||
-      String(p.patient_id).includes(searchQuery);
-    return matchesSearch;
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      (`${p.first_name} ${p.last_name}`).toLowerCase().includes(searchLower) ||
+      String(p.patient_id).includes(searchQuery)
+    );
   });
 
   // Main: Filtered lab orders for selected patient
@@ -306,12 +308,14 @@ const Lab = () => {
                 <Science sx={{ mr: 1 }} /> Lab Patients
               </Typography>
               <TextField
-                placeholder="Search patient..."
+                label="Search patients by name or ID"
+                variant="outlined"
                 size="small"
+                fullWidth
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 InputProps={{
-                  startAdornment: <Search sx={{ mr: 1 }} />
+                  startAdornment: <Search sx={{ mr: 1, color: 'action.active' }} />,
                 }}
                 sx={{ mb: 2 }}
               />
