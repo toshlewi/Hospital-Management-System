@@ -1,8 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const mysql = require('mysql2');
-const dbConfig = require('./config/db.config.js');
+const dbService = require('./services/database.js');
 
 const app = express();
 
@@ -11,69 +10,25 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Create MySQL connection pool
-const pool = mysql.createPool({
-  host: dbConfig.HOST,
-  user: dbConfig.USER,
-  password: dbConfig.PASSWORD,
-  database: dbConfig.DB,
-  port: dbConfig.PORT,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-}).promise();
-
 // Test database connection
-pool.getConnection()
-  .then(connection => {
-    console.log('Successfully connected to the database.');
-    console.log('Database config:', {
-      host: dbConfig.HOST,
-      user: dbConfig.USER,
-      database: dbConfig.DB,
-      port: dbConfig.PORT
-    });
-    
-    // Test query to check if patients table exists
-    return connection.query('SHOW TABLES LIKE "patients"')
-      .then(([rows]) => {
-        if (rows.length === 0) {
-          console.error('Patients table does not exist! Creating it now...');
-          // Create patients table
-          const createTableSQL = `
-            CREATE TABLE IF NOT EXISTS patients (
-              patient_id INT PRIMARY KEY AUTO_INCREMENT,
-              first_name VARCHAR(50) NOT NULL,
-              last_name VARCHAR(50) NOT NULL,
-              date_of_birth DATE,
-              gender ENUM('male', 'female', 'other'),
-              blood_type VARCHAR(5),
-              contact_number VARCHAR(20),
-              email VARCHAR(100),
-              address TEXT,
-              emergency_contact VARCHAR(100),
-              insurance_info TEXT,
-              status ENUM('active', 'inactive', 'admitted', 'discharged') DEFAULT 'active',
-              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-            )`;
-          return connection.query(createTableSQL);
-        } else {
-          console.log('Patients table exists.');
-        }
-      })
-      .then(() => {
-        connection.release();
-      });
+dbService.testConnection()
+  .then(success => {
+    if (success) {
+      console.log('✅ Database connection established successfully');
+    } else {
+      console.error('❌ Failed to connect to database');
+      process.exit(1);
+    }
   })
   .catch(err => {
-    console.error('Database connection/setup error:', err);
+    console.error('❌ Database connection error:', err);
     process.exit(1);
   });
 
 // Routes
-require('./routes/patient.routes')(app);
+app.use('/api', require('./routes/patient.routes'));
 app.use('/api/pharmacy', require('./routes/pharmacy.routes'));
+app.use('/api/billing', require('./routes/billing.routes'));
 
 // Simple test route
 app.get('/', (req, res) => {
@@ -89,8 +44,16 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('Shutting down gracefully...');
+  await dbService.close();
+  process.exit(0);
+});
+
 // Set port and start server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}.`);
+  console.log(`🚀 Server is running on port ${PORT}.`);
+  console.log(`📊 Database: ${dbService.useSupabase ? 'Supabase (Cloud)' : 'PostgreSQL (Local)'}`);
 }); 

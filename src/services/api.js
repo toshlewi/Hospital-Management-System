@@ -9,62 +9,33 @@ const api = axios.create({
   }
 });
 
+export { api };
+
 // Patient API calls
 export const patientAPI = {
   // Get all patients
-  getAllPatients: async () => {
-    try {
-      const response = await api.get('/patients');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching patients:', error);
-      throw error;
-    }
-  },
+  getAllPatients: () => api.get('/patients').then(res => res.data),
 
   // Get patient by ID
-  getPatientById: async (id) => {
-    try {
-      const response = await api.get(`/patients/${id}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching patient:', error);
-      throw error;
-    }
-  },
+  getPatientById: (id) => api.get(`/patients/${id}`).then(res => res.data),
+
+  // Get patient's billing status
+  getPatientBillingStatus: (id) => api.get(`/patients/${id}/billing`).then(res => res.data),
+
+  // Get medical notes
+  getMedicalNotes: (patientId) => api.get(`/patients/${patientId}/notes`).then(res => res.data),
+
+  // Get patient's prescriptions
+  getPrescriptions: (patientId) => api.get(`/patients/${patientId}/prescriptions`).then(res => res.data),
 
   // Create new patient
-  createPatient: async (patientData) => {
-    try {
-      const response = await api.post('/patients', patientData);
-      return response.data;
-    } catch (error) {
-      console.error('Error creating patient:', error);
-      throw error;
-    }
-  },
+  createPatient: (data) => api.post('/patients', data).then(res => res.data),
 
   // Update patient
-  updatePatient: async (id, patientData) => {
-    try {
-      const response = await api.put(`/patients/${id}`, patientData);
-      return response.data;
-    } catch (error) {
-      console.error('Error updating patient:', error);
-      throw error;
-    }
-  },
+  updatePatient: (id, data) => api.put(`/patients/${id}`, data).then(res => res.data),
 
   // Delete patient
-  deletePatient: async (id) => {
-    try {
-      const response = await api.delete(`/patients/${id}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error deleting patient:', error);
-      throw error;
-    }
-  },
+  deletePatient: (id) => api.delete(`/patients/${id}`).then(res => res.data),
 
   // Get patient's medical history
   getPatientHistory: async (id) => {
@@ -89,127 +60,28 @@ export const patientAPI = {
   },
 
   // Get patient's test results
-  getPatientTests: async (id) => {
-    try {
-      const response = await api.get(`/patients/${id}/tests`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching patient tests:', error);
-      throw error;
-    }
-  },
+  getTestOrders: (patientId) => api.get(`/patients/${patientId}/tests`).then(res => res.data),
 
-  // Get patient's prescriptions
-  getPatientPrescriptions: async (id) => {
-    try {
-      const response = await api.get(`/patients/${id}/prescriptions`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching patient prescriptions:', error);
-      throw error;
-    }
-  },
-
-  // Get medical notes
-  getMedicalNotes: async (patientId) => {
-    try {
-      const response = await api.get(`/patients/${patientId}/notes`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching medical notes:', error);
-      throw error;
-    }
-  },
-
-  // Add medical note
-  addMedicalNote: async (patientId, noteData) => {
-    try {
-      const response = await api.post(`/patients/${patientId}/notes`, noteData);
-      return response.data;
-    } catch (error) {
-      console.error('Error adding medical note:', error);
-      throw error;
-    }
-  },
-
-  // Get test orders
-  getTestOrders: async (patientId) => {
-    try {
-      const response = await api.get(`/patients/${patientId}/test-orders`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching test orders:', error);
-      throw error;
-    }
-  },
-
-  // Add test order
-  addTestOrder: async (patientId, orderData) => {
-    try {
-      const response = await api.post(`/patients/${patientId}/test-orders`, orderData);
-      return response.data;
-    } catch (error) {
-      console.error('Error adding test order:', error);
-      throw error;
-    }
-  },
+  // Get all test types
+  getAllTestTypes: () => api.get('/test-types').then(res => res.data),
 
   // Get medications
-  getMedications: async (patientId) => {
-    try {
-      const response = await api.get(`/patients/${patientId}/medications`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching medications:', error);
-      throw error;
-    }
-  },
-
-  // Add medication
-  addMedication: async (patientId, medData) => {
-    try {
-      const response = await api.post(`/patients/${patientId}/medications`, medData);
-      return response.data;
-    } catch (error) {
-      console.error('Error prescribing medication:', error);
-      throw error;
-    }
-  },
+  getMedications: (patientId) => api.get(`/patients/${patientId}/medications`).then(res => res.data),
 
   // Get imaging
-  getImaging: async (patientId) => {
-    try {
-      const response = await api.get(`/patients/${patientId}/imaging`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching imaging:', error);
-      throw error;
-    }
-  },
+  getImaging: (patientId) => api.get(`/patients/${patientId}/imaging`).then(res => res.data),
 
-  // Add imaging
-  addImaging: async (patientId, formData) => {
-    try {
-      const response = await api.post(`/patients/${patientId}/imaging`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error uploading imaging:', error);
-      throw error;
-    }
-  },
+  // Add medical note
+  addMedicalNote: (patientId, data) => api.post(`/patients/${patientId}/notes`, data).then(res => res.data),
 
-  // Update test order
-  updateTestOrder: async (orderId, data) => {
-    try {
-      const response = await api.put(`/patients/test-orders/${orderId}`, data);
-      return response.data;
-    } catch (error) {
-      console.error('Error updating test order:', error);
-      throw error;
-    }
-  },
+  // Create new prescription for a patient
+  createPrescription: (patientId, data) => api.post(`/patients/${patientId}/prescriptions`, data).then(res => res.data),
+
+  // Get test orders
+  getTestOrders: (patientId) => api.get(`/patients/${patientId}/test-orders`).then(res => res.data),
+
+  // Add test order
+  addTestOrder: (patientId, data) => api.post(`/patients/${patientId}/tests`, data).then(res => res.data),
 
   // Get all imaging test orders (for Imaging department)
   getAllImagingOrders: async () => {
@@ -235,11 +107,8 @@ export const patientAPI = {
     }
   },
 
-  // Create new prescription for a patient
-  createPrescription: async (patientId, prescriptionData) => {
-    const response = await api.post(`/patients/${patientId}/prescriptions`, prescriptionData);
-    return response.data;
-  }
+  // Get patient's prescriptions
+  getPatientPrescriptions: (patientId) => api.get(`/patients/${patientId}/prescriptions`).then(res => res.data)
 };
 
 // AI Diagnosis

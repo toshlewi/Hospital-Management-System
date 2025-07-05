@@ -1,21 +1,10 @@
-const mysql = require('mysql2');
-const dbConfig = require('../config/db.config.js');
-
-const pool = mysql.createPool({
-    host: dbConfig.HOST,
-    user: dbConfig.USER,
-    password: dbConfig.PASSWORD,
-    database: dbConfig.DB,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-}).promise();
+const dbService = require('../services/database.js');
 
 // Get all drugs in stock
 exports.getAllDrugs = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM pharmacy_stock');
-        res.send(rows);
+        const drugs = await dbService.getPharmacyStock();
+        res.send(drugs);
     } catch (err) {
         res.status(500).send({ message: err.message || 'Error retrieving drugs.' });
     }
@@ -24,12 +13,16 @@ exports.getAllDrugs = async (req, res) => {
 // Add a new drug
 exports.addDrug = async (req, res) => {
     try {
-        const { name, description, quantity, unit } = req.body;
-        const [result] = await pool.query(
-            'INSERT INTO pharmacy_stock (name, description, quantity, unit) VALUES (?, ?, ?, ?)',
-            [name, description, quantity, unit]
-        );
-        res.status(201).send({ message: 'Drug added', drug_id: result.insertId });
+        const drugData = {
+            name: req.body.name,
+            description: req.body.description,
+            quantity: req.body.quantity,
+            unit: req.body.unit,
+            price: req.body.price || 0.00
+        };
+
+        const result = await dbService.addPharmacyDrug(drugData);
+        res.status(201).send({ message: 'Drug added', drug: result });
     } catch (err) {
         res.status(500).send({ message: err.message || 'Error adding drug.' });
     }
@@ -40,17 +33,44 @@ exports.restockDrug = async (req, res) => {
     try {
         const { drug_id } = req.params;
         const { quantity_added } = req.body;
-        // Update stock
-        await pool.query(
-            'UPDATE pharmacy_stock SET quantity = quantity + ?, last_restocked = CURRENT_TIMESTAMP WHERE drug_id = ?',
-            [quantity_added, drug_id]
-        );
-        // Log restock
-        await pool.query(
-            'INSERT INTO pharmacy_stock_log (drug_id, quantity_added) VALUES (?, ?)',
-            [drug_id, quantity_added]
-        );
-        res.send({ message: 'Drug restocked' });
+        
+        if (dbService.useSupabase) {
+            // Update stock using Supabase
+            const { data, error } = await dbService.supabase
+                .from('pharmacy_stock')
+                .update({ 
+                    quantity: dbService.supabase.raw(`quantity + ${quantity_added}`),
+                    last_restocked: new Date().toISOString()
+                })
+                .eq('drug_id', drug_id)
+                .select()
+                .single();
+            
+            if (error) throw error;
+            
+            // Log restock
+            await dbService.supabase
+                .from('pharmacy_stock_log')
+                .insert([{
+                    drug_id: drug_id,
+                    quantity_added: quantity_added
+                }]);
+            
+            res.send({ message: 'Drug restocked', drug: data });
+        } else {
+            // Use the generic query method for local PostgreSQL
+            await dbService.query(
+                'UPDATE pharmacy_stock SET quantity = quantity + $1, last_restocked = CURRENT_TIMESTAMP WHERE drug_id = $2',
+                [quantity_added, drug_id]
+            );
+            
+            await dbService.query(
+                'INSERT INTO pharmacy_stock_log (drug_id, quantity_added) VALUES ($1, $2)',
+                [drug_id, quantity_added]
+            );
+            
+            res.send({ message: 'Drug restocked' });
+        }
     } catch (err) {
         res.status(500).send({ message: err.message || 'Error restocking drug.' });
     }
@@ -61,6 +81,7 @@ exports.dispenseDrug = async (req, res) => {
     try {
         const { drug_id } = req.params;
         const { quantity_dispensed, prescription_id } = req.body;
+        
         // Defensive checks
         const qtyDisp = Number(quantity_dispensed);
         if (!Number.isInteger(qtyDisp) || qtyDisp <= 0) {
@@ -69,20 +90,62 @@ exports.dispenseDrug = async (req, res) => {
         if (!prescription_id) {
             return res.status(400).send({ message: 'Prescription ID is required.' });
         }
-        // Decrement stock
-        const [result] = await pool.query(
-            'UPDATE pharmacy_stock SET quantity = quantity - ? WHERE drug_id = ? AND quantity >= ?',
-            [qtyDisp, drug_id, qtyDisp]
-        );
-        if (result.affectedRows === 0) {
-            return res.status(400).send({ message: 'Not enough stock or drug not found.' });
+        
+        if (dbService.useSupabase) {
+            // Get current stock
+            const { data: currentStock, error: stockError } = await dbService.supabase
+                .from('pharmacy_stock')
+                .select('quantity')
+                .eq('drug_id', drug_id)
+                .single();
+            
+            if (stockError || !currentStock) {
+                return res.status(400).send({ message: 'Drug not found.' });
+            }
+            
+            if (currentStock.quantity < qtyDisp) {
+                return res.status(400).send({ message: 'Not enough stock.' });
+            }
+            
+            // Update stock
+            const { error: updateError } = await dbService.supabase
+                .from('pharmacy_stock')
+                .update({ quantity: currentStock.quantity - qtyDisp })
+                .eq('drug_id', drug_id);
+            
+            if (updateError) throw updateError;
+            
+            // Update prescription
+            const { error: prescriptionError } = await dbService.supabase
+                .from('prescriptions')
+                .update({ 
+                    status: 'completed', 
+                    quantity: qtyDisp, 
+                    dispensed_at: new Date().toISOString() 
+                })
+                .eq('prescription_id', prescription_id);
+            
+            if (prescriptionError) throw prescriptionError;
+            
+            res.send({ message: 'Drug dispensed and prescription updated.' });
+        } else {
+            // Use the generic query method for local PostgreSQL
+            const result = await dbService.query(
+                'UPDATE pharmacy_stock SET quantity = quantity - $1 WHERE drug_id = $2 AND quantity >= $1 RETURNING *',
+                [qtyDisp, drug_id]
+            );
+            
+            if (!result.length) {
+                return res.status(400).send({ message: 'Not enough stock or drug not found.' });
+            }
+            
+            await dbService.query(
+                "UPDATE prescriptions SET status = 'completed', quantity = $1, dispensed_at = CURRENT_TIMESTAMP WHERE prescription_id = $2",
+                [qtyDisp, prescription_id]
+            );
+            
+            res.send({ message: 'Drug dispensed and prescription updated.' });
         }
-        // Update prescription status and log dispensed quantity and time
-        await pool.query(
-            "UPDATE prescriptions SET status = 'completed', quantity = ?, dispensed_at = NOW() WHERE prescription_id = ?",
-            [qtyDisp, prescription_id]
-        );
-        res.send({ message: 'Drug dispensed and prescription updated.' });
     } catch (err) {
         console.error(err);
         res.status(500).send({ message: err.message || 'Error dispensing drug.' });
@@ -92,15 +155,8 @@ exports.dispenseDrug = async (req, res) => {
 // Get all active prescriptions (to be filled by pharmacy)
 exports.getActivePrescriptions = async (req, res) => {
     try {
-        const [rows] = await pool.query(`
-            SELECT p.*, pa.first_name as patient_first_name, pa.last_name as patient_last_name, d.first_name as doctor_first_name, d.last_name as doctor_last_name
-            FROM prescriptions p
-            LEFT JOIN patients pa ON p.patient_id = pa.patient_id
-            LEFT JOIN doctors d ON p.doctor_id = d.doctor_id
-            WHERE p.status = 'active'
-            ORDER BY p.prescribed_date DESC
-        `);
-        res.send(rows);
+        const prescriptions = await dbService.getActivePrescriptions();
+        res.send(prescriptions);
     } catch (err) {
         res.status(500).send({ message: err.message || 'Error retrieving active prescriptions.' });
     }

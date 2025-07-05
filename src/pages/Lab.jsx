@@ -35,7 +35,17 @@ import {
   MenuItem,
   Select,
   InputLabel,
-  FormControl
+  FormControl,
+  Tabs,
+  Tab,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Snackbar,
+  Stepper,
+  Step,
+  StepLabel,
+  StepContent
 } from '@mui/material';
 import {
   Science,
@@ -59,7 +69,13 @@ import {
   Description,
   Image,
   Email,
-  AttachFile
+  AttachFile,
+  Person,
+  ExpandMore,
+  Done,
+  Pending,
+  Schedule,
+  Error
 } from '@mui/icons-material';
 import { patientAPI, aiAPI } from '../services/api';
 import { useDebounce } from 'use-debounce';
@@ -93,6 +109,12 @@ const Lab = () => {
   const [uploadSuccess, setUploadSuccess] = useState('');
   const [uploadError, setUploadError] = useState('');
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [patients, setPatients] = useState([]);
+  const [activeTab, setActiveTab] = useState(0);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [patientDialog, setPatientDialog] = useState(false);
+  const [patientDetails, setPatientDetails] = useState(null);
+  const [testOrders, setTestOrders] = useState([]);
 
   // Fetch lab orders and patients with orders from backend
   const fetchLabOrders = useCallback(async () => {
@@ -179,12 +201,13 @@ const Lab = () => {
   };
 
   // Select a patient
-  const handleSelectPatient = (patient) => {
+  const handleSelectPatient = async (patient) => {
     setSelectedPatient(patient);
     setSelectedOrder(null);
     setResultText('');
     setResultSuccess('');
     setResultError('');
+    await loadPatientDetails(patient.patient_id);
   };
 
   // Select a test order
@@ -252,6 +275,80 @@ const Lab = () => {
       setUploadLoading(false);
     }
   };
+
+  const loadPatientDetails = async (patientId) => {
+    try {
+      const [details, orders] = await Promise.all([
+        patientAPI.getPatientById(patientId),
+        patientAPI.getTestOrders(patientId)
+      ]);
+      setPatientDetails(details);
+      setTestOrders(orders || []);
+    } catch (error) {
+      console.error('Error loading patient details:', error);
+      showSnackbar('Error loading patient details', 'error');
+    }
+  };
+
+  const showSnackbar = (message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
+
+  const handleSearch = () => {
+    return patients.filter(patient => 
+      patient.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      patient.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      patient.patient_id?.toString().includes(searchQuery)
+    );
+  };
+
+  const getTestStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'completed': return 'success';
+      case 'in_progress': return 'warning';
+      case 'ordered': return 'info';
+      case 'cancelled': return 'error';
+      default: return 'default';
+    }
+  };
+
+  const getTestStatusIcon = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'completed': return <CheckCircle />;
+      case 'in_progress': return <Pending />;
+      case 'ordered': return <Schedule />;
+      case 'cancelled': return <Error />;
+      default: return <Assignment />;
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
+
+  const getFilteredTestOrders = () => {
+    if (filterStatus === 'all') return testOrders;
+    return testOrders.filter(order => order.status?.toLowerCase() === filterStatus);
+  };
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Container 
@@ -640,6 +737,238 @@ const Lab = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Patient Details Dialog */}
+      <Dialog 
+        open={patientDialog} 
+        onClose={() => setPatientDialog(false)} 
+        maxWidth="lg" 
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Person sx={{ mr: 1 }} />
+            Patient Details & Test Orders
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {patientDetails && (
+            <Box>
+              <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 2 }}>
+                <Tab label="Patient Info" />
+                <Tab label="Test Orders" />
+                <Tab label="Test Results" />
+                <Tab label="Lab History" />
+              </Tabs>
+
+              {/* Patient Info Tab */}
+              {activeTab === 0 && (
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <Card variant="outlined">
+                      <CardContent>
+                        <Typography variant="h6" gutterBottom>Personal Information</Typography>
+                        <List dense>
+                          <ListItem>
+                            <ListItemText 
+                              primary="Name" 
+                              secondary={`${patientDetails.first_name} ${patientDetails.last_name}`}
+                            />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemText 
+                              primary="Date of Birth" 
+                              secondary={formatDate(patientDetails.date_of_birth)}
+                            />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemText 
+                              primary="Gender" 
+                              secondary={patientDetails.gender}
+                            />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemText 
+                              primary="Contact" 
+                              secondary={patientDetails.contact_number}
+                            />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemText 
+                              primary="Email" 
+                              secondary={patientDetails.email}
+                            />
+                          </ListItem>
+                        </List>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Card variant="outlined">
+                      <CardContent>
+                        <Typography variant="h6" gutterBottom>Medical Information</Typography>
+                        <List dense>
+                          <ListItem>
+                            <ListItemText 
+                              primary="Blood Type" 
+                              secondary={patientDetails.blood_type || 'N/A'}
+                            />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemText 
+                              primary="Emergency Contact" 
+                              secondary={patientDetails.emergency_contact || 'N/A'}
+                            />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemText 
+                              primary="Insurance" 
+                              secondary={patientDetails.insurance_info || 'N/A'}
+                            />
+                          </ListItem>
+                        </List>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                </Grid>
+              )}
+
+              {/* Test Orders Tab */}
+              {activeTab === 1 && (
+                <Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6">Test Orders</Typography>
+                    <Button
+                      variant="contained"
+                      startIcon={<Add />}
+                      onClick={() => {
+                        // Add new test order functionality
+                        showSnackbar('Test order functionality coming soon', 'info');
+                      }}
+                    >
+                      New Test Order
+                    </Button>
+                  </Box>
+                  
+                  {getFilteredTestOrders().length > 0 ? (
+                    <TableContainer component={Paper}>
+                      <Table>
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Test Name</TableCell>
+                            <TableCell>Ordered Date</TableCell>
+                            <TableCell>Status</TableCell>
+                            <TableCell>Doctor</TableCell>
+                            <TableCell>Actions</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {getFilteredTestOrders().map((order, index) => (
+                            <TableRow key={index}>
+                              <TableCell>
+                                <Typography variant="subtitle2">
+                                  {order.test_name || 'Lab Test'}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                {order.ordered_at ? formatDate(order.ordered_at) : 'N/A'}
+                              </TableCell>
+                              <TableCell>
+                                <Chip
+                                  icon={getTestStatusIcon(order.status)}
+                                  label={order.status || 'Unknown'}
+                                  color={getTestStatusColor(order.status)}
+                                  size="small"
+                                />
+                              </TableCell>
+                              <TableCell>
+                                {order.doctor_name || 'Dr. Smith'}
+                              </TableCell>
+                              <TableCell>
+                                <IconButton size="small">
+                                  <View />
+                                </IconButton>
+                                <IconButton size="small">
+                                  <Upload />
+                                </IconButton>
+                                <IconButton size="small">
+                                  <Print />
+                                </IconButton>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  ) : (
+                    <Alert severity="info">No test orders found for this patient</Alert>
+                  )}
+                </Box>
+              )}
+
+              {/* Test Results Tab */}
+              {activeTab === 2 && (
+                <Box>
+                  <Typography variant="h6" gutterBottom>Test Results</Typography>
+                  <Alert severity="info">
+                    Test results will be displayed here once tests are completed and results are uploaded.
+                  </Alert>
+                </Box>
+              )}
+
+              {/* Lab History Tab */}
+              {activeTab === 3 && (
+                <Box>
+                  <Typography variant="h6" gutterBottom>Laboratory History</Typography>
+                  <Stepper orientation="vertical">
+                    {getFilteredTestOrders().map((order, index) => (
+                      <Step key={index} active={true}>
+                        <StepLabel>
+                          <Typography variant="subtitle2">
+                            {order.test_name || 'Lab Test'} - {formatDate(order.ordered_at)}
+                          </Typography>
+                        </StepLabel>
+                        <StepContent>
+                          <Box sx={{ mb: 2 }}>
+                            <Typography variant="body2" color="text.secondary">
+                              Status: {order.status || 'Unknown'}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              Ordered by: {order.doctor_name || 'Dr. Smith'}
+                            </Typography>
+                            {order.result && (
+                              <Typography variant="body2" color="text.secondary">
+                                Result: {order.result}
+                              </Typography>
+                            )}
+                          </Box>
+                        </StepContent>
+                      </Step>
+                    ))}
+                  </Stepper>
+                </Box>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPatientDialog(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

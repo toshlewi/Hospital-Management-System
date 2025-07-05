@@ -1,950 +1,518 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Container, Typography, Box, Tabs, Tab, Card, CardContent, Button, Grid, Avatar, TextField, InputAdornment, Divider, CircularProgress, Alert, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, MenuItem, Select, FormControl, InputLabel
+  Box,
+  Container,
+  Grid,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Chip,
+  IconButton,
+  Avatar,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  Divider,
+  Alert,
+  Snackbar,
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Tabs,
+  Tab,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Badge
 } from '@mui/material';
-import { Person as PersonIcon, Search as SearchIcon, History as HistoryIcon, NoteAdd as NoteAddIcon, Science as ScienceIcon, Medication as MedicationIcon, SmartToy as AIIcon, Image as ImageIcon, AutoFixHigh, Info } from '@mui/icons-material';
-import { patientAPI, aiAPI } from '../../services/api';
-import { useTheme } from '@mui/material/styles';
-import { useDebounce } from 'use-debounce';
-import Autocomplete from '@mui/material/Autocomplete';
+import {
+  Search as SearchIcon,
+  Add as AddIcon,
+  Edit as EditIcon,
+  Visibility as ViewIcon,
+  Payment as PaymentIcon,
+  Receipt as ReceiptIcon,
+  MedicalServices as MedicalIcon,
+  Person as PersonIcon,
+  ExpandMore as ExpandMoreIcon,
+  CheckCircle as CheckCircleIcon,
+  Warning as WarningIcon,
+  Error as ErrorIcon,
+  LocalHospital as HospitalIcon,
+  Stethoscope as StethoscopeIcon,
+  Medication as MedicationIcon,
+  Notes as NotesIcon
+} from '@mui/icons-material';
+import { patientAPI } from '../../services/api';
 
 const Outpatient = () => {
   const [patients, setPatients] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [tab, setTab] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [notes, setNotes] = useState([]);
-  const [tests, setTests] = useState([]);
-  const [medications, setMedications] = useState([]);
-  const [imaging, setImaging] = useState([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [historyError, setHistoryError] = useState('');
-  const [doctorId, setDoctorId] = useState(1); // For demo, default to 1
-  const [noteText, setNoteText] = useState('');
-  const [diagnosis, setDiagnosis] = useState('');
-  const [advice, setAdvice] = useState('');
-  const [noteLoading, setNoteLoading] = useState(false);
-  const [noteSuccess, setNoteSuccess] = useState('');
-  const [noteError, setNoteError] = useState('');
-  const [testTypes, setTestTypes] = useState([]);
-  const [selectedTestType, setSelectedTestType] = useState('');
-  const [testOrderLoading, setTestOrderLoading] = useState(false);
-  const [testOrderSuccess, setTestOrderSuccess] = useState('');
-  const [testOrderError, setTestOrderError] = useState('');
-  const [imageFile, setImageFile] = useState(null);
-  const [imageDescription, setImageDescription] = useState('');
-  const [imageUploadLoading, setImageUploadLoading] = useState(false);
-  const [imageUploadSuccess, setImageUploadSuccess] = useState('');
-  const [imageUploadError, setImageUploadError] = useState('');
-  const [aiInput, setAiInput] = useState('');
-  const [aiResult, setAiResult] = useState(null);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState('');
-  const [aiMedResult, setAiMedResult] = useState(null);
-  const [aiMedLoading, setAiMedLoading] = useState(false);
-  const [aiMedError, setAiMedError] = useState('');
-  const [prescriptions, setPrescriptions] = useState([]);
-  const theme = useTheme();
-
-  // Add these constants for tab labels and icons
-  const tabConfig = [
-    { label: 'History', icon: <HistoryIcon /> },
-    { label: 'New Note', icon: <NoteAddIcon /> },
-    { label: 'Order Test', icon: <ScienceIcon /> },
-    { label: 'Test Results', icon: <AutoFixHigh /> },
-    { label: 'Prescribe', icon: <MedicationIcon /> },
-    { label: 'Images', icon: <ImageIcon /> }
-  ];
-
-  const commonMeds = [
-    'Paracetamol',
-    'Amoxicillin',
-    'Ibuprofen',
-    'Ciprofloxacin',
-    'Metformin',
-    'Amlodipine',
-    'Custom...'
-  ];
-  const [medName, setMedName] = useState('');
-  const [customMedName, setCustomMedName] = useState('');
-  const [medDosage, setMedDosage] = useState('');
-  const [medInstructions, setMedInstructions] = useState('');
-  const [medLoading, setMedLoading] = useState(false);
-  const [medSuccess, setMedSuccess] = useState('');
-  const [medError, setMedError] = useState('');
-  const [medQuantity, setMedQuantity] = useState('');
-
-  // Debounced values for AI analysis
-  const [debouncedNoteText] = useDebounce(noteText, 600);
-  const [debouncedDiagnosis] = useDebounce(diagnosis, 600);
-  const [debouncedAdvice] = useDebounce(advice, 600);
-  const [debouncedMedName] = useDebounce(medName, 600);
-  const [debouncedMedDosage] = useDebounce(medDosage, 600);
-  const [debouncedMedInstructions] = useDebounce(medInstructions, 600);
-
-  const commonLabTests = [
-    { id: 1, name: 'CBC' },
-    { id: 2, name: 'Malaria' },
-    { id: 3, name: 'Blood Sugar' },
-    { id: 4, name: 'Liver Function Test' },
-    { id: 5, name: 'Renal Function Test' },
-    { id: 6, name: 'HIV Test' },
-    { id: 7, name: 'Urinalysis' },
-  ];
-  const imagingStudies = [
-    'Chest X-ray',
-    'Abdominal Ultrasound',
-    'CT Scan',
-    'MRI',
-    'Echocardiogram',
-    'Mammogram',
-    'Pelvic Ultrasound',
-    'Other...'
-  ];
-  const [selectedLabTest, setSelectedLabTest] = useState('');
-  const [selectedImaging, setSelectedImaging] = useState('');
-  const [imagingOrderLoading, setImagingOrderLoading] = useState(false);
-  const [imagingOrderSuccess, setImagingOrderSuccess] = useState('');
-  const [imagingOrderError, setImagingOrderError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState(0);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [patientDialog, setPatientDialog] = useState(false);
+  const [billingDialog, setBillingDialog] = useState(false);
+  const [patientDetails, setPatientDetails] = useState(null);
+  const [billingStatus, setBillingStatus] = useState(null);
 
   useEffect(() => {
-    fetchPatients();
+    loadPatients();
   }, []);
 
-  const fetchPatients = async () => {
+  const loadPatients = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const data = await patientAPI.getAllPatients();
       setPatients(data);
-      setError('');
-    } catch (err) {
-      setError('Failed to fetch patients');
+    } catch (error) {
+      console.error('Error loading patients:', error);
+      showSnackbar('Error loading patients', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePatientSelect = (id) => {
-    const patient = patients.find(p => p.patient_id === Number(id));
-    setSelectedPatient(patient);
-  };
-
-  // Fetch patient history when selectedPatient changes
-  useEffect(() => {
-    if (selectedPatient) {
-      fetchHistory(selectedPatient.patient_id);
-    } else {
-      setNotes([]); setTests([]); setMedications([]); setImaging([]); setPrescriptions([]);
-    }
-  }, [selectedPatient]);
-
-  const fetchHistory = async (patientId) => {
-    setHistoryLoading(true);
-    setHistoryError('');
+  const loadPatientDetails = async (patientId) => {
     try {
-      const [notesData, testsData, medsData, imagingData, prescriptionsData] = await Promise.all([
-        patientAPI.getMedicalNotes(patientId),
-        patientAPI.getTestOrders(patientId),
-        patientAPI.getMedications(patientId),
-        patientAPI.getImaging(patientId),
-        patientAPI.getPatientPrescriptions(patientId)
+      const [details, billing] = await Promise.all([
+        patientAPI.getPatientById(patientId),
+        patientAPI.getPatientBillingStatus(patientId)
       ]);
-      setNotes(notesData);
-      setTests(testsData);
-      setMedications(medsData);
-      setImaging(imagingData);
-      setPrescriptions(prescriptionsData);
-    } catch (err) {
-      setHistoryError('Failed to load patient history.');
-    } finally {
-      setHistoryLoading(false);
+      setPatientDetails(details);
+      setBillingStatus(billing);
+    } catch (error) {
+      console.error('Error loading patient details:', error);
+      showSnackbar('Error loading patient details', 'error');
     }
   };
 
-  // Handle new note submit
-  const handleNoteSubmit = async (e) => {
-    e.preventDefault();
-    setNoteLoading(true);
-    setNoteSuccess('');
-    setNoteError('');
-    try {
-      await patientAPI.addMedicalNote(selectedPatient.patient_id, {
-        doctor_id: doctorId,
-        note_text: noteText,
-        diagnosis,
-        advice
-      });
-      setNoteSuccess('Note saved successfully!');
-      setNoteText(''); setDiagnosis(''); setAdvice('');
-      fetchHistory(selectedPatient.patient_id); // Refresh history
-    } catch (err) {
-      setNoteError('Failed to save note.');
-    } finally {
-      setNoteLoading(false);
-    }
+  const showSnackbar = (message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
   };
 
-  // Fetch test types on mount
-  useEffect(() => {
-    fetchTestTypes();
-  }, []);
-
-  const fetchTestTypes = async () => {
-    try {
-      const response = await patientAPI.getAllTestTypes ? await patientAPI.getAllTestTypes() : [];
-      setTestTypes(response);
-    } catch (err) {
-      setTestTypes([]);
-    }
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
   };
 
-  // Handle test order submit
-  const handleTestOrderSubmit = async (e) => {
-    e.preventDefault();
-    setTestOrderLoading(true);
-    setTestOrderSuccess('');
-    setTestOrderError('');
-    try {
-      await patientAPI.addTestOrder(selectedPatient.patient_id, {
-        doctor_id: doctorId,
-        test_type_id: Number(selectedLabTest),
-        order_type: 'lab'
-      });
-      setTestOrderSuccess('Test ordered successfully!');
-      setSelectedLabTest('');
-      fetchHistory(selectedPatient.patient_id);
-    } catch (err) {
-      setTestOrderError('Failed to order test.');
-    } finally {
-      setTestOrderLoading(false);
-    }
+  const handlePatientSelect = async (patient) => {
+    setSelectedPatient(patient);
+    setPatientDialog(true);
+    await loadPatientDetails(patient.patient_id);
   };
 
-  // Handle imaging order submit
-  const handleImagingOrderSubmit = async (e) => {
-    e.preventDefault();
-    setImagingOrderLoading(true);
-    setImagingOrderSuccess('');
-    setImagingOrderError('');
-    if (!selectedImaging) {
-      setImagingOrderError('Please select an imaging study.');
-      setImagingOrderLoading(false);
-      return;
-    }
-    try {
-      await patientAPI.addTestOrder(selectedPatient.patient_id, {
-        doctor_id: doctorId,
-        test_type_id: null,
-        test_name: selectedImaging,
-        order_type: 'imaging'
-      });
-      setImagingOrderSuccess('Imaging ordered successfully!');
-      setSelectedImaging('');
-      fetchHistory(selectedPatient.patient_id);
-    } catch (err) {
-      setImagingOrderError('Failed to order imaging.');
-    } finally {
-      setImagingOrderLoading(false);
-    }
+  const handleSearch = () => {
+    // Filter patients based on search query
+    return patients.filter(patient => 
+      patient.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      patient.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      patient.patient_id?.toString().includes(searchQuery)
+    );
   };
 
-  // Prefill AI input with latest note when switching to AI tab
-  useEffect(() => {
-    if (tab === 4 && notes.length > 0 && !aiInput) {
-      setAiInput(notes[0].note_text || '');
-    }
-    // eslint-disable-next-line
-  }, [tab, notes]);
-
-  // Real-time AI analysis as doctor types
-  useEffect(() => {
-    if (tab === 1 && (debouncedNoteText || debouncedDiagnosis || debouncedAdvice)) {
-      setAiLoading(true);
-      setAiError('');
-      aiAPI.diagnose({
-        note_text: debouncedNoteText,
-        diagnosis: debouncedDiagnosis,
-        advice: debouncedAdvice
-      })
-        .then(result => setAiResult(result))
-        .catch(() => setAiError('AI diagnosis failed.'))
-        .finally(() => setAiLoading(false));
-    }
-    // eslint-disable-next-line
-  }, [debouncedNoteText, debouncedDiagnosis, debouncedAdvice]);
-
-  // Real-time AI analysis for medication
-  useEffect(() => {
-    if (tab === 4 && (debouncedMedName || debouncedMedDosage || debouncedMedInstructions)) {
-      setAiMedLoading(true);
-      setAiMedError('');
-      setAiMedResult(null);
-      aiAPI.diagnose({
-        medication_name: debouncedMedName,
-        dosage: debouncedMedDosage,
-        instructions: debouncedMedInstructions
-      })
-        .then(result => setAiMedResult(result))
-        .catch(() => setAiMedError('AI analysis failed.'))
-        .finally(() => setAiMedLoading(false));
-    } else {
-      setAiMedResult(null);
-    }
-  }, [tab, debouncedMedName, debouncedMedDosage, debouncedMedInstructions]);
-
-  // Handle medication submit
-  const handleMedSubmit = async (e) => {
-    e.preventDefault();
-    setMedLoading(true);
-    setMedSuccess('');
-    setMedError('');
-    let medication_name = medName === 'Custom...' ? customMedName : medName;
-    if (!medication_name) {
-      setMedError('Please enter a medication name.');
-      setMedLoading(false);
-      return;
-    }
-    if (!medQuantity || Number(medQuantity) <= 0) {
-      setMedError('Please enter a valid quantity (greater than 0).');
-      setMedLoading(false);
-      return;
-    }
-    try {
-      const payload = {
-        doctor_id: doctorId,
-        medications: medication_name,
-        dosage: medDosage,
-        instructions: medInstructions,
-        quantity: Number(medQuantity)
-      };
-      console.log('Prescription payload:', payload);
-      await patientAPI.createPrescription(selectedPatient.patient_id, payload);
-      setMedSuccess('Prescription created successfully!');
-      setMedName(''); setCustomMedName(''); setMedDosage(''); setMedInstructions(''); setMedQuantity('');
-      fetchHistory(selectedPatient.patient_id);
-    } catch (err) {
-      setMedError('Failed to create prescription.');
-    } finally {
-      setMedLoading(false);
-    }
+  const getPaymentStatusColor = (hasPaid) => {
+    return hasPaid ? 'success' : 'error';
   };
 
-  // Status chip color
-  const statusColor = status => {
-    if (status === 'completed') return 'success';
-    if (status === 'ordered') return 'warning';
-    return 'default';
+  const getPaymentStatusIcon = (hasPaid) => {
+    return hasPaid ? <CheckCircleIcon /> : <ErrorIcon />;
   };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const filteredPatients = handleSearch();
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 3, mt: 8, minHeight: 'calc(100vh - 64px)', backgroundColor: '#f5f5f5' }}>
-      <Grid container spacing={3}>
-        {/* Left Sidebar - Patient List */}
-        <Grid item xs={12} md={3}>
-          <Card sx={{ boxShadow: 3, height: 'calc(100vh - 100px)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2 }}>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', mb: 2, color: 'primary.main' }}>
-                <PersonIcon sx={{ mr: 1 }} /> Outpatients
-              </Typography>
-              <TextField
-                label="Search patients by name or ID"
-                variant="outlined"
-                size="small"
-                fullWidth
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                InputProps={{
-                  startAdornment: <SearchIcon sx={{ mr: 1, color: 'action.active' }} />,
-                }}
-                sx={{ mb: 2 }}
-              />
-              <Box sx={{ flex: 1, overflowY: 'auto' }}>
-                {loading ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-                    <CircularProgress />
-                  </Box>
-                ) : error ? (
-                  <Alert severity="error">{error}</Alert>
-                ) : patients.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary">No patients found.</Typography>
-                ) : (
-                  patients.filter(p =>
-                    `${p.first_name} ${p.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    String(p.patient_id).includes(searchTerm)
-                  ).map(patient => (
-                    <Card
-                      key={patient.patient_id}
-                      sx={{
-                        mb: 1,
-                        cursor: 'pointer',
-                        backgroundColor: selectedPatient && selectedPatient.patient_id === patient.patient_id ? 'primary.light' : 'white',
-                        border: selectedPatient && selectedPatient.patient_id === patient.patient_id ? `2px solid ${theme.palette.primary.main}` : '1px solid #eee',
-                        transition: 'background 0.2s, border 0.2s'
-                      }}
-                      onClick={() => handlePatientSelect(patient.patient_id)}
-                    >
-                      <CardContent sx={{ display: 'flex', alignItems: 'center', py: 1 }}>
-                        <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
-                          {patient.first_name[0]}
-                        </Avatar>
-                        <Box>
-                          <Typography variant="subtitle1">{patient.first_name} {patient.last_name}</Typography>
-                          <Typography variant="body2" color="text.secondary">ID: {patient.patient_id}</Typography>
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  ))
-                )}
-              </Box>
-            </CardContent>
-          </Card>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+        <StethoscopeIcon sx={{ mr: 2, color: 'primary.main' }} />
+        Outpatient Clinic
+      </Typography>
+
+      {/* Search and Stats */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} md={8}>
+          <TextField
+            label="Search patients..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            fullWidth
+            InputProps={{
+              startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
+            }}
+          />
         </Grid>
-        {/* Main Area - Patient Details and Workflow */}
-        <Grid item xs={12} md={6}>
-          {selectedPatient ? (
-            <Card sx={{ boxShadow: 3, minHeight: 'calc(100vh - 100px)' }}>
-              <CardContent>
-                {/* Patient Overview */}
-                <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Avatar sx={{ width: 56, height: 56, bgcolor: 'primary.main' }}>
-                    {selectedPatient.first_name[0]}
-                  </Avatar>
-                  <Box>
-                    <Typography variant="h5">{selectedPatient.first_name} {selectedPatient.last_name}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Gender: {selectedPatient.gender} | DOB: {selectedPatient.date_of_birth} | Status: {selectedPatient.status}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Contact: {selectedPatient.contact_number} | Email: {selectedPatient.email}
-                    </Typography>
-                  </Box>
-                </Box>
-                {/* Tabs for workflow */}
-                <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-                  <Tabs 
-                    value={tab} 
-                    onChange={(e, newValue) => setTab(newValue)}
-                    variant="scrollable"
-                    scrollButtons="auto"
-                    allowScrollButtonsMobile
-                    aria-label="scrollable patient tabs"
-                    sx={{
-                      '& .MuiTabs-scrollButtons': {
-                        '&.Mui-disabled': { opacity: 0.3 }
-                      }
-                    }}
-                  >
-                    {tabConfig.map((config, index) => (
-                      <Tab
-                        key={config.label}
-                        icon={config.icon}
-                        label={config.label}
-                        id={`patient-tab-${index}`}
-                        aria-controls={`patient-tabpanel-${index}`}
-                        sx={{
-                          minHeight: '72px',
-                          textTransform: 'none',
-                          fontSize: '0.9rem',
-                          minWidth: { xs: '120px', sm: '160px' }
-                        }}
-                      />
-                    ))}
-                  </Tabs>
-                </Box>
-                <Divider sx={{ mb: 2 }} />
-                {/* Tab Panels */}
-                {tab === 0 && (
-                  <Box>
-                    <Typography variant="h6" sx={{ mb: 2 }}>Patient History</Typography>
-                    {historyLoading ? (
-                      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                        <CircularProgress />
-                      </Box>
-                    ) : historyError ? (
-                      <Alert severity="error">{historyError}</Alert>
-                    ) : (
-                      <Box>
-                        {/* Medical Notes */}
-                        <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, color: theme.palette.primary.main }}>Doctor Notes & Diagnoses</Typography>
-                        {notes.length === 0 ? <Typography color="text.secondary">No notes yet.</Typography> : (
-                          notes.map(note => (
-                            <Box key={note.note_id} sx={{ mb: 2, p: 2, border: '1px solid #eee', borderRadius: 2 }}>
-                              <Typography variant="body1"><b>Date:</b> {new Date(note.created_at).toLocaleString()}</Typography>
-                              <Typography variant="body2"><b>Note:</b> {note.note_text}</Typography>
-                              <Typography variant="body2"><b>Diagnosis:</b> {note.diagnosis}</Typography>
-                              <Typography variant="body2"><b>Advice:</b> {note.advice}</Typography>
-                            </Box>
-                          ))
-                        )}
-                        <Divider sx={{ my: 2 }} />
-                        {/* Test Orders */}
-                        <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, color: theme.palette.primary.main }}>Test Orders & Results</Typography>
-                        {tests.length === 0 ? <Typography color="text.secondary">No tests yet.</Typography> : (
-                          <TableContainer component={Paper} sx={{ mb: 2 }}>
-                            <Table>
-                              <TableHead>
-                                <TableRow>
-                                  <TableCell>Test Name</TableCell>
-                                  <TableCell>Status</TableCell>
-                                  <TableCell>Result</TableCell>
-                                  <TableCell>Ordered At</TableCell>
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {tests.map(test => (
-                                  <TableRow key={test.order_id}>
-                                    <TableCell>{test.test_name}</TableCell>
-                                    <TableCell>
-                                      <Chip label={test.status} color={statusColor(test.status)} size="small" />
-                                    </TableCell>
-                                    <TableCell>{test.result || '-'}</TableCell>
-                                    <TableCell>{test.ordered_at && new Date(test.ordered_at).toLocaleString()}</TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </TableContainer>
-                        )}
-                        <Divider sx={{ my: 2 }} />
-                        {/* Medications */}
-                        <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, color: theme.palette.primary.main }}>Medications</Typography>
-                        {medications.length === 0 ? <Typography color="text.secondary">No medications yet.</Typography> : (
-                          <TableContainer component={Paper} sx={{ mb: 2 }}>
-                            <Table>
-                              <TableHead>
-                                <TableRow>
-                                  <TableCell>Medication</TableCell>
-                                  <TableCell>Dosage</TableCell>
-                                  <TableCell>Instructions</TableCell>
-                                  <TableCell>Prescribed At</TableCell>
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {medications.map(med => (
-                                  <TableRow key={med.medication_id}>
-                                    <TableCell>{med.medication_name}</TableCell>
-                                    <TableCell>{med.dosage}</TableCell>
-                                    <TableCell>{med.instructions}</TableCell>
-                                    <TableCell>{med.prescribed_at && new Date(med.prescribed_at).toLocaleString()}</TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </TableContainer>
-                        )}
-                        <Divider sx={{ my: 2 }} />
-                        {/* Imaging */}
-                        <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, color: theme.palette.primary.main }}>Imaging</Typography>
-                        {imaging.length === 0 ? <Typography color="text.secondary">No images yet.</Typography> : (
-                          <Grid container spacing={2}>
-                            {imaging.map(img => (
-                              <Grid item key={img.image_id} xs={12} sm={6} md={4}>
-                                <Box sx={{ p: 1, border: '1px solid #eee', borderRadius: 2 }}>
-                                  <Typography variant="body2"><b>Date:</b> {new Date(img.uploaded_at).toLocaleString()}</Typography>
-                                  <Typography variant="body2"><b>Description:</b> {img.description}</Typography>
-                                  <Typography variant="body2"><b>File:</b> {img.image_path}</Typography>
-                                </Box>
-                              </Grid>
-                            ))}
-                          </Grid>
-                        )}
-                        {/* Prescription History */}
-                        <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, color: theme.palette.primary.main }}>Prescription History</Typography>
-                        {prescriptions.length === 0 ? <Typography color="text.secondary">No prescriptions yet.</Typography> : (
-                          <TableContainer component={Paper} sx={{ mb: 2 }}>
-                            <Table>
-                              <TableHead>
-                                <TableRow>
-                                  <TableCell>Medication</TableCell>
-                                  <TableCell>Dosage</TableCell>
-                                  <TableCell>Instructions</TableCell>
-                                  <TableCell>Quantity</TableCell>
-                                  <TableCell>Status</TableCell>
-                                  <TableCell>Prescribed At</TableCell>
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {prescriptions.map(presc => (
-                                  <TableRow key={presc.prescription_id}>
-                                    <TableCell>{presc.medications}</TableCell>
-                                    <TableCell>{presc.dosage}</TableCell>
-                                    <TableCell>{presc.instructions}</TableCell>
-                                    <TableCell>{presc.quantity}</TableCell>
-                                    <TableCell>
-                                      <Chip label={presc.status} color={presc.status === 'completed' ? 'success' : 'warning'} size="small" />
-                                    </TableCell>
-                                    <TableCell>{presc.prescribed_date && new Date(presc.prescribed_date).toLocaleString()}</TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </TableContainer>
-                        )}
-                      </Box>
-                    )}
-                  </Box>
-                )}
-                {tab === 1 && (
-                  <CardContent sx={{ p: 0 }}>
-                    <Typography variant="h6" sx={{ mb: 2 }}>
-                      Add New Doctor Note / Diagnosis
-                    </Typography>
-                    <form onSubmit={handleNoteSubmit}>
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} md={6}>
-                          <TextField
-                            label="Doctor ID"
-                            value={doctorId}
-                            onChange={e => setDoctorId(e.target.value)}
-                            fullWidth
-                            required
-                            type="number"
-                            helperText="For demo, use 1 (Jane Doe)"
-                          />
-                        </Grid>
-                        <Grid item xs={12}>
-                          <TextField
-                            label="Note"
-                            value={noteText}
-                            onChange={e => setNoteText(e.target.value)}
-                            fullWidth
-                            required
-                            multiline
-                            rows={3}
-                          />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                          <TextField
-                            label="Diagnosis"
-                            value={diagnosis}
-                            onChange={e => setDiagnosis(e.target.value)}
-                            fullWidth
-                            required
-                          />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                          <TextField
-                            label="Advice"
-                            value={advice}
-                            onChange={e => setAdvice(e.target.value)}
-                            fullWidth
-                            required
-                          />
-                        </Grid>
-                        <Grid item xs={12}>
-                          <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            disabled={noteLoading}
-                          >
-                            {noteLoading ? 'Saving...' : 'Save Note'}
-                          </Button>
-                        </Grid>
-                      </Grid>
-                    </form>
-                    {noteSuccess && <Alert severity="success" sx={{ mt: 2 }}>{noteSuccess}</Alert>}
-                    {noteError && <Alert severity="error" sx={{ mt: 2 }}>{noteError}</Alert>}
-                  </CardContent>
-                )}
-                {tab === 2 && (
-                  <CardContent sx={{ p: 0 }}>
-                    <Typography variant="h6" sx={{ mb: 2 }}>
-                      Order New Test
-                    </Typography>
-                    <form onSubmit={handleTestOrderSubmit}>
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} md={6}>
-                          <FormControl fullWidth required>
-                            <InputLabel id="lab-test-label">Lab Test</InputLabel>
-                            <Select
-                              labelId="lab-test-label"
-                              id="lab-test-select"
-                              value={selectedLabTest}
-                              label="Lab Test"
-                              onChange={e => setSelectedLabTest(e.target.value)}
-                            >
-                              {commonLabTests.map(tt => (
-                                <MenuItem key={tt.id} value={tt.id}>{tt.name}</MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                          <TextField
-                            label="Doctor ID"
-                            value={doctorId}
-                            onChange={e => setDoctorId(e.target.value)}
-                            fullWidth
-                            required
-                            type="number"
-                            helperText="For demo, use 1 (Jane Doe)"
-                          />
-                        </Grid>
-                        <Grid item xs={12}>
-                          <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            disabled={testOrderLoading}
-                          >
-                            {testOrderLoading ? 'Ordering...' : 'Order Lab Test'}
-                          </Button>
-                        </Grid>
-                      </Grid>
-                    </form>
-                    {testOrderSuccess && <Alert severity="success" sx={{ mt: 2 }}>{testOrderSuccess}</Alert>}
-                    {testOrderError && <Alert severity="error" sx={{ mt: 2 }}>{testOrderError}</Alert>}
-                    <Divider sx={{ my: 4 }} />
-                    <Typography variant="h6" sx={{ mb: 2 }}>
-                      Order Imaging Study
-                    </Typography>
-                    <form onSubmit={handleImagingOrderSubmit}>
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} md={6}>
-                          <FormControl fullWidth required>
-                            <InputLabel id="imaging-study-label">Imaging Study</InputLabel>
-                            <Select
-                              labelId="imaging-study-label"
-                              id="imaging-study-select"
-                              value={selectedImaging}
-                              label="Imaging Study"
-                              onChange={e => setSelectedImaging(e.target.value)}
-                            >
-                              {imagingStudies.map(study => (
-                                <MenuItem key={study} value={study}>{study}</MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                          <TextField
-                            label="Doctor ID"
-                            value={doctorId}
-                            onChange={e => setDoctorId(e.target.value)}
-                            fullWidth
-                            required
-                            type="number"
-                            helperText="For demo, use 1 (Jane Doe)"
-                          />
-                        </Grid>
-                        <Grid item xs={12}>
-                          <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            disabled={imagingOrderLoading}
-                          >
-                            {imagingOrderLoading ? 'Ordering...' : 'Order Imaging'}
-                          </Button>
-                        </Grid>
-                      </Grid>
-                    </form>
-                    {imagingOrderSuccess && <Alert severity="success" sx={{ mt: 2 }}>{imagingOrderSuccess}</Alert>}
-                    {imagingOrderError && <Alert severity="error" sx={{ mt: 2 }}>{imagingOrderError}</Alert>}
-                  </CardContent>
-                )}
-                {tab === 3 && (
-                  <CardContent sx={{ p: 0 }}>
-                    <Typography variant="h6" sx={{ mb: 2 }}>
-                      Test Orders & Results
-                    </Typography>
-                    {historyLoading ? (
-                      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                        <CircularProgress />
-                      </Box>
-                    ) : historyError ? (
-                      <Alert severity="error">{historyError}</Alert>
-                    ) : (
-                      <Box>
-                        {tests.length === 0 ? <Typography color="text.secondary">No tests yet.</Typography> : (
-                          tests.map(test => (
-                            <Box key={test.order_id} sx={{ mb: 2, p: 2, border: '1px solid #eee', borderRadius: 2 }}>
-                              <Typography variant="body1"><b>Date:</b> {new Date(test.ordered_at).toLocaleString()}</Typography>
-                              <Typography variant="body2"><b>Test:</b> {test.test_name}</Typography>
-                              <Typography variant="body2"><b>Status:</b> {test.status}</Typography>
-                              {test.result && <Typography variant="body2"><b>Result:</b> {test.result}</Typography>}
-                            </Box>
-                          ))
-                        )}
-                      </Box>
-                    )}
-                  </CardContent>
-                )}
-                {tab === 4 && (
-                  <CardContent sx={{ p: 0 }}>
-                    <Typography variant="h6" sx={{ mb: 2 }}>
-                      Prescribe Medication
-                    </Typography>
-                    <form onSubmit={handleMedSubmit}>
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} md={4}>
-                          <Autocomplete
-                            freeSolo
-                            options={commonMeds}
-                            value={medName}
-                            onInputChange={(event, newInputValue) => setMedName(newInputValue)}
-                            renderInput={(params) => (
-                              <TextField
-                                {...params}
-                                label="Medication Name"
-                                fullWidth
-                                required
-                                placeholder="Enter medication name"
-                              />
-                            )}
-                          />
-                        </Grid>
-                        <Grid item xs={12} md={4}>
-                          <TextField
-                            label="Dosage"
-                            value={medDosage}
-                            onChange={e => setMedDosage(e.target.value)}
-                            fullWidth
-                            required
-                            placeholder="e.g. 500mg every 8 hours"
-                          />
-                        </Grid>
-                        <Grid item xs={12} md={4}>
-                          <TextField
-                            label="Instructions"
-                            value={medInstructions}
-                            onChange={e => setMedInstructions(e.target.value)}
-                            fullWidth
-                            required
-                            placeholder="e.g. Take after meals for 3 days"
-                          />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                          <TextField
-                            label="Doctor ID"
-                            value={doctorId}
-                            onChange={e => setDoctorId(e.target.value)}
-                            fullWidth
-                            required
-                            type="number"
-                            helperText="For demo, use 1 (Jane Doe)"
-                          />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                          <TextField
-                            label="Quantity"
-                            type="number"
-                            required
-                            value={medQuantity}
-                            onChange={e => {
-                              // Only allow positive integers, default to 1 if blank
-                              const val = e.target.value.replace(/[^0-9]/g, '');
-                              setMedQuantity(val === '' ? '1' : val);
-                            }}
-                            fullWidth
-                            margin="normal"
-                            inputProps={{ min: 1 }}
-                          />
-                        </Grid>
-                        <Grid item xs={12}>
-                          <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            disabled={medLoading}
-                            sx={{ minWidth: 180 }}
-                          >
-                            {medLoading ? 'Prescribing...' : 'Prescribe'}
-                          </Button>
-                        </Grid>
-                      </Grid>
-                    </form>
-                    {medSuccess && <Alert severity="success" sx={{ mt: 2 }}>{medSuccess}</Alert>}
-                    {medError && <Alert severity="error" sx={{ mt: 2 }}>{medError}</Alert>}
-                  </CardContent>
-                )}
-                {tab === 5 && (
-                  <CardContent sx={{ p: 0 }}>
-                    {/* ... Images ... */}
-                  </CardContent>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <Card sx={{ boxShadow: 3, minHeight: 'calc(100vh - 100px)', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.paper' }}>
-              <CardContent>
-                <Typography variant="h6" color="text.secondary" align="center">
-                  Select a patient from the left to view details
-                </Typography>
-              </CardContent>
-            </Card>
-          )}
-        </Grid>
-        {/* Right Sidebar - AI Analysis */}
-        <Grid item xs={12} md={3}>
-          <Card sx={{ boxShadow: 3, height: 'calc(100vh - 100px)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2 }}>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', mb: 2, color: 'primary.main' }}>
-                <AutoFixHigh sx={{ mr: 1 }} /> AI Analysis
-              </Typography>
-              {tab === 4 ? (
-                medName.trim() === '' && medDosage.trim() === '' && medInstructions.trim() === '' ? (
-                  <Typography variant="body2" color="text.secondary" align="center">
-                    Enter medication details to get AI analysis
-                  </Typography>
-                ) : aiMedLoading ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                    <CircularProgress />
-                  </Box>
-                ) : aiMedError ? (
-                  <Alert severity="error">{aiMedError}</Alert>
-                ) : aiMedResult ? (
-                  <>
-                    {aiMedResult.diagnosis && (
-                      <Box sx={{ mb: 3 }}>
-                        <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
-                          AI Diagnosis
-                        </Typography>
-                        <Box sx={{ p: 1.5, mb: 1, borderRadius: 1, bgcolor: 'success.light', boxShadow: 1 }}>
-                          <Typography variant="body2">{aiMedResult.diagnosis}</Typography>
-                        </Box>
-                      </Box>
-                    )}
-                    {aiMedResult.recommendations && aiMedResult.recommendations.length > 0 && (
-                      <Box sx={{ mb: 3 }}>
-                        <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
-                          Recommendations
-                        </Typography>
-                        {aiMedResult.recommendations.map((rec, index) => (
-                          <Box key={index} sx={{ p: 1.5, mb: 1, borderRadius: 1, bgcolor: 'warning.light', boxShadow: 1 }}>
-                            <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start' }}>
-                              <Info fontSize="small" sx={{ mr: 1, mt: '2px' }} />
-                              {rec}
-                            </Typography>
-                          </Box>
-                        ))}
-                      </Box>
-                    )}
-                    {!aiMedResult.diagnosis && !aiMedResult.recommendations && (
-                      <Box sx={{ mb: 3 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          {typeof aiMedResult === 'string' ? aiMedResult : JSON.stringify(aiMedResult)}
-                        </Typography>
-                      </Box>
-                    )}
-                  </>
-                ) : (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                    <CircularProgress />
-                  </Box>
-                )
-              ) : (
-                <Typography variant="body2" color="text.secondary" align="center">
-                  Select the "Prescribe Medication" tab to view AI analysis
-                </Typography>
-              )}
+        <Grid item xs={12} md={4}>
+          <Card sx={{ bgcolor: 'primary.main', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h6">Total Patients</Typography>
+              <Typography variant="h4">{patients.length}</Typography>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
+
+      {/* Patient List */}
+      <Card>
+        <CardContent>
+          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+            <PersonIcon sx={{ mr: 1 }} />
+            Patient List
+          </Typography>
+          
+          <TableContainer component={Paper} sx={{ mt: 2 }}>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ bgcolor: 'primary.main' }}>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Patient ID</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Name</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Age/Gender</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Contact</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Payment Status</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredPatients.map((patient) => (
+                  <TableRow 
+                    key={patient.patient_id}
+                    sx={{ 
+                      '&:hover': { bgcolor: 'action.hover', cursor: 'pointer' },
+                      borderLeft: patient.status === 'active' ? '4px solid #4caf50' : '4px solid #ff9800'
+                    }}
+                    onClick={() => handlePatientSelect(patient)}
+                  >
+                    <TableCell>
+                      <Typography variant="subtitle2" fontWeight="bold">
+                        #{patient.patient_id}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Avatar sx={{ mr: 2, bgcolor: 'primary.main' }}>
+                          {patient.first_name?.[0]}{patient.last_name?.[0]}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="subtitle1" fontWeight="bold">
+                            {patient.first_name} {patient.last_name}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {patient.email}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {patient.date_of_birth ? 
+                          `${new Date().getFullYear() - new Date(patient.date_of_birth).getFullYear()} years` : 
+                          'N/A'
+                        }
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {patient.gender}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {patient.contact_number || 'N/A'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        icon={getPaymentStatusIcon(patient.has_paid_consultation)}
+                        label={patient.has_paid_consultation ? 'Paid' : 'Pending'}
+                        color={getPaymentStatusColor(patient.has_paid_consultation)}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <IconButton 
+                        size="small" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePatientSelect(patient);
+                        }}
+                      >
+                        <ViewIcon />
+                      </IconButton>
+                      <IconButton 
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setBillingDialog(true);
+                          loadPatientDetails(patient.patient_id);
+                        }}
+                      >
+                        <PaymentIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </CardContent>
+      </Card>
+
+      {/* Patient Details Dialog */}
+      <Dialog 
+        open={patientDialog} 
+        onClose={() => setPatientDialog(false)} 
+        maxWidth="md" 
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <PersonIcon sx={{ mr: 1 }} />
+            Patient Details
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {patientDetails && (
+            <Box>
+              <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 2 }}>
+                <Tab label="Basic Info" />
+                <Tab label="Medical Notes" />
+                <Tab label="Prescriptions" />
+                <Tab label="Billing" />
+              </Tabs>
+
+              {/* Basic Info Tab */}
+              {activeTab === 0 && (
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <Card variant="outlined">
+                      <CardContent>
+                        <Typography variant="h6" gutterBottom>Personal Information</Typography>
+                        <List dense>
+                          <ListItem>
+                            <ListItemText 
+                              primary="Name" 
+                              secondary={`${patientDetails.first_name} ${patientDetails.last_name}`}
+                            />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemText 
+                              primary="Date of Birth" 
+                              secondary={formatDate(patientDetails.date_of_birth)}
+                            />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemText 
+                              primary="Gender" 
+                              secondary={patientDetails.gender}
+                            />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemText 
+                              primary="Contact" 
+                              secondary={patientDetails.contact_number}
+                            />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemText 
+                              primary="Email" 
+                              secondary={patientDetails.email}
+                            />
+                          </ListItem>
+                        </List>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Card variant="outlined">
+                      <CardContent>
+                        <Typography variant="h6" gutterBottom>Medical Information</Typography>
+                        <List dense>
+                          <ListItem>
+                            <ListItemText 
+                              primary="Blood Type" 
+                              secondary={patientDetails.blood_type || 'N/A'}
+                            />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemText 
+                              primary="Emergency Contact" 
+                              secondary={patientDetails.emergency_contact || 'N/A'}
+                            />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemText 
+                              primary="Insurance" 
+                              secondary={patientDetails.insurance_info || 'N/A'}
+                            />
+                          </ListItem>
+                        </List>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                </Grid>
+              )}
+
+              {/* Medical Notes Tab */}
+              {activeTab === 1 && (
+                <Box>
+                  <Typography variant="h6" gutterBottom>Medical Notes</Typography>
+                  {patientDetails.medical_notes?.length > 0 ? (
+                    <List>
+                      {patientDetails.medical_notes.map((note, index) => (
+                        <Card key={index} variant="outlined" sx={{ mb: 2 }}>
+                          <CardContent>
+                            <Typography variant="subtitle2" color="primary">
+                              {formatDate(note.created_at)}
+                            </Typography>
+                            <Typography variant="body1" sx={{ mt: 1 }}>
+                              {note.notes}
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </List>
+                  ) : (
+                    <Alert severity="info">No medical notes available</Alert>
+                  )}
+                </Box>
+              )}
+
+              {/* Prescriptions Tab */}
+              {activeTab === 2 && (
+                <Box>
+                  <Typography variant="h6" gutterBottom>Prescriptions</Typography>
+                  {patientDetails.prescriptions?.length > 0 ? (
+                    <List>
+                      {patientDetails.prescriptions.map((prescription, index) => (
+                        <Card key={index} variant="outlined" sx={{ mb: 2 }}>
+                          <CardContent>
+                            <Typography variant="subtitle2" color="primary">
+                              {formatDate(prescription.prescribed_date)}
+                            </Typography>
+                            <Typography variant="body1" sx={{ mt: 1 }}>
+                              {prescription.medication_name} - {prescription.dosage}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {prescription.instructions}
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </List>
+                  ) : (
+                    <Alert severity="info">No prescriptions available</Alert>
+                  )}
+                </Box>
+              )}
+
+              {/* Billing Tab */}
+              {activeTab === 3 && billingStatus && (
+                <Box>
+                  <Typography variant="h6" gutterBottom>Billing Information</Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={6}>
+                      <Card variant="outlined">
+                        <CardContent>
+                          <Typography variant="subtitle1" gutterBottom>Payment Status</Typography>
+                          <Chip
+                            icon={getPaymentStatusIcon(billingStatus.has_paid_consultation)}
+                            label={billingStatus.has_paid_consultation ? 'Consultation Paid' : 'Consultation Pending'}
+                            color={getPaymentStatusColor(billingStatus.has_paid_consultation)}
+                            sx={{ mb: 2 }}
+                          />
+                          <Typography variant="body2">
+                            Total Bills: {billingStatus.total_bills}
+                          </Typography>
+                          <Typography variant="body2">
+                            Pending Amount: {formatCurrency(billingStatus.pending_amount)}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <Card variant="outlined">
+                        <CardContent>
+                          <Typography variant="subtitle1" gutterBottom>Recent Bills</Typography>
+                          {billingStatus.recent_bills?.length > 0 ? (
+                            <List dense>
+                              {billingStatus.recent_bills.map((bill, index) => (
+                                <ListItem key={index}>
+                                  <ListItemText
+                                    primary={`${bill.bill_number} - ${formatCurrency(bill.total_amount)}`}
+                                    secondary={bill.status}
+                                  />
+                                  <Chip 
+                                    label={bill.status} 
+                                    color={bill.status === 'paid' ? 'success' : 'warning'}
+                                    size="small"
+                                  />
+                                </ListItem>
+                              ))}
+                            </List>
+                          ) : (
+                            <Typography variant="body2" color="text.secondary">
+                              No bills found
+                            </Typography>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  </Grid>
+                </Box>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPatientDialog(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

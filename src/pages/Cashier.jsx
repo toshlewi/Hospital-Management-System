@@ -1,13 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Container,
-  Typography,
   Box,
+  Container,
   Grid,
   Card,
   CardContent,
+  Typography,
   Button,
   TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   Table,
   TableBody,
   TableCell,
@@ -15,434 +19,689 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Chip,
   IconButton,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
+  Tabs,
+  Tab,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  Divider,
+  Alert,
+  Snackbar,
   CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Autocomplete,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
 } from '@mui/material';
 import {
-  AttachMoney,
-  Payment,
-  Receipt,
-  Print,
-  Search,
-  Delete,
-  Edit
+  Add as AddIcon,
+  Search as SearchIcon,
+  Receipt as ReceiptIcon,
+  Payment as PaymentIcon,
+  Dashboard as DashboardIcon,
+  ExpandMore as ExpandMoreIcon,
+  Print as PrintIcon,
+  Visibility as ViewIcon,
+  Delete as DeleteIcon,
+  AttachMoney as MoneyIcon
 } from '@mui/icons-material';
-import axios from 'axios';
-import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js';
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+import { billingService } from '../services/billingService';
+import { patientAPI } from '../services/api';
 
 const Cashier = () => {
+  const [activeTab, setActiveTab] = useState(0);
+  const [billingItems, setBillingItems] = useState([]);
   const [patients, setPatients] = useState([]);
-  const [selectedPatient, setSelectedPatient] = useState('');
-  const [charges, setCharges] = useState([]);
+  const [bills, setBills] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [summary, setSummary] = useState({});
   const [loading, setLoading] = useState(false);
-  const [paying, setPaying] = useState(false);
-  const [search, setSearch] = useState('');
-  const [history, setHistory] = useState([]);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
-  const [loadingHistory, setLoadingHistory] = useState(false);
-  const [analytics, setAnalytics] = useState([]);
-  const [confirm, setConfirm] = useState({ open: false, type: '', charge: null });
-  const [refundConfirm, setRefundConfirm] = useState({ open: false, charge: null });
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  // New Bill Dialog
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [billNotes, setBillNotes] = useState('');
+
+  // Payment Dialog
+  const [paymentDialog, setPaymentDialog] = useState(false);
+  const [selectedBill, setSelectedBill] = useState(null);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('cash');
+
+  // Search
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
 
   useEffect(() => {
-    // Fetch all patients
-    const fetchPatients = async () => {
-      setLoading(true);
-      try {
-        const res = await axios.get('/api/patients');
-        setPatients(res.data);
-      } catch (err) {
-        // handle error
-      }
-      setLoading(false);
-    };
-    fetchPatients();
+    loadData();
   }, []);
 
-  useEffect(() => {
-    if (selectedPatient) {
-      fetchCharges(selectedPatient);
-    } else {
-      setCharges([]);
-    }
-  }, [selectedPatient]);
-
-  const fetchCharges = async (patientId) => {
+  const loadData = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`/api/patients/${patientId}/charges`);
-      setCharges(res.data);
-    } catch (err) {
-      // handle error
+      const [itemsRes, patientsRes, billsRes, paymentsRes, summaryRes] = await Promise.all([
+        billingService.getBillingItems(),
+        patientAPI.getAllPatients(),
+        billingService.getBills(),
+        billingService.getPayments(),
+        billingService.getBillingSummary()
+      ]);
+
+      setBillingItems(itemsRes);
+      setPatients(patientsRes);
+      setBills(billsRes);
+      setPayments(paymentsRes);
+      setSummary(summaryRes);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      showSnackbar('Error loading data', 'error');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  const handlePay = async () => {
-    setPaying(true);
-    try {
-      await axios.post(`/api/patients/${selectedPatient}/charges/pay`);
-      fetchCharges(selectedPatient);
-    } catch (err) {
-      // handle error
-    }
-    setPaying(false);
+  const showSnackbar = (message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
   };
 
-  const filteredPatients = patients.filter(
-    (p) =>
-      p.first_name.toLowerCase().includes(search.toLowerCase()) ||
-      p.last_name.toLowerCase().includes(search.toLowerCase()) ||
-      String(p.patient_id).includes(search)
-  );
-
-  const total = charges.reduce((sum, c) => sum + (c.charge * (c.quantity || 1)), 0);
-
-  const fetchHistory = async (patientId, start, end) => {
-    setLoadingHistory(true);
-    try {
-      let url = `/api/patients/${patientId}/payment-history`;
-      if (start && end) {
-        url += `?start=${start}&end=${end}`;
-      }
-      const res = await axios.get(url);
-      setHistory(res.data);
-    } catch (err) {
-      // handle error
-    }
-    setLoadingHistory(false);
-  };
-
-  useEffect(() => {
-    if (selectedPatient) {
-      fetchHistory(selectedPatient, startDate ? startDate.toISOString().slice(0,10) : undefined, endDate ? endDate.toISOString().slice(0,10) : undefined);
+  const handleAddItem = (item) => {
+    const existingItem = selectedItems.find(i => i.item_id === item.item_id);
+    if (existingItem) {
+      setSelectedItems(selectedItems.map(i => 
+        i.item_id === item.item_id 
+          ? { ...i, quantity: i.quantity + 1, total_price: item.price * (i.quantity + 1) }
+          : i
+      ));
     } else {
-      setHistory([]);
+      setSelectedItems([...selectedItems, { ...item, quantity: 1, total_price: item.price }]);
     }
-    // eslint-disable-next-line
-  }, [selectedPatient, startDate, endDate]);
-
-  const handleExportPDF = () => {
-    const doc = new jsPDF();
-    doc.text('Payment History Receipt', 14, 16);
-    doc.autoTable({
-      startY: 24,
-      head: [['Type', 'Name', 'Quantity', 'Charge', 'Date']],
-      body: history.map(h => [h.type, h.name, h.quantity || 1, `$${(h.charge * (h.quantity || 1)).toFixed(2)}`, h.date ? new Date(h.date).toLocaleString() : ''])
-    });
-    doc.save('payment_history.pdf');
   };
 
-  const fetchAnalytics = async (period = 'day') => {
+  const handleRemoveItem = (itemId) => {
+    setSelectedItems(selectedItems.filter(item => item.item_id !== itemId));
+  };
+
+  const handleQuantityChange = (itemId, newQuantity) => {
+    if (newQuantity <= 0) {
+      handleRemoveItem(itemId);
+      return;
+    }
+    setSelectedItems(selectedItems.map(item => 
+      item.item_id === itemId 
+        ? { ...item, quantity: newQuantity, total_price: item.price * newQuantity }
+        : item
+    ));
+  };
+
+  const calculateTotal = () => {
+    return selectedItems.reduce((sum, item) => sum + item.total_price, 0);
+  };
+
+  const handleCreateBill = async () => {
+    if (!selectedPatient || selectedItems.length === 0) {
+      showSnackbar('Please select a patient and add items', 'error');
+      return;
+    }
+
     try {
-      const res = await axios.get(`/api/patients/analytics/payments?period=${period}`);
-      setAnalytics(res.data.reverse());
-    } catch (err) {
-      // handle error
+      const billData = {
+        patient_id: selectedPatient.patient_id,
+        bill_items: selectedItems,
+        notes: billNotes
+      };
+
+      await billingService.createBill(billData);
+      showSnackbar('Bill created successfully');
+      setSelectedPatient(null);
+      setSelectedItems([]);
+      setBillNotes('');
+      loadData();
+    } catch (error) {
+      console.error('Error creating bill:', error);
+      showSnackbar('Error creating bill', 'error');
     }
   };
 
-  useEffect(() => {
-    fetchAnalytics('day');
-  }, []);
+  const handlePayment = async () => {
+    if (!selectedBill || !paymentAmount || paymentAmount <= 0) {
+      showSnackbar('Please enter a valid payment amount', 'error');
+      return;
+    }
 
-  const handlePayCharge = async (charge) => {
-    setConfirm({ open: false, type: '', charge: null });
-    await axios.post(`/api/patients/${selectedPatient}/charge/pay`, { type: charge.type, id: charge.id });
-    fetchCharges(selectedPatient);
-    fetchHistory(selectedPatient, startDate ? startDate.toISOString().slice(0,10) : undefined, endDate ? endDate.toISOString().slice(0,10) : undefined);
-    fetchAnalytics('day');
+    try {
+      const paymentData = {
+        bill_id: selectedBill.bill_id,
+        patient_id: selectedBill.patient_id,
+        payment_amount: parseFloat(paymentAmount),
+        payment_method: paymentMethod,
+        reference_number: `PAY-${Date.now()}`
+      };
+
+      await billingService.createPayment(paymentData);
+      showSnackbar('Payment processed successfully');
+      setPaymentDialog(false);
+      setSelectedBill(null);
+      setPaymentAmount('');
+      setPaymentMethod('cash');
+      loadData();
+    } catch (error) {
+      console.error('Error processing payment:', error);
+      showSnackbar('Error processing payment', 'error');
+    }
   };
 
-  const handleRefundCharge = async (charge) => {
-    setRefundConfirm({ open: false, charge: null });
-    await axios.post(`/api/patients/${selectedPatient}/charge/refund`, { type: charge.type, id: charge.id });
-    fetchCharges(selectedPatient);
-    fetchHistory(selectedPatient, startDate ? startDate.toISOString().slice(0,10) : undefined, endDate ? endDate.toISOString().slice(0,10) : undefined);
-    fetchAnalytics('day');
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      const response = await billingService.searchBills(searchQuery);
+      setSearchResults(response);
+    } catch (error) {
+      console.error('Error searching bills:', error);
+    }
   };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'paid': return 'success';
+      case 'partial': return 'warning';
+      case 'pending': return 'error';
+      case 'cancelled': return 'default';
+      default: return 'default';
+    }
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 3, position: 'relative', overflow: 'hidden', '&::before': { content: '"$$$"', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, color: 'rgba(33, 150, 243, 0.05)', fontSize: '20rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: -1, transform: 'rotate(-15deg)', userSelect: 'none' } }}>
-      <Typography variant="h4" gutterBottom sx={{ color: 'primary.main', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 2 }}>
-        <AttachMoney fontSize="large" /> Cashier Dashboard
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+        <MoneyIcon sx={{ mr: 2, color: 'primary.main' }} />
+        Cashier & Billing System
       </Typography>
-      <Grid container spacing={3} sx={{ mt: 2 }}>
-        {/* Patient Selection */}
-        <Grid item xs={12} md={4}>
-          <Card sx={{ bgcolor: 'primary.main', color: 'white', boxShadow: 3, borderRadius: 2 }}>
+
+      {/* Dashboard Summary Cards */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ bgcolor: 'primary.main', color: 'white' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Payment /> Select Patient
+              <Typography variant="h6" gutterBottom>
+                Total Bills
               </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <TextField
-                  label="Search by name or ID"
-                  variant="outlined"
-                  size="small"
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  sx={{ bgcolor: 'white', borderRadius: 1 }}
-                />
-                <FormControl fullWidth>
-                  <InputLabel id="patient-select-label" sx={{ color: 'white' }}>Patient</InputLabel>
-                  <Select
-                    labelId="patient-select-label"
-                    value={selectedPatient}
-                    label="Patient"
-                    onChange={e => setSelectedPatient(e.target.value)}
-                    sx={{ bgcolor: 'white', color: 'primary.main', borderRadius: 1 }}
-                  >
-                    {filteredPatients.map((p) => (
-                      <MenuItem key={p.patient_id} value={p.patient_id}>
-                        {p.first_name} {p.last_name} (ID: {p.patient_id})
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Box>
+              <Typography variant="h4">
+                {summary.totalBills || 0}
+              </Typography>
+              <Typography variant="body2">
+                This period
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
-        {/* Charges Table */}
-        <Grid item xs={12} md={8}>
-          <Card sx={{ boxShadow: 3, borderRadius: 2 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ bgcolor: 'success.main', color: 'white' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Receipt /> Outstanding Charges
+              <Typography variant="h6" gutterBottom>
+                Total Revenue
               </Typography>
-              {loading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 120 }}>
-                  <CircularProgress />
-                </Box>
-              ) : (
-                <TableContainer component={Paper}>
-                  <Table>
-                    <TableHead sx={{ bgcolor: 'primary.light' }}>
-                      <TableRow>
-                        <TableCell sx={{ color: 'white' }}>Type</TableCell>
-                        <TableCell sx={{ color: 'white' }}>Name</TableCell>
-                        <TableCell sx={{ color: 'white' }}>Quantity</TableCell>
-                        <TableCell sx={{ color: 'white' }}>Charge</TableCell>
-                        <TableCell sx={{ color: 'white' }}>Date</TableCell>
-                        <TableCell sx={{ color: 'white' }}>Status</TableCell>
-                        <TableCell sx={{ color: 'white' }}>Action</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {charges.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={7} align="center">No outstanding charges</TableCell>
-                        </TableRow>
-                      ) : (
-                        charges.map((c) => (
-                          <TableRow key={c.type + '-' + c.id}>
-                            <TableCell>{c.type}</TableCell>
-                            <TableCell>{c.name}</TableCell>
-                            <TableCell>{c.quantity || 1}</TableCell>
-                            <TableCell>${(c.charge * (c.quantity || 1)).toFixed(2)}</TableCell>
-                            <TableCell>{c.date ? new Date(c.date).toLocaleString() : ''}</TableCell>
-                            <TableCell>{c.status}</TableCell>
-                            <TableCell>
-                              <Button
-                                variant="contained"
-                                color="success"
-                                size="small"
-                                disabled={c.status === 'paid'}
-                                onClick={() => setConfirm({ open: true, type: 'pay', charge: c })}
-                              >
-                                Pay
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, gap: 2 }}>
-                <Typography variant="h6">Total: ${total.toFixed(2)}</Typography>
-                <Button
-                  variant="contained"
-                  color="success"
-                  startIcon={<Payment />}
-                  disabled={!selectedPatient || charges.length === 0 || paying}
-                  onClick={handlePay}
-                >
-                  {paying ? 'Processing...' : 'Mark as Paid'}
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  startIcon={<Print />}
-                  disabled={!selectedPatient || charges.length === 0}
-                  onClick={handlePrint}
-                >
-                  Print Receipt
-                </Button>
-              </Box>
+              <Typography variant="h4">
+                {formatCurrency(summary.totalBilled || 0)}
+              </Typography>
+              <Typography variant="body2">
+                Total billed amount
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={8}>
-          <Card sx={{ boxShadow: 3, borderRadius: 2, mt: 3 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ bgcolor: 'warning.main', color: 'white' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Receipt /> Payment History
+              <Typography variant="h6" gutterBottom>
+                Pending Amount
               </Typography>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                  <DatePicker
-                    label="Start Date"
-                    value={startDate}
-                    onChange={setStartDate}
-                    renderInput={(params) => <TextField {...params} size="small" />}
-                  />
-                  <DatePicker
-                    label="End Date"
-                    value={endDate}
-                    onChange={setEndDate}
-                    renderInput={(params) => <TextField {...params} size="small" />}
-                  />
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<Print />}
-                    disabled={!selectedPatient || history.length === 0}
-                    onClick={handleExportPDF}
-                  >
-                    Export as PDF
-                  </Button>
-                </Box>
-              </LocalizationProvider>
-              {loadingHistory ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 120 }}>
-                  <CircularProgress />
-                </Box>
-              ) : (
-                <TableContainer component={Paper}>
-                  <Table>
-                    <TableHead sx={{ bgcolor: 'primary.light' }}>
-                      <TableRow>
-                        <TableCell sx={{ color: 'white' }}>Type</TableCell>
-                        <TableCell sx={{ color: 'white' }}>Name</TableCell>
-                        <TableCell sx={{ color: 'white' }}>Quantity</TableCell>
-                        <TableCell sx={{ color: 'white' }}>Charge</TableCell>
-                        <TableCell sx={{ color: 'white' }}>Date</TableCell>
-                        <TableCell sx={{ color: 'white' }}>Action</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {history.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={6} align="center">No payment history</TableCell>
-                        </TableRow>
-                      ) : (
-                        history.map((h, idx) => (
-                          <TableRow key={h.type + '-' + h.id + '-' + idx}>
-                            <TableCell>{h.type}</TableCell>
-                            <TableCell>{h.name}</TableCell>
-                            <TableCell>{h.quantity || 1}</TableCell>
-                            <TableCell>${(h.charge * (h.quantity || 1)).toFixed(2)}</TableCell>
-                            <TableCell>{h.date ? new Date(h.date).toLocaleString() : ''}</TableCell>
-                            <TableCell>
-                              <Button
-                                variant="outlined"
-                                color="error"
-                                size="small"
-                                onClick={() => setRefundConfirm({ open: true, charge: h })}
-                              >
-                                Refund
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
+              <Typography variant="h4">
+                {formatCurrency(summary.pendingAmount || 0)}
+              </Typography>
+              <Typography variant="body2">
+                Outstanding payments
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={4}>
-          <Card sx={{ boxShadow: 3, borderRadius: 2, mt: 3 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ bgcolor: 'info.main', color: 'white' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>Analytics</Typography>
-              <Box sx={{ mb: 2 }}>
-                <Typography>Total Payments Today: ${analytics.length > 0 ? analytics[analytics.length-1].total.toFixed(2) : '0.00'}</Typography>
-                <Typography>Total Payments (Last 7 Days): ${analytics.slice(-7).reduce((sum, a) => sum + Number(a.total), 0).toFixed(2)}</Typography>
-                <Typography>Total Payments (Last 30 Days): ${analytics.reduce((sum, a) => sum + Number(a.total), 0).toFixed(2)}</Typography>
-              </Box>
-              <Line
-                data={{
-                  labels: analytics.map(a => a.period),
-                  datasets: [{
-                    label: 'Payments',
-                    data: analytics.map(a => a.total),
-                    borderColor: 'rgba(33,150,243,1)',
-                    backgroundColor: 'rgba(33,150,243,0.2)',
-                    tension: 0.3
-                  }]
-                }}
-                options={{
-                  responsive: true,
-                  plugins: { legend: { display: false } },
-                  scales: { x: { title: { display: true, text: 'Date' } }, y: { title: { display: true, text: 'Amount ($)' } } }
-                }}
-                height={200}
-              />
+              <Typography variant="h6" gutterBottom>
+                Payment Rate
+              </Typography>
+              <Typography variant="h4">
+                {summary.paymentRate || 0}%
+              </Typography>
+              <Typography variant="body2">
+                Collection rate
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
-      <Dialog open={confirm.open} onClose={() => setConfirm({ open: false, type: '', charge: null })}>
-        <DialogTitle>Confirm Payment</DialogTitle>
-        <DialogContent>Are you sure you want to mark this charge as paid?</DialogContent>
+
+      {/* Tabs */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs value={activeTab} onChange={handleTabChange}>
+          <Tab icon={<DashboardIcon />} label="Dashboard" />
+          <Tab icon={<ReceiptIcon />} label="Bills" />
+          <Tab icon={<PaymentIcon />} label="Payments" />
+          <Tab icon={<AddIcon />} label="New Bill" />
+        </Tabs>
+      </Box>
+
+      {/* Dashboard Tab */}
+      {activeTab === 0 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Recent Bills
+                </Typography>
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Bill #</TableCell>
+                        <TableCell>Patient</TableCell>
+                        <TableCell>Amount</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell>Date</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {bills.slice(0, 5).map((bill) => (
+                        <TableRow key={bill.bill_id}>
+                          <TableCell>{bill.bill_number}</TableCell>
+                          <TableCell>
+                            {bill.patients?.first_name} {bill.patients?.last_name}
+                          </TableCell>
+                          <TableCell>{formatCurrency(bill.total_amount)}</TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={bill.status} 
+                              color={getStatusColor(bill.status)}
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell>{formatDate(bill.bill_date)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Quick Actions
+                </Typography>
+                <List>
+                  <ListItem button onClick={() => setActiveTab(3)}>
+                    <ListItemText primary="Create New Bill" />
+                    <AddIcon />
+                  </ListItem>
+                  <ListItem button onClick={() => setActiveTab(2)}>
+                    <ListItemText primary="Process Payment" />
+                    <PaymentIcon />
+                  </ListItem>
+                  <ListItem button onClick={() => setActiveTab(1)}>
+                    <ListItemText primary="View All Bills" />
+                    <ReceiptIcon />
+                  </ListItem>
+                </List>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+
+      {/* Bills Tab */}
+      {activeTab === 1 && (
+        <Box>
+          <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+            <TextField
+              label="Search bills..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              sx={{ flexGrow: 1 }}
+            />
+            <Button variant="contained" onClick={handleSearch}>
+              <SearchIcon />
+            </Button>
+          </Box>
+          
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Bill #</TableCell>
+                  <TableCell>Patient</TableCell>
+                  <TableCell>Amount</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {(searchResults.length > 0 ? searchResults : bills).map((bill) => (
+                  <TableRow key={bill.bill_id}>
+                    <TableCell>{bill.bill_number}</TableCell>
+                    <TableCell>
+                      {bill.patients?.first_name} {bill.patients?.last_name}
+                    </TableCell>
+                    <TableCell>{formatCurrency(bill.total_amount)}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={bill.status} 
+                        color={getStatusColor(bill.status)}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>{formatDate(bill.bill_date)}</TableCell>
+                    <TableCell>
+                      <IconButton size="small" onClick={() => {}}>
+                        <ViewIcon />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => {}}>
+                        <PrintIcon />
+                      </IconButton>
+                      {bill.status !== 'paid' && (
+                        <IconButton 
+                          size="small" 
+                          onClick={() => {
+                            setSelectedBill(bill);
+                            setPaymentDialog(true);
+                          }}
+                        >
+                          <PaymentIcon />
+                        </IconButton>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      )}
+
+      {/* Payments Tab */}
+      {activeTab === 2 && (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Payment #</TableCell>
+                <TableCell>Patient</TableCell>
+                <TableCell>Bill #</TableCell>
+                <TableCell>Amount</TableCell>
+                <TableCell>Method</TableCell>
+                <TableCell>Date</TableCell>
+                <TableCell>Status</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {payments.map((payment) => (
+                <TableRow key={payment.payment_id}>
+                  <TableCell>{payment.reference_number}</TableCell>
+                  <TableCell>
+                    {payment.patients?.first_name} {payment.patients?.last_name}
+                  </TableCell>
+                  <TableCell>{payment.bills?.bill_id}</TableCell>
+                  <TableCell>{formatCurrency(payment.payment_amount)}</TableCell>
+                  <TableCell>{payment.payment_method}</TableCell>
+                  <TableCell>{formatDate(payment.payment_date)}</TableCell>
+                  <TableCell>
+                    <Chip 
+                      label={payment.status} 
+                      color={payment.status === 'completed' ? 'success' : 'warning'}
+                      size="small"
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+
+      {/* New Bill Tab */}
+      {activeTab === 3 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Bill Items
+                </Typography>
+                
+                {/* Patient Selection */}
+                <Autocomplete
+                  options={patients}
+                  getOptionLabel={(option) => `${option.first_name} ${option.last_name} (ID: ${option.patient_id})`}
+                  value={selectedPatient}
+                  onChange={(event, newValue) => setSelectedPatient(newValue)}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Select Patient" fullWidth sx={{ mb: 2 }} />
+                  )}
+                />
+
+                {/* Billing Items by Category */}
+                {['consultation', 'lab_test', 'medication', 'procedure'].map((category) => (
+                  <Accordion key={category} sx={{ mb: 1 }}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography variant="subtitle1" sx={{ textTransform: 'capitalize' }}>
+                        {category.replace('_', ' ')}s
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Grid container spacing={1}>
+                        {billingItems
+                          .filter(item => item.category === category)
+                          .map((item) => (
+                            <Grid item xs={12} sm={6} md={4} key={item.item_id}>
+                              <Card 
+                                variant="outlined" 
+                                sx={{ 
+                                  cursor: 'pointer',
+                                  '&:hover': { bgcolor: 'action.hover' }
+                                }}
+                                onClick={() => handleAddItem(item)}
+                              >
+                                <CardContent sx={{ py: 1 }}>
+                                  <Typography variant="body2" fontWeight="bold">
+                                    {item.name}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary">
+                                    {formatCurrency(item.price)}
+                                  </Typography>
+                                </CardContent>
+                              </Card>
+                            </Grid>
+                          ))}
+                      </Grid>
+                    </AccordionDetails>
+                  </Accordion>
+                ))}
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Selected Items
+                </Typography>
+                
+                {selectedItems.length === 0 ? (
+                  <Typography color="text.secondary">
+                    No items selected
+                  </Typography>
+                ) : (
+                  <List dense>
+                    {selectedItems.map((item) => (
+                      <ListItem key={item.item_id}>
+                        <ListItemText
+                          primary={item.name}
+                          secondary={`${formatCurrency(item.price)} x ${item.quantity}`}
+                        />
+                        <ListItemSecondaryAction>
+                          <TextField
+                            type="number"
+                            size="small"
+                            value={item.quantity}
+                            onChange={(e) => handleQuantityChange(item.item_id, parseInt(e.target.value))}
+                            sx={{ width: 60, mr: 1 }}
+                          />
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleRemoveItem(item.item_id)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                    ))}
+                  </List>
+                )}
+
+                <Divider sx={{ my: 2 }} />
+                
+                <Typography variant="h6">
+                  Total: {formatCurrency(calculateTotal())}
+                </Typography>
+
+                <TextField
+                  label="Notes"
+                  multiline
+                  rows={3}
+                  value={billNotes}
+                  onChange={(e) => setBillNotes(e.target.value)}
+                  fullWidth
+                  sx={{ mt: 2 }}
+                />
+
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={handleCreateBill}
+                  disabled={!selectedPatient || selectedItems.length === 0}
+                  sx={{ mt: 2 }}
+                >
+                  Create Bill
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+
+      {/* Payment Dialog */}
+      <Dialog open={paymentDialog} onClose={() => setPaymentDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Process Payment</DialogTitle>
+        <DialogContent>
+          {selectedBill && (
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1">
+                Bill: {selectedBill.bill_number}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Patient: {selectedBill.patients?.first_name} {selectedBill.patients?.last_name}
+              </Typography>
+              <Typography variant="h6">
+                Total Amount: {formatCurrency(selectedBill.total_amount)}
+              </Typography>
+            </Box>
+          )}
+          
+          <TextField
+            label="Payment Amount"
+            type="number"
+            value={paymentAmount}
+            onChange={(e) => setPaymentAmount(e.target.value)}
+            fullWidth
+            sx={{ mb: 2 }}
+          />
+          
+          <FormControl fullWidth>
+            <InputLabel>Payment Method</InputLabel>
+            <Select
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+              label="Payment Method"
+            >
+              <MenuItem value="cash">Cash</MenuItem>
+              <MenuItem value="card">Card</MenuItem>
+              <MenuItem value="insurance">Insurance</MenuItem>
+              <MenuItem value="bank_transfer">Bank Transfer</MenuItem>
+            </Select>
+          </FormControl>
+        </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirm({ open: false, type: '', charge: null })}>Cancel</Button>
-          <Button onClick={() => handlePayCharge(confirm.charge)} color="success">Confirm</Button>
+          <Button onClick={() => setPaymentDialog(false)}>Cancel</Button>
+          <Button onClick={handlePayment} variant="contained">
+            Process Payment
+          </Button>
         </DialogActions>
       </Dialog>
-      <Dialog open={refundConfirm.open} onClose={() => setRefundConfirm({ open: false, charge: null })}>
-        <DialogTitle>Confirm Refund</DialogTitle>
-        <DialogContent>Are you sure you want to refund this charge?</DialogContent>
-        <DialogActions>
-          <Button onClick={() => setRefundConfirm({ open: false, charge: null })}>Cancel</Button>
-          <Button onClick={() => handleRefundCharge(refundConfirm.charge)} color="error">Refund</Button>
-        </DialogActions>
-      </Dialog>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
 
-export default Cashier;
+export default Cashier; 
