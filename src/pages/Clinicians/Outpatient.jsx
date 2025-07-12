@@ -79,6 +79,7 @@ import {
 } from '@mui/icons-material';
 import { patientAPI, aiAPI } from '../../services/api';
 import pharmacyService from '../../services/pharmacyService';
+import RealTimeDiagnosis from '../../components/ai/RealTimeDiagnosis';
 
 const Outpatient = () => {
   // State for patient management
@@ -717,6 +718,7 @@ const Outpatient = () => {
                     <Tab label="Prescriptions" />
                     <Tab label="Imaging" />
                     <Tab label="Test Results" />
+                    <Tab label="AI Diagnosis" />
                     <Tab label="Billing" />
                   </Tabs>
 
@@ -1157,8 +1159,34 @@ const Outpatient = () => {
                     </Box>
                   )}
 
+                  {/* AI Diagnosis Tab */}
+                  {activeTab === 6 && selectedPatient && patientDetails && (
+                    <Box>
+                      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        <AIIcon sx={{ mr: 1, color: 'primary.main' }} />
+                        Real-time AI Diagnosis
+                      </Typography>
+                      
+                      <RealTimeDiagnosis
+                        patientId={selectedPatient.patient_id}
+                        patientData={{
+                          medical_history: patientDetails,
+                          lab_results: labOrders.filter(order => order.status === 'completed'),
+                          imaging_results: imagingOrders.filter(order => order.status === 'completed'),
+                          prescriptions: prescriptions,
+                          medical_notes: medicalNotes
+                        }}
+                        onDiagnosisUpdate={(result) => {
+                          // Update AI analysis state
+                          setAiAnalysis(result);
+                          showSnackbar('AI diagnosis updated', 'success');
+                        }}
+                      />
+                    </Box>
+                  )}
+
                   {/* Billing Tab */}
-                  {activeTab === 6 && billingStatus && (
+                  {activeTab === 7 && billingStatus && (
                     <Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                         <Typography variant="h6">Billing Information</Typography>
