@@ -77,11 +77,14 @@ export const patientAPI = {
   // Create new prescription for a patient
   createPrescription: (patientId, data) => api.post(`/patients/${patientId}/prescriptions`, data).then(res => res.data),
 
-  // Get test orders
-  getTestOrders: (patientId) => api.get(`/patients/${patientId}/test-orders`).then(res => res.data),
-
   // Add test order
   addTestOrder: (patientId, data) => api.post(`/patients/${patientId}/tests`, data).then(res => res.data),
+
+  // Update test order
+  updateTestOrder: (orderId, data) => api.put(`/test-orders/${orderId}`, data).then(res => res.data),
+
+  // Update prescription
+  updatePrescription: (prescriptionId, data) => api.put(`/prescriptions/${prescriptionId}`, data).then(res => res.data),
 
   // Get all imaging test orders (for Imaging department)
   getAllImagingOrders: async () => {
@@ -97,12 +100,25 @@ export const patientAPI = {
   // Upload lab result file
   uploadLabResult: async (patientId, formData) => {
     try {
-      const response = await api.post(`/patients/${patientId}/lab-results`, formData, {
+      const response = await api.post(`/patients/${patientId}/upload-lab-result`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       return response.data;
     } catch (error) {
       console.error('Error uploading lab result:', error);
+      throw error;
+    }
+  },
+
+  // Upload imaging file
+  uploadImaging: async (patientId, formData) => {
+    try {
+      const response = await api.post(`/patients/${patientId}/upload-imaging`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error uploading imaging:', error);
       throw error;
     }
   },

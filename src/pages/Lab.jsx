@@ -9,7 +9,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  Divider,
   Button,
   TextField,
   Chip,
@@ -21,58 +20,39 @@ import {
   TableRow,
   Paper,
   IconButton,
-  Badge,
   Avatar,
   useTheme,
   useMediaQuery,
-  TextareaAutosize,
   CircularProgress,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Alert,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
   Tabs,
   Tab,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Snackbar,
   Stepper,
   Step,
   StepLabel,
-  StepContent
+  StepContent,
+  Divider
 } from '@mui/material';
 import {
   Science,
-  History,
   AutoFixHigh,
   CheckCircle,
   Warning,
   Info,
   Add,
-  Remove,
   Search,
-  FilterList,
-  Sort,
-  Download,
-  Share,
   Print,
   Upload,
-  Edit,
   Send,
-  LocalHospital,
   Description,
-  Image,
-  Email,
-  AttachFile,
   Person,
-  ExpandMore,
-  Done,
+  Assignment,
+  Visibility,
   Pending,
   Schedule,
   Error
@@ -82,11 +62,9 @@ import { useDebounce } from 'use-debounce';
 
 const Lab = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [selectedTest, setSelectedTest] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [reportText, setReportText] = useState('');
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [openSendDialog, setOpenSendDialog] = useState(false);
   const [sendSuccess, setSendSuccess] = useState(false);
@@ -98,10 +76,8 @@ const Lab = () => {
   const [resultLoading, setResultLoading] = useState(false);
   const [resultSuccess, setResultSuccess] = useState('');
   const [resultError, setResultError] = useState('');
-  const [aiResult, setAiResult] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState('');
-  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState('');
   const [debouncedResultText] = useDebounce(resultText, 600);
@@ -124,20 +100,53 @@ const Lab = () => {
       const allPatients = await patientAPI.getAllPatients();
       let allLabOrders = [];
       let patientsWithLabOrders = [];
+      
       for (const patient of allPatients) {
-        const orders = await patientAPI.getTestOrders(patient.patient_id);
-        const labOrdersForPatient = orders.filter(o => o.order_type === 'lab');
-        if (labOrdersForPatient.length > 0) {
-          patientsWithLabOrders.push(patient);
+        try {
+          const orders = await patientAPI.getTestOrders(patient.patient_id);
+          console.log(`Orders for patient ${patient.patient_id}:`, orders);
+          // Filter for lab orders (test_type_id that corresponds to lab tests)
+          const labOrdersForPatient = orders.filter(o => {
+            // Check if it's a lab test (not imaging)
+            const isImaging = o.test_types && o.test_types.name && 
+                             o.test_types.name.toLowerCase().includes('imaging');
+            const isLab = o.test_types && o.test_types.name && 
+                         !isImaging && (
+                           o.test_types.name.toLowerCase().includes('lab') || 
+                           o.test_types.name.toLowerCase().includes('blood') ||
+                           o.test_types.name.toLowerCase().includes('urine') ||
+                           o.test_types.name.toLowerCase().includes('test') ||
+                           o.test_types.name.toLowerCase().includes('analysis')
+                         );
+            console.log(`Order ${o.order_id}: test_type=${o.test_types?.name}, isImaging=${isImaging}, isLab=${isLab}`);
+            return isLab;
+          });
+          
+          if (labOrdersForPatient.length > 0) {
+            patientsWithLabOrders.push(patient);
+            labOrdersForPatient.forEach(order => {
+              order.patient = patient;
+              order.order_type = 'lab';
+            });
+            allLabOrders = allLabOrders.concat(labOrdersForPatient);
+          } else if (orders.length > 0) {
+            // Fallback: if no lab orders found, show all orders for debugging
+            console.log(`No lab orders found for patient ${patient.patient_id}, showing all orders:`, orders);
+            orders.forEach(order => {
+              order.patient = patient;
+              order.order_type = 'unknown';
+            });
+            allLabOrders = allLabOrders.concat(orders);
+          }
+        } catch (error) {
+          console.error(`Error fetching orders for patient ${patient.patient_id}:`, error);
         }
-        labOrdersForPatient.forEach(order => {
-          order.patient = patient;
-        });
-        allLabOrders = allLabOrders.concat(labOrdersForPatient);
       }
+      
       setLabOrders(allLabOrders);
       setPatientsWithOrders(patientsWithLabOrders);
     } catch (err) {
+      console.error('Error fetching lab orders:', err);
       setFetchError('Failed to fetch lab orders.');
     } finally {
       setLoading(false);
@@ -146,21 +155,7 @@ const Lab = () => {
 
   useEffect(() => {
     fetchLabOrders();
-  }, [fetchLabOrders]);
-
-  const handleTestSelect = (test) => {
-    setSelectedTest(test);
-    setReportText(test.report);
-    setAiAnalysis(test.aiAnalysis);
-  };
-
-  const handleReportChange = (event) => {
-    setReportText(event.target.value);
-  };
-
-  const handleSendToDoctor = () => {
-    setOpenSendDialog(true);
-  };
+    }, [fetchLabOrders]);
 
   const handleConfirmSend = () => {
     // In a real app, this would send the results to the doctor
@@ -174,23 +169,20 @@ const Lab = () => {
     setOpenSendDialog(false);
   };
 
-  const handleResultUpload = (event) => {
-    // In a real app, this would handle file upload
-    console.log('Uploading results:', event.target.files[0]);
-  };
-
   // Sidebar: Filtered patients
-  const filteredPatients = patientsWithOrders.filter(p => {
+  const filteredPatients = labOrders.filter(patient => {
     const searchLower = searchQuery.toLowerCase();
-    return (
-      (`${p.first_name} ${p.last_name}`).toLowerCase().includes(searchLower) ||
-      String(p.patient_id).includes(searchQuery)
+    const matchesSearch = (
+      (`${patient.patient?.first_name || ''} ${patient.patient?.last_name || ''}`).toLowerCase().includes(searchLower) ||
+      String(patient.patient?.patient_id).includes(searchQuery)
     );
+    const matchesStatus = filterStatus === 'all' || (patient.status && patient.status.toLowerCase() === filterStatus);
+    return matchesSearch && matchesStatus;
   });
 
   // Main: Filtered lab orders for selected patient
   const patientLabOrders = selectedPatient
-    ? labOrders.filter(o => o.patient.patient_id === selectedPatient.patient_id && (filterStatus === 'all' || o.status === filterStatus))
+    ? labOrders.filter(o => o.patient?.patient_id === selectedPatient.patient?.patient_id && (filterStatus === 'all' || o.status === filterStatus))
     : [];
 
   // Status chip color
@@ -298,13 +290,7 @@ const Lab = () => {
     setActiveTab(newValue);
   };
 
-  const handleSearch = () => {
-    return patients.filter(patient => 
-      patient.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      patient.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      patient.patient_id?.toString().includes(searchQuery)
-    );
-  };
+
 
   const getTestStatusColor = (status) => {
     switch (status?.toLowerCase()) {
@@ -330,12 +316,7 @@ const Lab = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
+
 
   const getFilteredTestOrders = () => {
     if (filterStatus === 'all') return testOrders;
@@ -404,6 +385,36 @@ const Lab = () => {
               }}>
                 <Science sx={{ mr: 1 }} /> Lab Patients
               </Typography>
+              
+              {/* Debug button to create test order */}
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={async () => {
+                  try {
+                    // Create a test lab order for the first patient
+                    const allPatients = await patientAPI.getAllPatients();
+                    if (allPatients.length > 0) {
+                      const testOrder = await patientAPI.addTestOrder(allPatients[0].patient_id, {
+                        test_name: 'Blood Test',
+                        test_type: 'lab',
+                        clinical_notes: 'Debug test order',
+                        priority: 'routine',
+                        requesting_physician: 'Dr. Smith',
+                        status: 'ordered',
+                        order_date: new Date().toISOString()
+                      });
+                      console.log('Created test order:', testOrder);
+                      fetchLabOrders(); // Refresh the list
+                    }
+                  } catch (error) {
+                    console.error('Error creating test order:', error);
+                  }
+                }}
+                sx={{ mb: 2 }}
+              >
+                Create Test Lab Order
+              </Button>
               <TextField
                 label="Search patients by name or ID"
                 variant="outlined"
@@ -416,6 +427,27 @@ const Lab = () => {
                 }}
                 sx={{ mb: 2 }}
               />
+
+              {/* Filters */}
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Filter by Status
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {['all', 'ordered', 'completed'].map((status) => (
+                    <Chip
+                      key={status}
+                      label={status.charAt(0).toUpperCase() + status.slice(1)}
+                      onClick={() => setFilterStatus(status)}
+                      color={filterStatus === status ? 'primary' : 'default'}
+                      size="small"
+                    />
+                  ))}
+                </Box>
+              </Box>
+
+              <Divider sx={{ my: 2 }} />
+
               <Box sx={{ flex: 1, overflowY: 'auto' }}>
                 {loading ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
@@ -428,24 +460,29 @@ const Lab = () => {
                 ) : (
                   filteredPatients.map(patient => (
                     <Card
-                      key={patient.patient_id}
+                      key={patient.order_id}
                       sx={{
                         mb: 1,
                         cursor: 'pointer',
-                        backgroundColor: selectedPatient && selectedPatient.patient_id === patient.patient_id ? 'primary.light' : 'white',
-                        border: selectedPatient && selectedPatient.patient_id === patient.patient_id ? `2px solid ${theme.palette.primary.main}` : '1px solid #eee',
+                        backgroundColor: selectedPatient && selectedPatient.order_id === patient.order_id ? 'primary.light' : 'white',
+                        border: selectedPatient && selectedPatient.order_id === patient.order_id ? `2px solid ${theme.palette.primary.main}` : '1px solid #eee',
                         transition: 'background 0.2s, border 0.2s'
                       }}
                       onClick={() => handleSelectPatient(patient)}
                     >
                       <CardContent sx={{ display: 'flex', alignItems: 'center', py: 1 }}>
                         <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
-                          {patient.first_name[0]}
+                          {patient.patient?.first_name?.[0] || 'P'}
                         </Avatar>
-                        <Box>
-                          <Typography variant="subtitle1">{patient.first_name} {patient.last_name}</Typography>
-                          <Typography variant="body2" color="text.secondary">ID: {patient.patient_id}</Typography>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="subtitle1">{patient.patient?.first_name || 'N/A'} {patient.patient?.last_name || ''}</Typography>
+                          <Typography variant="body2" color="text.secondary">ID: {patient.patient?.patient_id || 'N/A'}</Typography>
                         </Box>
+                        <Chip 
+                          label={patient.status || 'N/A'} 
+                          size="small"
+                          color={patient.status === 'completed' ? 'success' : (patient.status === 'ordered' ? 'warning' : 'default')}
+                        />
                       </CardContent>
                     </Card>
                   ))
@@ -462,15 +499,15 @@ const Lab = () => {
                 <>
                   <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Avatar sx={{ width: 56, height: 56, bgcolor: 'primary.main' }}>
-                      {selectedPatient.first_name[0]}
+                      {selectedPatient.patient?.first_name?.[0] || 'P'}
                     </Avatar>
                     <Box>
-                      <Typography variant="h5">{selectedPatient.first_name} {selectedPatient.last_name}</Typography>
+                      <Typography variant="h5">{selectedPatient.patient?.first_name || 'N/A'} {selectedPatient.patient?.last_name || ''}</Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Gender: {selectedPatient.gender} | DOB: {selectedPatient.date_of_birth} | Status: {selectedPatient.status}
+                        Gender: {selectedPatient.patient?.gender || 'N/A'} | DOB: {selectedPatient.patient?.date_of_birth || 'N/A'} | Status: {selectedPatient.status || 'N/A'}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Contact: {selectedPatient.contact_number} | Email: {selectedPatient.email}
+                        Contact: {selectedPatient.patient?.contact_number || 'N/A'} | Email: {selectedPatient.patient?.email || 'N/A'}
                       </Typography>
                     </Box>
                   </Box>
@@ -512,11 +549,11 @@ const Lab = () => {
                               sx={{ cursor: 'pointer' }}
                               onClick={() => handleSelectOrder(order)}
                             >
-                              <TableCell>{order.test_name}</TableCell>
-                              <TableCell>{order.doctor_first_name} {order.doctor_last_name}</TableCell>
+                              <TableCell>{order.test_types?.name || order.test_name || 'Lab Test'}</TableCell>
+                              <TableCell>{order.doctor_first_name || 'Dr.'} {order.doctor_last_name || 'Smith'}</TableCell>
                               <TableCell>
                                 <Chip
-                                  label={order.status}
+                                  label={order.status || 'N/A'}
                                   color={statusColor(order.status)}
                                   icon={order.status === 'completed' ? <CheckCircle /> : <Warning />}
                                 />
@@ -537,7 +574,7 @@ const Lab = () => {
                   </TableContainer>
                   {selectedOrder && (
                     <Box sx={{ mt: 2 }}>
-                      <Typography variant="h6" sx={{ mb: 1 }}>Enter/Update Result for: <b>{selectedOrder.test_name}</b></Typography>
+                      <Typography variant="h6" sx={{ mb: 1 }}>Enter/Update Result for: <b>{selectedOrder.test_types?.name || selectedOrder.test_name || 'Lab Test'}</b></Typography>
                       <TextField
                         label="Result"
                         multiline
@@ -886,7 +923,7 @@ const Lab = () => {
                               </TableCell>
                               <TableCell>
                                 <IconButton size="small">
-                                  <View />
+                                  <Visibility />
                                 </IconButton>
                                 <IconButton size="small">
                                   <Upload />

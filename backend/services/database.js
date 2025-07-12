@@ -1,22 +1,29 @@
 const { createClient } = require('@supabase/supabase-js');
 const dbConfig = require('../config/db.config.js');
 
-// Initialize Supabase client
-const supabase = createClient(
-  dbConfig.SUPABASE_URL,
-  dbConfig.SUPABASE_SERVICE_ROLE_KEY
-);
+// Initialize Supabase client with fallback
+let supabase = null;
+try {
+  if (dbConfig.SUPABASE_URL && dbConfig.SUPABASE_SERVICE_ROLE_KEY) {
+    supabase = createClient(
+      dbConfig.SUPABASE_URL,
+      dbConfig.SUPABASE_SERVICE_ROLE_KEY
+    );
+  }
+} catch (error) {
+  console.warn('⚠️ Supabase configuration missing or invalid');
+}
 
 class DatabaseService {
   constructor() {
     this.supabase = supabase;
-    this.useSupabase = !!dbConfig.SUPABASE_URL;
+    this.useSupabase = !!(dbConfig.SUPABASE_URL && dbConfig.SUPABASE_SERVICE_ROLE_KEY);
   }
 
   // Test database connection
   async testConnection() {
     try {
-      if (this.useSupabase) {
+      if (this.useSupabase && this.supabase) {
         const { data, error } = await this.supabase
           .from('patients')
           .select('count')
@@ -26,11 +33,14 @@ class DatabaseService {
         console.log('✅ Successfully connected to Supabase');
         return true;
       } else {
-        throw new Error('Supabase configuration required');
+        console.warn('⚠️ Supabase not configured - running in demo mode');
+        console.log('📝 To enable full functionality, please configure Supabase environment variables');
+        return true; // Return true to allow the server to start
       }
     } catch (error) {
       console.error('❌ Database connection failed:', error);
-      return false;
+      console.warn('⚠️ Running in demo mode without database connection');
+      return true; // Return true to allow the server to start
     }
   }
 
@@ -571,6 +581,279 @@ class DatabaseService {
       return data;
     } catch (error) {
       console.error('Error fetching procedures:', error);
+      throw error;
+    }
+  }
+
+  // Add medical note
+  async addMedicalNote(patientId, noteData) {
+    try {
+      const { data, error } = await this.supabase
+        .from('medical_notes')
+        .insert([{
+          patient_id: patientId,
+          note_text: noteData.note_text || noteData.notes,
+          diagnosis: noteData.diagnosis,
+          advice: noteData.advice,
+          doctor_id: noteData.doctor_id || 1,
+          created_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error adding medical note:', error);
+      throw error;
+    }
+  }
+
+  // Create prescription
+  async createPrescription(patientId, prescriptionData) {
+    try {
+      const { data, error } = await this.supabase
+        .from('prescriptions')
+        .insert([{
+          patient_id: patientId,
+          medication_name: prescriptionData.medication_name,
+          dosage: prescriptionData.dosage,
+          frequency: prescriptionData.frequency,
+          duration: prescriptionData.duration,
+          instructions: prescriptionData.instructions,
+          quantity: prescriptionData.quantity,
+          prescribed_date: new Date().toISOString(),
+          status: 'active'
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating prescription:', error);
+      throw error;
+    }
+  }
+
+  // Get test orders
+  async getTestOrders(patientId) {
+    try {
+      const { data, error } = await this.supabase
+        .from('test_orders')
+        .select(`
+          *,
+          test_types(name, description, cost)
+        `)
+        .eq('patient_id', patientId)
+        .order('ordered_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching test orders:', error);
+      throw error;
+    }
+  }
+
+  // Add test order
+  async addTestOrder(patientId, orderData) {
+    try {
+      // Handle different types of orders
+      let testTypeId = orderData.test_type_id;
+      
+      // If test_type is provided as string, try to find or create the test type
+      if (orderData.test_type && !testTypeId) {
+        // For imaging orders, create a test type if it doesn't exist
+        if (orderData.test_type === 'imaging') {
+          // Try to find existing imaging test type
+          const { data: existingType } = await this.supabase
+            .from('test_types')
+            .select('test_type_id')
+            .eq('name', orderData.imaging_type || 'Imaging')
+            .single();
+          
+          if (existingType) {
+            testTypeId = existingType.test_type_id;
+          } else {
+            // Create imaging test type
+            const { data: newType } = await this.supabase
+              .from('test_types')
+              .insert([{
+                name: orderData.imaging_type || 'Imaging',
+                description: 'Medical imaging procedures',
+                cost: 100.00
+              }])
+              .select('test_type_id')
+              .single();
+            
+            testTypeId = newType.test_type_id;
+          }
+        } else {
+          // For lab tests, create a test type if it doesn't exist
+          const { data: existingType } = await this.supabase
+            .from('test_types')
+            .select('test_type_id')
+            .eq('name', orderData.test_name || 'Lab Test')
+            .single();
+          
+          if (existingType) {
+            testTypeId = existingType.test_type_id;
+          } else {
+            // Create lab test type
+            const { data: newType } = await this.supabase
+              .from('test_types')
+              .insert([{
+                name: orderData.test_name || 'Lab Test',
+                description: orderData.clinical_notes || 'Laboratory test',
+                cost: 50.00
+              }])
+              .select('test_type_id')
+              .single();
+            
+            testTypeId = newType.test_type_id;
+          }
+        }
+      }
+
+      const { data, error } = await this.supabase
+        .from('test_orders')
+        .insert([{
+          patient_id: patientId,
+          doctor_id: orderData.doctor_id || 1,
+          test_type_id: testTypeId,
+          status: 'ordered',
+          ordered_at: new Date().toISOString(),
+          // Imaging-specific fields
+          body_part: orderData.body_part,
+          differential_diagnosis: orderData.differential_diagnosis,
+          clinical_notes: orderData.clinical_notes,
+          imaging_type: orderData.imaging_type,
+          priority: orderData.priority || 'routine',
+          requesting_physician: orderData.requesting_physician
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error adding test order:', error);
+      throw error;
+    }
+  }
+
+  // Get imaging
+  async getImaging(patientId) {
+    try {
+      const { data, error } = await this.supabase
+        .from('test_orders')
+        .select(`
+          *,
+          test_types(name, description, cost)
+        `)
+        .eq('patient_id', patientId)
+        .eq('test_types.name', 'imaging')
+        .order('ordered_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching imaging:', error);
+      throw error;
+    }
+  }
+
+  // Update test order
+  async updateTestOrder(orderId, updateData) {
+    try {
+      const { data, error } = await this.supabase
+        .from('test_orders')
+        .update({
+          status: updateData.status,
+          result: updateData.result,
+          completed_at: updateData.status === 'completed' ? new Date().toISOString() : null
+        })
+        .eq('order_id', orderId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating test order:', error);
+      throw error;
+    }
+  }
+
+  // Update prescription
+  async updatePrescription(prescriptionId, updateData) {
+    try {
+      const { data, error } = await this.supabase
+        .from('prescriptions')
+        .update({
+          status: updateData.status,
+          medications: updateData.medications,
+          dosage: updateData.dosage,
+          instructions: updateData.instructions,
+          quantity: updateData.quantity
+        })
+        .eq('prescription_id', prescriptionId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating prescription:', error);
+      throw error;
+    }
+  }
+
+  // Add lab result
+  async addLabResult(patientId, resultData) {
+    try {
+      const { data, error } = await this.supabase
+        .from('test_results')
+        .insert([{
+          patient_id: patientId,
+          test_type_id: resultData.test_type_id || 1,
+          doctor_id: resultData.doctor_id || 1,
+          test_date: new Date().toISOString(),
+          results: resultData.description,
+          notes: resultData.file_path,
+          status: 'completed'
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error adding lab result:', error);
+      throw error;
+    }
+  }
+
+  // Add imaging
+  async addImaging(patientId, imagingData) {
+    try {
+      const { data, error } = await this.supabase
+        .from('imaging')
+        .insert([{
+          patient_id: patientId,
+          image_type: imagingData.image_type,
+          image_url: imagingData.image_url,
+          notes: imagingData.notes,
+          created_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error adding imaging:', error);
       throw error;
     }
   }

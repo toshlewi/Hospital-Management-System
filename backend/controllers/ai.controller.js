@@ -5,27 +5,88 @@ exports.diagnose = async (req, res) => {
     // For now, we mock the response based on the input.
     const { note_text, test_results, doctor_notes } = req.body;
 
-    // Simple mock logic
+    // Enhanced mock logic with more comprehensive responses
     let diagnosis = 'Unable to determine. Please provide more details.';
-    let prescription = 'No prescription suggested.';
-    let advice = 'No advice available.';
+    let recommendations = [];
+    let imageAnalysis = null;
+    let reportAnalysis = null;
 
-    if (note_text && note_text.toLowerCase().includes('cold')) {
-        diagnosis = 'Common Cold (Viral Upper Respiratory Infection)';
-        prescription = 'Paracetamol 500mg every 8 hours for 3 days.';
-        advice = 'Rest, drink plenty of fluids, and monitor for worsening symptoms.';
-    } else if (note_text && note_text.toLowerCase().includes('fever')) {
-        diagnosis = 'Fever (cause unspecified)';
-        prescription = 'Paracetamol as needed for fever.';
-        advice = 'Monitor temperature, rest, and seek care if symptoms worsen.';
+    const text = (note_text || '').toLowerCase();
+    const testText = (test_results || '').toLowerCase();
+
+    // Lab test analysis
+    if (text.includes('blood') || text.includes('cbc') || text.includes('hemoglobin')) {
+        if (text.includes('low') || text.includes('decreased')) {
+            diagnosis = 'Anemia (Iron Deficiency)';
+            recommendations = [
+                'Consider iron supplementation',
+                'Monitor hemoglobin levels',
+                'Check for underlying cause of blood loss'
+            ];
+        } else if (text.includes('high') || text.includes('elevated')) {
+            diagnosis = 'Polycythemia';
+            recommendations = [
+                'Consider phlebotomy if symptomatic',
+                'Monitor for cardiovascular complications',
+                'Check for secondary causes'
+            ];
+        }
     }
 
-    // You can expand this logic as needed
+    // Imaging analysis
+    if (text.includes('x-ray') || text.includes('chest') || text.includes('pneumonia')) {
+        imageAnalysis = 'Chest X-ray shows patchy infiltrates consistent with pneumonia';
+        diagnosis = 'Community-Acquired Pneumonia';
+        recommendations = [
+            'Start empiric antibiotic therapy',
+            'Monitor oxygen saturation',
+            'Consider sputum culture'
+        ];
+    }
+
+    // General symptoms
+    if (text.includes('cold') || text.includes('rhinovirus')) {
+        diagnosis = 'Common Cold (Viral Upper Respiratory Infection)';
+        recommendations = [
+            'Rest and hydration',
+            'Over-the-counter decongestants',
+            'Monitor for secondary infections'
+        ];
+    } else if (text.includes('fever') || text.includes('pyrexia')) {
+        diagnosis = 'Fever (cause unspecified)';
+        recommendations = [
+            'Antipyretic medication',
+            'Cool compresses',
+            'Monitor temperature every 4 hours'
+        ];
+    } else if (text.includes('diabetes') || text.includes('glucose')) {
+        if (text.includes('high') || text.includes('elevated')) {
+            diagnosis = 'Hyperglycemia';
+            recommendations = [
+                'Adjust insulin dosage',
+                'Monitor blood glucose closely',
+                'Check for diabetic ketoacidosis'
+            ];
+        }
+    } else if (text.includes('hypertension') || text.includes('blood pressure')) {
+        diagnosis = 'Hypertension';
+        recommendations = [
+            'Lifestyle modifications',
+            'Consider antihypertensive medication',
+            'Monitor blood pressure regularly'
+        ];
+    }
+
+    // Report analysis for imaging
+    if (text.includes('report') || text.includes('finding')) {
+        reportAnalysis = 'AI analysis of the report indicates potential abnormalities requiring follow-up';
+    }
 
     res.json({
         diagnosis,
-        prescription,
-        advice,
+        recommendations,
+        imageAnalysis,
+        reportAnalysis,
         ai: true
     });
 };

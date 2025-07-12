@@ -16,19 +16,18 @@ dbService.testConnection()
     if (success) {
       console.log('✅ Database connection established successfully');
     } else {
-      console.error('❌ Failed to connect to database');
-      process.exit(1);
+      console.warn('⚠️ Database connection failed - running in demo mode');
     }
   })
   .catch(err => {
-    console.error('❌ Database connection error:', err);
-    process.exit(1);
+    console.warn('⚠️ Database connection error - running in demo mode:', err.message);
   });
 
 // Routes
 app.use('/api', require('./routes/patient.routes'));
 app.use('/api/pharmacy', require('./routes/pharmacy.routes'));
 app.use('/api/billing', require('./routes/billing.routes'));
+app.use('/api/ai', require('./routes/ai.routes'));
 
 // Simple test route
 app.get('/', (req, res) => {

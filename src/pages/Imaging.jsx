@@ -49,7 +49,8 @@ import {
   Send,
   LocalHospital,
   Description,
-  Image
+  Image,
+  Assignment
 } from '@mui/icons-material';
 import DICOMViewer from '../components/imaging/DICOMViewer'; // Correct path for DICOMViewer
 import { patientAPI, aiAPI } from '../services/api';
@@ -74,9 +75,36 @@ const Imaging = () => {
 
   const fetchImagingOrders = useCallback(async () => {
     try {
-      const data = await patientAPI.getAllImagingOrders();
-      setImagingPatients(data);
+      const allPatients = await patientAPI.getAllPatients();
+      let imagingOrders = [];
+      
+      for (const patient of allPatients) {
+        try {
+          const orders = await patientAPI.getTestOrders(patient.patient_id);
+          console.log(`Imaging orders for patient ${patient.patient_id}:`, orders);
+          // Filter for imaging orders
+          const imagingOrdersForPatient = orders.filter(o => {
+            const isImaging = o.test_types && o.test_types.name && 
+                             o.test_types.name.toLowerCase().includes('imaging');
+            console.log(`Order ${o.order_id}: test_type=${o.test_types?.name}, isImaging=${isImaging}`);
+            return isImaging;
+          });
+          
+          if (imagingOrdersForPatient.length > 0) {
+            imagingOrdersForPatient.forEach(order => {
+              order.patient = patient;
+              order.order_type = 'imaging';
+            });
+            imagingOrders = imagingOrders.concat(imagingOrdersForPatient);
+          }
+        } catch (error) {
+          console.error(`Error fetching orders for patient ${patient.patient_id}:`, error);
+        }
+      }
+      
+      setImagingPatients(imagingOrders);
     } catch (err) {
+      console.error('Error fetching imaging orders:', err);
       setImagingPatients([]);
     }
   }, []);
@@ -158,10 +186,12 @@ const Imaging = () => {
   // Filter patients based on search query and status
   const filteredPatients = imagingPatients.filter(patient => {
     const searchLower = searchQuery.toLowerCase();
-    return (
-      (`${patient.first_name} ${patient.last_name}`).toLowerCase().includes(searchLower) ||
-      String(patient.patient_id).includes(searchQuery)
+    const matchesSearch = (
+      (`${patient.patient?.first_name || ''} ${patient.patient?.last_name || ''}`).toLowerCase().includes(searchLower) ||
+      String(patient.patient?.patient_id).includes(searchQuery)
     );
+    const matchesStatus = filterStatus === 'all' || (patient.status && patient.status.toLowerCase() === filterStatus);
+    return matchesSearch && matchesStatus;
   });
 
   return (
@@ -245,43 +275,60 @@ const Imaging = () => {
                   }
                 }
               }}>
-                {filteredPatients.map((patient) => (
-                  <React.Fragment key={patient.id}>
-                    <ListItem 
-                      button 
-                      selected={selectedPatient?.id === patient.id}
-                      onClick={() => handlePatientSelect(patient)}
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'flex-start'
-                      }}
-                    >
-                      <Box sx={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between',
-                        width: '100%',
-                        mb: 1
-                      }}>
-                        <Typography variant="subtitle2">
-                          {patient.first_name} {patient.last_name}
+                {filteredPatients.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 2 }}>
+                    No patients found.
+                  </Typography>
+                ) : (
+                  filteredPatients.map((patient) => (
+                    <React.Fragment key={patient.order_id}>
+                      <ListItem 
+                        button 
+                        selected={selectedPatient?.order_id === patient.order_id}
+                        onClick={() => handlePatientSelect(patient)}
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                          p: 2
+                        }}
+                      >
+                        <Box sx={{ 
+                          display: 'flex', 
+                          justifyContent: 'space-between',
+                          width: '100%',
+                          mb: 1
+                        }}>
+                          <Typography variant="subtitle2" fontWeight="bold">
+                            {patient.patient?.first_name || 'N/A'} {patient.patient?.last_name || ''}
+                          </Typography>
+                          <Chip 
+                            label={patient.status || 'N/A'} 
+                            size="small"
+                            color={patient.status === 'completed' ? 'success' : (patient.status === 'pending' ? 'warning' : 'default')}
+                          />
+                        </Box>
+                        <Typography variant="body2" color="primary" fontWeight="bold">
+                          {patient.test_types?.name || patient.imaging_type || 'Imaging Test'}
                         </Typography>
-                        <Chip 
-                          label={patient.status} 
-                          size="small"
-                          color={patient.status === 'completed' ? 'success' : 'warning'}
-                        />
-                      </Box>
-                      <Typography variant="body2" color="text.secondary">
-                        {patient.modality} - {patient.bodyPart}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {patient.studyDate} · {patient.referringPhysician}
-                      </Typography>
-                    </ListItem>
-                    <Divider component="li" />
-                  </React.Fragment>
-                ))}
+                        {patient.body_part && (
+                          <Typography variant="body2" color="text.secondary">
+                            Body Part: {patient.body_part}
+                          </Typography>
+                        )}
+                        {patient.differential_diagnosis && (
+                          <Typography variant="caption" color="warning.dark" sx={{ fontStyle: 'italic' }}>
+                            DDx: {patient.differential_diagnosis}
+                          </Typography>
+                        )}
+                        <Typography variant="caption" color="text.secondary">
+                          Ordered: {patient.ordered_at ? new Date(patient.ordered_at).toLocaleString() : 'N/A'}
+                        </Typography>
+                      </ListItem>
+                      <Divider component="li" />
+                    </React.Fragment>
+                  ))
+                )}
               </List>
             </CardContent>
           </Card>
@@ -308,16 +355,91 @@ const Imaging = () => {
                 }}>
                   <Box>
                     <Typography variant="h5" sx={{ color: 'primary.main' }}>
-                      {selectedPatient.first_name} {selectedPatient.last_name}
+                      {selectedPatient.patient?.first_name || 'N/A'} {selectedPatient.patient?.last_name || ''}
                     </Typography>
                     <Typography variant="subtitle2" color="text.secondary">
-                      ID: {selectedPatient.patient_id} | Age: {selectedPatient.age} | Gender: {selectedPatient.gender}
+                      ID: {selectedPatient.patient?.patient_id || 'N/A'} | Gender: {selectedPatient.patient?.gender || 'N/A'}
                     </Typography>
                   </Box>
                   <Chip 
                     label={selectedPatient.priority} 
                     color={selectedPatient.priority === 'urgent' ? 'error' : 'primary'}
                   />
+                </Box>
+
+                {/* Detailed Test Information */}
+                <Box sx={{ mb: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', display: 'flex', alignItems: 'center' }}>
+                    <Assignment sx={{ mr: 1 }} /> Test Details
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={6}>
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                          Imaging Type
+                        </Typography>
+                        <Typography variant="body1" fontWeight="bold" color="primary">
+                          {selectedPatient.test_types?.name || selectedPatient.imaging_type || 'X-Ray'}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                          Body Part
+                        </Typography>
+                        <Typography variant="body1" fontWeight="bold">
+                          {selectedPatient.body_part || 'Not specified'}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                          Clinical Notes
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+                          {selectedPatient.clinical_notes || 'No clinical notes provided'}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                          Differential Diagnosis
+                        </Typography>
+                        {selectedPatient.differential_diagnosis ? (
+                          <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'warning.dark' }}>
+                            {selectedPatient.differential_diagnosis}
+                          </Typography>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">
+                            No differential diagnosis provided
+                          </Typography>
+                        )}
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                          Order Date
+                        </Typography>
+                        <Typography variant="body2">
+                          {selectedPatient.ordered_at ? new Date(selectedPatient.ordered_at).toLocaleDateString() : 'N/A'}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                          Requesting Physician
+                        </Typography>
+                        <Typography variant="body2">
+                          {selectedPatient.doctor_first_name || 'Dr.'} {selectedPatient.doctor_last_name || 'Smith'}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  </Grid>
                 </Box>
 
                 {/* Differential Diagnosis */}

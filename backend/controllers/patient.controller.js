@@ -32,7 +32,7 @@ exports.create = async (req, res) => {
 // Retrieve all Patients
 exports.findAll = async (req, res) => {
     try {
-        const patients = await dbService.getPatients();
+        const patients = await dbService.getPatientsWithBasicInfo();
         res.send(patients);
     } catch (err) {
         res.status(500).send({
@@ -44,7 +44,7 @@ exports.findAll = async (req, res) => {
 // Find a single Patient with id
 exports.findOne = async (req, res) => {
     try {
-        const patient = await dbService.getPatientById(req.params.id);
+        const patient = await dbService.getPatientWithDetails(req.params.id);
         
         if (patient) {
             res.send(patient);
@@ -106,11 +106,8 @@ exports.delete = async (req, res) => {
 // Get Patient's Medical History
 exports.getMedicalHistory = async (req, res) => {
     try {
-        const history = await dbService.query(
-            'SELECT * FROM medical_history WHERE patient_id = $1 ORDER BY record_date DESC',
-            [req.params.id]
-        );
-        res.send(history);
+        const patient = await dbService.getPatientWithDetails(req.params.id);
+        res.send(patient.medical_history || []);
     } catch (err) {
         res.status(500).send({
             message: err.message || "Error retrieving medical history."
@@ -121,15 +118,9 @@ exports.getMedicalHistory = async (req, res) => {
 // Get Patient's Appointments
 exports.getAppointments = async (req, res) => {
     try {
-        const appointments = await dbService.query(
-            `SELECT a.*, d.first_name as doctor_first_name, d.last_name as doctor_last_name 
-             FROM appointments a 
-             LEFT JOIN doctors d ON a.doctor_id = d.doctor_id 
-             WHERE a.patient_id = $1 
-             ORDER BY a.appointment_date DESC`,
-            [req.params.id]
-        );
-        res.send(appointments);
+        const appointments = await dbService.getAppointments();
+        const patientAppointments = appointments.filter(apt => apt.patient_id == req.params.id);
+        res.send(patientAppointments);
     } catch (err) {
         res.status(500).send({
             message: err.message || "Error retrieving appointments."
@@ -140,16 +131,8 @@ exports.getAppointments = async (req, res) => {
 // Get Patient's Test Results
 exports.getTestResults = async (req, res) => {
     try {
-        const testResults = await dbService.query(
-            `SELECT tr.*, tt.name as test_name, d.first_name as doctor_first_name, d.last_name as doctor_last_name 
-             FROM test_results tr 
-             LEFT JOIN test_types tt ON tr.test_type_id = tt.test_type_id 
-             LEFT JOIN doctors d ON tr.doctor_id = d.doctor_id 
-             WHERE tr.patient_id = $1 
-             ORDER BY tr.test_date DESC`,
-            [req.params.id]
-        );
-        res.send(testResults);
+        const testOrders = await dbService.getTestOrders(req.params.id);
+        res.send(testOrders);
     } catch (err) {
         res.status(500).send({
             message: err.message || "Error retrieving test results."
@@ -160,14 +143,7 @@ exports.getTestResults = async (req, res) => {
 // Get Patient's Prescriptions
 exports.getPrescriptions = async (req, res) => {
     try {
-        const prescriptions = await dbService.query(
-            `SELECT p.*, d.first_name as doctor_first_name, d.last_name as doctor_last_name 
-             FROM prescriptions p 
-             LEFT JOIN doctors d ON p.doctor_id = d.doctor_id 
-             WHERE p.patient_id = $1 
-             ORDER BY p.prescribed_date DESC`,
-            [req.params.id]
-        );
+        const prescriptions = await dbService.getPrescriptions(req.params.id);
         res.send(prescriptions);
     } catch (err) {
         res.status(500).send({
@@ -179,14 +155,7 @@ exports.getPrescriptions = async (req, res) => {
 // --- Medical Notes ---
 exports.getMedicalNotes = async (req, res) => {
     try {
-        const notes = await dbService.query(
-            `SELECT mn.*, d.first_name as doctor_first_name, d.last_name as doctor_last_name 
-             FROM medical_notes mn 
-             LEFT JOIN doctors d ON mn.doctor_id = d.doctor_id 
-             WHERE mn.patient_id = $1 
-             ORDER BY mn.created_at DESC`,
-            [req.params.id]
-        );
+        const notes = await dbService.getMedicalNotes(req.params.patientId);
         res.send(notes);
     } catch (err) {
         res.status(500).send({
@@ -199,24 +168,21 @@ exports.getMedicalNotes = async (req, res) => {
 exports.addMedicalNote = async (req, res) => {
     try {
         const noteData = {
-            patient_id: req.params.id,
-            doctor_id: req.body.doctor_id,
-            note_text: req.body.note_text,
+            patient_id: req.params.patientId,
+            doctor_id: req.body.doctor_id || 1,
+            note_text: req.body.notes || req.body.note_text,
             diagnosis: req.body.diagnosis,
             advice: req.body.advice
         };
 
-        const result = await dbService.query(
-            `INSERT INTO medical_notes (patient_id, doctor_id, note_text, diagnosis, advice) 
-             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-            [noteData.patient_id, noteData.doctor_id, noteData.note_text, noteData.diagnosis, noteData.advice]
-        );
+        const result = await dbService.addMedicalNote(req.params.patientId, noteData);
 
         res.status(201).send({
             message: "Medical note added successfully",
-            note: result[0]
+            note: result
         });
     } catch (err) {
+        console.error('Error adding medical note:', err);
         res.status(500).send({
             message: err.message || "Error adding medical note."
         });
@@ -471,5 +437,167 @@ exports.deletePatient = async (req, res) => {
   } catch (error) {
     console.error('Error deleting patient:', error);
     res.status(500).json({ message: 'Error deleting patient', error: error.message });
+  }
+};
+
+// Add medical note
+exports.addMedicalNote = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const noteData = req.body;
+    
+    // Validate required fields
+    if (!noteData.note_text && !noteData.notes) {
+      return res.status(400).json({ message: 'Note content is required' });
+    }
+    
+    const note = await dbService.addMedicalNote(patientId, noteData);
+    res.status(201).json(note);
+  } catch (error) {
+    console.error('Error adding medical note:', error);
+    res.status(500).json({ message: 'Error adding medical note', error: error.message });
+  }
+};
+
+// Create prescription
+exports.createPrescription = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const prescriptionData = req.body;
+    
+    // Validate required fields
+    if (!prescriptionData.medication_name || !prescriptionData.dosage) {
+      return res.status(400).json({ message: 'Medication name and dosage are required' });
+    }
+    
+    const prescription = await dbService.createPrescription(patientId, prescriptionData);
+    res.status(201).json(prescription);
+  } catch (error) {
+    console.error('Error creating prescription:', error);
+    res.status(500).json({ message: 'Error creating prescription', error: error.message });
+  }
+};
+
+// Get test orders
+exports.getTestOrders = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const orders = await dbService.getTestOrders(patientId);
+    res.json(orders);
+  } catch (error) {
+    console.error('Error fetching test orders:', error);
+    res.status(500).json({ message: 'Error fetching test orders', error: error.message });
+  }
+};
+
+// Add test order
+exports.addTestOrder = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const orderData = req.body;
+    
+    // Validate required fields
+    if (!orderData.test_name) {
+      return res.status(400).json({ message: 'Test name is required' });
+    }
+    
+    const order = await dbService.addTestOrder(patientId, orderData);
+    res.status(201).json(order);
+  } catch (error) {
+    console.error('Error adding test order:', error);
+    res.status(500).json({ message: 'Error adding test order', error: error.message });
+  }
+};
+
+// Update test order
+exports.updateTestOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const updateData = req.body;
+    
+    const result = await dbService.updateTestOrder(orderId, updateData);
+    res.json(result);
+  } catch (error) {
+    console.error('Error updating test order:', error);
+    res.status(500).json({ message: 'Error updating test order', error: error.message });
+  }
+};
+
+// Update prescription
+exports.updatePrescription = async (req, res) => {
+  try {
+    const { prescriptionId } = req.params;
+    const updateData = req.body;
+    
+    const result = await dbService.updatePrescription(prescriptionId, updateData);
+    res.json(result);
+  } catch (error) {
+    console.error('Error updating prescription:', error);
+    res.status(500).json({ message: 'Error updating prescription', error: error.message });
+  }
+};
+
+// Upload lab result
+exports.uploadLabResult = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const { file } = req;
+    
+    if (!file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+    
+    // In a real app, you would save the file to cloud storage
+    const filePath = `/uploads/lab-results/${Date.now()}-${file.originalname}`;
+    
+    const result = await dbService.addLabResult(patientId, {
+      file_path: filePath,
+      description: req.body.description || 'Lab result upload',
+      order_id: req.body.order_id
+    });
+    
+    res.json({ ...result, file_path: filePath });
+  } catch (error) {
+    console.error('Error uploading lab result:', error);
+    res.status(500).json({ message: 'Error uploading lab result', error: error.message });
+  }
+};
+
+// Upload imaging
+exports.uploadImaging = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const { file } = req;
+    
+    if (!file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+    
+    // In a real app, you would save the file to cloud storage
+    const filePath = `/uploads/imaging/${Date.now()}-${file.originalname}`;
+    
+    const result = await dbService.addImaging(patientId, {
+      image_url: filePath,
+      image_type: req.body.image_type || 'X-Ray',
+      notes: req.body.notes || 'Imaging upload',
+      order_id: req.body.order_id
+    });
+    
+    res.json({ ...result, image_url: filePath });
+  } catch (error) {
+    console.error('Error uploading imaging:', error);
+    res.status(500).json({ message: 'Error uploading imaging', error: error.message });
+  }
+};
+
+// Get imaging
+exports.getImaging = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const imaging = await dbService.getImaging(patientId);
+    res.json(imaging);
+  } catch (error) {
+    console.error('Error fetching imaging:', error);
+    res.status(500).json({ message: 'Error fetching imaging', error: error.message });
   }
 }; 

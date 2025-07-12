@@ -45,6 +45,7 @@ import {
 import pharmacyService from '../services/pharmacyService';
 import aiService from '../services/aiService';
 import Collapse from '@mui/material/Collapse';
+import { patientAPI } from '../services/api';
 
 const Pharmacy = () => {
   // State
@@ -88,10 +89,29 @@ const Pharmacy = () => {
   const fetchPrescriptions = async () => {
     setPrescLoading(true);
     try {
-      const data = await pharmacyService.getActivePrescriptions();
-      setPrescriptions(data);
+      const allPatients = await patientAPI.getAllPatients();
+      let allPrescriptions = [];
+      
+      for (const patient of allPatients) {
+        try {
+          const patientPrescriptions = await patientAPI.getPrescriptions(patient.patient_id);
+          if (patientPrescriptions && patientPrescriptions.length > 0) {
+            patientPrescriptions.forEach(prescription => {
+              prescription.patient = patient;
+              prescription.patient_first_name = patient.first_name;
+              prescription.patient_last_name = patient.last_name;
+            });
+            allPrescriptions = allPrescriptions.concat(patientPrescriptions);
+          }
+        } catch (error) {
+          console.error(`Error fetching prescriptions for patient ${patient.patient_id}:`, error);
+        }
+      }
+      
+      setPrescriptions(allPrescriptions);
       setPrescError('');
     } catch (err) {
+      console.error('Error fetching prescriptions:', err);
       setPrescError('Failed to load prescriptions');
     } finally {
       setPrescLoading(false);
