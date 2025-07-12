@@ -1,0 +1,3 @@
+study_id,study_type,indications,findings,protocol,radiation_dose,source
+chest_xray,Chest X-Ray,"['chest pain', 'shortness of breath', 'cough', 'fever']","['pneumonia', 'pneumothorax', 'pleural effusion', 'cardiomegaly']",PA and lateral views,0.1 mSv,imaging_database
+ct_chest,CT Chest,"['suspected pulmonary embolism', 'lung cancer screening', 'complex pneumonia']","['pulmonary embolism', 'lung nodules', 'pneumonia', 'mediastinal masses']",Contrast-enhanced CT,7 mSv,imaging_database

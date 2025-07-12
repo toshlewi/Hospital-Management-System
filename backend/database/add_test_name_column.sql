@@ -1,0 +1,4 @@
+-- All required columns already exist in the test_orders table:
+-- - test_name VARCHAR(100)
+-- - order_type ENUM('lab','imaging') DEFAULT 'lab'
+-- No changes needed. 

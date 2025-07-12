@@ -1,0 +1,3 @@
+protocol_id,condition,protocol,steps,medications,priority,source
+cardiac_arrest,Cardiac Arrest,ACLS Protocol,"['Check responsiveness and breathing', 'Call emergency services', 'Begin chest compressions', 'Provide rescue breaths', 'Use AED if available']","['epinephrine', 'amiodarone', 'lidocaine']",immediate,treatment_protocols
+severe_bleeding,Severe Bleeding,Hemorrhage Control,"['Apply direct pressure', 'Elevate the injured area', 'Apply pressure bandage', 'Use tourniquet if necessary']",['tranexamic acid'],immediate,treatment_protocols

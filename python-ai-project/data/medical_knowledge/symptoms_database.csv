@@ -1,0 +1,4 @@
+symptom_id,symptom,possible_causes,urgency,red_flags,source
+chest_pain,Chest Pain,"['angina', 'heart attack', 'pneumonia', 'GERD', 'anxiety']",high,"['radiating pain', 'shortness of breath', 'sweating']",symptoms_database
+shortness_of_breath,Shortness of Breath,"['asthma', 'pneumonia', 'heart failure', 'anxiety', 'COPD']",high,"['sudden onset', 'chest pain', 'cyanosis']",symptoms_database
+fever,Fever,"['infection', 'inflammation', 'cancer', 'autoimmune disease']",medium,"['high fever', 'confusion', 'stiff neck']",symptoms_database

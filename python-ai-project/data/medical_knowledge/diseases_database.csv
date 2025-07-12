@@ -1,0 +1,4 @@
+disease_id,name,symptoms,treatments,complications,source
+diabetes_mellitus,Diabetes Mellitus,"['frequent urination', 'excessive thirst', 'increased hunger', 'weight loss', 'fatigue']","['insulin therapy', 'oral medications', 'diet control', 'exercise']","['diabetic retinopathy', 'diabetic nephropathy', 'diabetic neuropathy']",medical_knowledge_base
+hypertension,Hypertension,"['headache', 'shortness of breath', 'nosebleeds', 'chest pain', 'dizziness']","['ACE inhibitors', 'beta blockers', 'calcium channel blockers', 'lifestyle changes']","['heart disease', 'stroke', 'kidney disease']",medical_knowledge_base
+asthma,Asthma,"['wheezing', 'shortness of breath', 'chest tightness', 'coughing']","['inhaled corticosteroids', 'bronchodilators', 'avoiding triggers']","['respiratory failure', 'pneumonia']",medical_knowledge_base
