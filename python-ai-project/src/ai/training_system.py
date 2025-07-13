@@ -76,9 +76,11 @@ class MedicalDataset(Dataset):
 class MedicalAITrainingSystem:
     """Comprehensive training system for medical AI models"""
     
-    def __init__(self, data_dir: str = "data/medical_knowledge", models_dir: str = "data/models"):
-        self.data_dir = Path(data_dir)
-        self.models_dir = Path(models_dir)
+    def __init__(self, data_dir: str = None, models_dir: str = "data/models"):
+        # Always use absolute path to medical_knowledge directory
+        base_dir = Path(__file__).parent.parent.parent.parent.resolve()
+        self.data_dir = base_dir / "python-ai-project" / "data" / "medical_knowledge"
+        self.models_dir = base_dir / "python-ai-project" / "data" / "models"
         self.models_dir.mkdir(parents=True, exist_ok=True)
         
         # Load spaCy model for medical NLP

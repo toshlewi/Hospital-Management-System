@@ -1,94 +1,29 @@
 // backend/controllers/ai.controller.js
 
 exports.diagnose = async (req, res) => {
-    // In a real system, you would call an AI model here.
-    // For now, we mock the response based on the input.
-    const { note_text, test_results, doctor_notes } = req.body;
-
-    // Enhanced mock logic with more comprehensive responses
-    let diagnosis = 'Unable to determine. Please provide more details.';
-    let recommendations = [];
-    let imageAnalysis = null;
-    let reportAnalysis = null;
-
-    const text = (note_text || '').toLowerCase();
-    const testText = (test_results || '').toLowerCase();
-
-    // Lab test analysis
-    if (text.includes('blood') || text.includes('cbc') || text.includes('hemoglobin')) {
-        if (text.includes('low') || text.includes('decreased')) {
-            diagnosis = 'Anemia (Iron Deficiency)';
-            recommendations = [
-                'Consider iron supplementation',
-                'Monitor hemoglobin levels',
-                'Check for underlying cause of blood loss'
-            ];
-        } else if (text.includes('high') || text.includes('elevated')) {
-            diagnosis = 'Polycythemia';
-            recommendations = [
-                'Consider phlebotomy if symptomatic',
-                'Monitor for cardiovascular complications',
-                'Check for secondary causes'
-            ];
+    // Proxy request to Python AI service
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    try {
+        const { note_text, test_results, doctor_notes, patient_id } = req.body;
+        // Compose payload for AI service
+        const payload = {
+            patient_id: patient_id || 1,
+            notes: note_text || '',
+            timestamp: new Date().toISOString()
+        };
+        const response = await fetch('http://localhost:8000/api/v1/diagnosis/analyze-notes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+            return res.status(response.status).json({ error: 'AI service error', status: response.status });
         }
+        const result = await response.json();
+        res.json({ ...result, ai: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message, ai: false });
     }
-
-    // Imaging analysis
-    if (text.includes('x-ray') || text.includes('chest') || text.includes('pneumonia')) {
-        imageAnalysis = 'Chest X-ray shows patchy infiltrates consistent with pneumonia';
-        diagnosis = 'Community-Acquired Pneumonia';
-        recommendations = [
-            'Start empiric antibiotic therapy',
-            'Monitor oxygen saturation',
-            'Consider sputum culture'
-        ];
-    }
-
-    // General symptoms
-    if (text.includes('cold') || text.includes('rhinovirus')) {
-        diagnosis = 'Common Cold (Viral Upper Respiratory Infection)';
-        recommendations = [
-            'Rest and hydration',
-            'Over-the-counter decongestants',
-            'Monitor for secondary infections'
-        ];
-    } else if (text.includes('fever') || text.includes('pyrexia')) {
-        diagnosis = 'Fever (cause unspecified)';
-        recommendations = [
-            'Antipyretic medication',
-            'Cool compresses',
-            'Monitor temperature every 4 hours'
-        ];
-    } else if (text.includes('diabetes') || text.includes('glucose')) {
-        if (text.includes('high') || text.includes('elevated')) {
-            diagnosis = 'Hyperglycemia';
-            recommendations = [
-                'Adjust insulin dosage',
-                'Monitor blood glucose closely',
-                'Check for diabetic ketoacidosis'
-            ];
-        }
-    } else if (text.includes('hypertension') || text.includes('blood pressure')) {
-        diagnosis = 'Hypertension';
-        recommendations = [
-            'Lifestyle modifications',
-            'Consider antihypertensive medication',
-            'Monitor blood pressure regularly'
-        ];
-    }
-
-    // Report analysis for imaging
-    if (text.includes('report') || text.includes('finding')) {
-        reportAnalysis = 'AI analysis of the report indicates potential abnormalities requiring follow-up';
-    }
-
-    res.json({
-        diagnosis,
-        recommendations,
-        imageAnalysis,
-        reportAnalysis,
-        ai: true
-    });
 };
 
 exports.pharmacyCheck = async (req, res) => {

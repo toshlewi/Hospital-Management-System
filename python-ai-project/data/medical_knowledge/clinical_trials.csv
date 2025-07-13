@@ -1,1 +1,12 @@
+trial_id,title,condition,intervention,status,start_date,end_date,location,phase,sponsor
+NCT04512345,Effect of Metformin on Type 2 Diabetes,Type 2 Diabetes,Metformin vs Placebo,Completed,2023-01-01,2024-01-01,USA,Phase 3,NIH
+NCT04678901,Immunotherapy for Lung Cancer,Lung Cancer,PD-1 Inhibitor vs Chemotherapy,Recruiting,2024-03-01,2026-03-01,UK,Phase 2,CRUK
+NCT04765432,Hypertension Management with Lifestyle Changes,Hypertension,Lifestyle Intervention vs Standard Care,Active,2022-06-01,2025-06-01,India,Phase 4,WHO
+NCT04832109,Novel Antibiotic for Sepsis,Sepsis,New Antibiotic vs Standard Care,Completed,2023-05-01,2024-05-01,Germany,Phase 2,Bayer
+NCT04987654,Telemedicine in Cardiac Rehabilitation,Cardiac Rehabilitation,Telemedicine vs In-person,Recruiting,2024-07-01,2025-07-01,Canada,Phase 3,Heart Foundation
+NCT05012345,AI-Assisted Diagnosis in Emergency Care,Emergency Care,AI Diagnostic Tool vs Physician,Not yet recruiting,2025-01-01,2026-01-01,Australia,Phase 1,University of Sydney
+NCT05123456,Early Detection of Breast Cancer,Breast Cancer,Screening Mammography vs MRI,Completed,2022-09-01,2024-09-01,France,Phase 3,Institut Curie
+NCT05234567,Management of Severe Asthma,Severe Asthma,Biologic Therapy vs Steroids,Active,2023-11-01,2025-11-01,Japan,Phase 2,Tokyo Medical Center
+NCT05345678,Stroke Prevention in Elderly,Stroke,Anticoagulant vs Aspirin,Recruiting,2024-02-01,2026-02-01,Italy,Phase 3,European Stroke Org
+NCT05456789,Diabetic Retinopathy Screening,Diabetic Retinopathy,AI Screening vs Ophthalmologist,Completed,2023-04-01,2024-04-01,Kenya,Phase 2,Nairobi Hospital
 

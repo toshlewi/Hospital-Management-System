@@ -178,32 +178,8 @@ async def stream_real_time_diagnosis(
     
     return StreamingResponse(
         generate_stream(),
-        media_type="text/plain",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "Content-Type": "text/event-stream"
-        }
+        media_type="text/plain"
     )
-
-@router.get("/patient-context/{patient_id}")
-async def get_patient_context(
-    patient_id: int,
-    current_user: Dict = Depends(get_current_user)
-):
-    """
-    Get the current AI context for a patient.
-    """
-    try:
-        context = diagnosis_ai.patient_contexts.get(patient_id, [])
-        return {
-            "patient_id": patient_id,
-            "context": context,
-            "context_count": len(context)
-        }
-    except Exception as e:
-        logger.error(f"Error getting patient context: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/patient-context/{patient_id}")
 async def clear_patient_context(
