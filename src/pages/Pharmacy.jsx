@@ -34,7 +34,6 @@ import {
   Medication,
   Inventory,
   History,
-  AutoFixHigh,
   CheckCircle,
   Warning,
   Info,
@@ -43,7 +42,7 @@ import {
   Search
 } from '@mui/icons-material';
 import pharmacyService from '../services/pharmacyService';
-import aiService from '../services/aiService';
+
 import Collapse from '@mui/material/Collapse';
 import { patientAPI } from '../services/api';
 
@@ -60,9 +59,7 @@ const Pharmacy = () => {
   const [prescLoading, setPrescLoading] = useState(true);
   const [prescError, setPrescError] = useState('');
   const [dispenseLoading, setDispenseLoading] = useState(false);
-  const [aiDialogOpen, setAIDialogOpen] = useState(false);
-  const [aiResult, setAIResult] = useState(null);
-  const [aiLoading, setAILoading] = useState(false);
+
   const [selectedPatientId, setSelectedPatientId] = useState(null);
   const [dispensedIds, setDispensedIds] = useState([]);
   const [dispenseQuantities, setDispenseQuantities] = useState({});
@@ -203,21 +200,7 @@ const Pharmacy = () => {
     }
   };
 
-  // AI Check
-  const handleAICheck = async (prescription) => {
-    setAILoading(true);
-    setAIResult(null);
-    setAIDialogOpen(true);
-    try {
-      const drugsArr = prescription.medications.split(',').map(d => d.trim().toLowerCase());
-      const result = await aiService.pharmacyAICheck(drugsArr);
-      setAIResult(result);
-    } catch (err) {
-      setAIResult({ interactions: [], suggestions: ['AI check failed.'] });
-    } finally {
-      setAILoading(false);
-    }
-  };
+
 
   // Get prescriptions for selected patient
   const selectedPatientPrescriptions = selectedPatientId && patientsWithPrescriptions[selectedPatientId]
@@ -252,7 +235,7 @@ const Pharmacy = () => {
     >
       <Grid container spacing={3}>
         {/* Left Sidebar - Pending Prescriptions */}
-        <Grid item xs={12} md={3}>
+        <Grid item xs={12} md={4}>
           <Card sx={{ 
             boxShadow: 3,
             height: 'calc(100vh - 100px)', // Adjust height to account for header and padding
@@ -330,7 +313,7 @@ const Pharmacy = () => {
         </Grid>
 
         {/* Main Content - Patient Prescription Details */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={8}>
           {selectedPatientId && patientsWithPrescriptions[selectedPatientId] ? (
             <Card sx={{ 
               boxShadow: 3, 
@@ -402,9 +385,7 @@ const Pharmacy = () => {
                                   <Button variant="contained" size="small" disabled={dispenseLoading} onClick={() => handleDispense(presc)}>
                                     Dispense
                                   </Button>
-                                  <Button variant="outlined" size="small" sx={{ ml: 1 }} onClick={() => handleAICheck(presc)}>
-                                    AI Check
-                                  </Button>
+
                                 </>
                               )}
                             </Box>
@@ -428,17 +409,24 @@ const Pharmacy = () => {
 
                 {/* Stock Update Section */}
                 <Box sx={{ mb: 4 }}>
-                  <Typography variant="h5" gutterBottom>Pharmacy Stock</Typography>
-                  <TableContainer component={Paper}>
+                  <Typography variant="h5" gutterBottom sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    color: 'primary.main',
+                    mb: 2
+                  }}>
+                    <LocalPharmacy sx={{ mr: 1 }} /> Pharmacy Stock
+                  </Typography>
+                  <TableContainer component={Paper} sx={{ boxShadow: 2, borderRadius: 2 }}>
                     <Table>
-                      <TableHead>
+                      <TableHead sx={{ bgcolor: 'primary.light' }}>
                         <TableRow>
-                          <TableCell>Name</TableCell>
-                          <TableCell>Description</TableCell>
-                          <TableCell>Quantity</TableCell>
-                          <TableCell>Unit</TableCell>
-                          <TableCell>Last Restocked</TableCell>
-                          <TableCell>Actions</TableCell>
+                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Name</TableCell>
+                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Description</TableCell>
+                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Quantity</TableCell>
+                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Unit</TableCell>
+                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Last Restocked</TableCell>
+                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -520,194 +508,6 @@ const Pharmacy = () => {
             </Card>
           )}
         </Grid>
-
-        {/* Right Sidebar - AI Assistant */}
-        <Grid item xs={12} md={3}>
-          <Card sx={{ 
-            boxShadow: 3,
-            height: 'calc(100vh - 100px)',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            <CardContent sx={{ 
-              display: 'flex', 
-              flexDirection: 'column',
-              height: '100%',
-              p: 2
-            }}>
-              <Typography variant="h6" gutterBottom sx={{ 
-                display: 'flex', 
-                alignItems: 'center',
-                mb: 2,
-                color: 'primary.main'
-              }}>
-                <AutoFixHigh sx={{ mr: 1 }} /> AI Pharmacy Assistant
-              </Typography>
-              
-              {selectedPatientId ? (
-                <>
-                  {/* AI Insights */}
-                  <Box sx={{ mb: 3 }}>
-                    <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
-                      Drug Interactions
-                    </Typography>
-                    {aiResult?.interactions && aiResult.interactions.length > 0 ? (
-                      aiResult.interactions.map((interaction, index) => (
-                        <Box key={index} sx={{ 
-                          p: 1.5, 
-                          mb: 1, 
-                          borderRadius: 1,
-                          bgcolor: interaction.severity === 'high' ? 'error.light' : 'warning.light',
-                          boxShadow: 1
-                        }}>
-                          <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start' }}>
-                            <Warning fontSize="small" sx={{ mr: 1, mt: '2px' }} />
-                            {interaction.message}
-                          </Typography>
-                        </Box>
-                      ))
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        No significant interactions detected.
-                      </Typography>
-                    )}
-                  </Box>
-                  
-                  <Box sx={{ mb: 3 }}>
-                    <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
-                      Recommendations
-                    </Typography>
-                    {aiResult?.suggestions && aiResult.suggestions.length > 0 ? (
-                      aiResult.suggestions.map((suggestion, index) => (
-                        <Box key={index} sx={{ 
-                          p: 1.5, 
-                          mb: 1, 
-                          borderRadius: 1,
-                          bgcolor: 'info.light',
-                          boxShadow: 1
-                        }}>
-                          <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start' }}>
-                            <Info fontSize="small" sx={{ mr: 1, mt: '2px' }} />
-                            {suggestion.message}
-                          </Typography>
-                        </Box>
-                      ))
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        No recommendations at this time.
-                      </Typography>
-                    )}
-                  </Box>
-                  
-                  <Divider sx={{ my: 2 }} />
-                  
-                  <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
-                    AI Activity Log
-                  </Typography>
-                  <Box sx={{ 
-                    flex: 1,
-                    overflow: 'auto',
-                    bgcolor: 'background.paper',
-                    borderRadius: 1,
-                    p: 1,
-                    boxShadow: 1
-                  }}>
-                    {/* Add AI activity log display */}
-                  </Box>
-                </>
-              ) : (
-                <Typography variant="body2" color="text.secondary" align="center">
-                  Select a patient to activate AI analysis.
-                </Typography>
-              )}
-              <Box sx={{ mt: 3 }}>
-                <Button
-                  variant="outlined"
-                  onClick={() => setShowStock(s => !s)}
-                  sx={{ mb: 2 }}
-                  fullWidth
-                >
-                  {showStock ? 'Hide Pharmacy Stock' : 'Show Pharmacy Stock'}
-                </Button>
-                <Collapse in={showStock}>
-                  <Typography variant="h6" gutterBottom>Pharmacy Stock</Typography>
-                  <TextField
-                    label="Search Drug"
-                    size="small"
-                    value={stockSearch}
-                    onChange={e => setStockSearch(e.target.value)}
-                    fullWidth
-                    sx={{ mb: 2 }}
-                  />
-                  <TableContainer component={Paper} sx={{ mb: 2 }}>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Name</TableCell>
-                          <TableCell>Description</TableCell>
-                          <TableCell>Quantity</TableCell>
-                          <TableCell>Unit</TableCell>
-                          <TableCell>Last Restocked</TableCell>
-                          <TableCell>Actions</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {(loading ? [] : drugs.filter(drug =>
-                          drug.name.toLowerCase().includes(stockSearch.toLowerCase()) ||
-                          (drug.description && drug.description.toLowerCase().includes(stockSearch.toLowerCase()))
-                        )).length === 0 ? (
-                          <TableRow><TableCell colSpan={6}>{loading ? 'Loading...' : 'No drugs found.'}</TableCell></TableRow>
-                        ) : (
-                          drugs.filter(drug =>
-                            drug.name.toLowerCase().includes(stockSearch.toLowerCase()) ||
-                            (drug.description && drug.description.toLowerCase().includes(stockSearch.toLowerCase()))
-                          ).map(drug => (
-                            <TableRow key={drug.drug_id}>
-                              <TableCell>{drug.name}</TableCell>
-                              <TableCell>{drug.description}</TableCell>
-                              <TableCell>{drug.quantity}</TableCell>
-                              <TableCell>{drug.unit}</TableCell>
-                              <TableCell>{new Date(drug.last_restocked).toLocaleString()}</TableCell>
-                              <TableCell>
-                                <Button size="small" onClick={() => setRestockDrugId(drug.drug_id)}>Restock</Button>
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        )}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                  <Box sx={{ display: 'flex', gap: 2, mt: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1, boxShadow: 1 }}>
-                    <TextField
-                      label="New Medication"
-                      size="small"
-                      value={newDrug.name}
-                      onChange={(e) => setNewDrug({...newDrug, name: e.target.value})}
-                      sx={{ flex: 1 }}
-                    />
-                    <TextField
-                      label="Quantity"
-                      type="number"
-                      size="small"
-                      sx={{ width: 100 }}
-                      value={newDrug.quantity}
-                      onChange={(e) => setNewDrug({...newDrug, quantity: parseInt(e.target.value) || 0})}
-                    />
-                    <Button 
-                      variant="contained" 
-                      startIcon={<Add />}
-                      onClick={() => setOpenAdd(true)}
-                      sx={{'&:hover': {transform: 'translateY(-2px)', boxShadow: 2}}}
-                    >
-                      Add
-                    </Button>
-                  </Box>
-                </Collapse>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
       </Grid>
 
       {/* Add Drug Dialog */}
@@ -737,29 +537,7 @@ const Pharmacy = () => {
         </DialogActions>
       </Dialog>
 
-      {/* AI Result Dialog */}
-      <Dialog open={aiDialogOpen} onClose={() => setAIDialogOpen(false)}>
-        <DialogTitle>AI Pharmacy Check</DialogTitle>
-        <DialogContent>
-          {aiLoading ? (
-            <Typography>Loading AI check...</Typography>
-          ) : aiResult ? (
-            <>
-              <Typography variant="subtitle1">Drug Interactions:</Typography>
-              {aiResult.interactions && aiResult.interactions.length > 0 ? (
-                aiResult.interactions.map((i, idx) => <Alert key={idx} severity="warning">{i}</Alert>)
-              ) : <Typography>No significant interactions detected.</Typography>}
-              <Typography variant="subtitle1" sx={{ mt: 2 }}>Recommendations:</Typography>
-              {aiResult.suggestions && aiResult.suggestions.length > 0 ? (
-                aiResult.suggestions.map((s, idx) => <Alert key={idx} severity="info">{s}</Alert>)
-              ) : <Typography>No recommendations at this time.</Typography>}
-            </>
-          ) : null}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAIDialogOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+
 
       {/* Dispensed History Section */}
       {dispensedHistory.length > 0 && (

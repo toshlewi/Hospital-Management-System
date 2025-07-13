@@ -4,14 +4,22 @@ const dbConfig = require('../config/db.config.js');
 // Initialize Supabase client with fallback
 let supabase = null;
 try {
+  console.log('🔧 Initializing Supabase connection...');
+  console.log('URL:', dbConfig.SUPABASE_URL ? '✅ Set' : '❌ Missing');
+  console.log('Service Key:', dbConfig.SUPABASE_SERVICE_ROLE_KEY ? '✅ Set' : '❌ Missing');
+  
   if (dbConfig.SUPABASE_URL && dbConfig.SUPABASE_SERVICE_ROLE_KEY) {
     supabase = createClient(
       dbConfig.SUPABASE_URL,
       dbConfig.SUPABASE_SERVICE_ROLE_KEY
     );
+    console.log('✅ Supabase client initialized successfully');
+  } else {
+    console.error('❌ Supabase configuration missing - check your .env file');
+    console.log('Required variables: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY');
   }
 } catch (error) {
-  console.warn('⚠️ Supabase configuration missing or invalid');
+  console.error('❌ Supabase initialization error:', error.message);
 }
 
 class DatabaseService {
@@ -60,7 +68,7 @@ class DatabaseService {
   // Test database connection
   async testConnection() {
     try {
-      if (this.useSupabase && this.supabase) {
+      if (this.supabase) {
         const { data, error } = await this.supabase
           .from('patients')
           .select('count')
@@ -70,14 +78,13 @@ class DatabaseService {
         console.log('✅ Successfully connected to Supabase');
         return true;
       } else {
-        console.warn('⚠️ Supabase not configured - running in demo mode');
-        console.log('📝 To enable full functionality, please configure Supabase environment variables');
-        return true; // Return true to allow the server to start
+        console.error('❌ Supabase connection not available');
+        console.log('📝 Please check your .env file for SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
+        return false;
       }
     } catch (error) {
       console.error('❌ Database connection failed:', error);
-      console.warn('⚠️ Running in demo mode without database connection');
-      return true; // Return true to allow the server to start
+      return false;
     }
   }
 
@@ -169,6 +176,10 @@ class DatabaseService {
   // Get all patients with basic info
   async getPatientsWithBasicInfo() {
     try {
+      if (!this.supabase) {
+        throw new Error('Supabase connection not available');
+      }
+
       const { data, error } = await this.supabase
         .from('patients')
         .select(`
@@ -185,7 +196,7 @@ class DatabaseService {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data || [];
     } catch (error) {
       console.error('Error fetching patients with basic info:', error);
       throw error;
@@ -264,13 +275,17 @@ class DatabaseService {
   // Patient operations
   async getPatients() {
     try {
+      if (!this.supabase) {
+        throw new Error('Supabase connection not available');
+      }
+
       const { data, error } = await this.supabase
         .from('patients')
         .select('*')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data || [];
     } catch (error) {
       console.error('Error fetching patients:', error);
       throw error;
@@ -279,6 +294,10 @@ class DatabaseService {
 
   async getPatientById(patientId) {
     try {
+      if (!this.supabase) {
+        throw new Error('Supabase connection not available');
+      }
+
       const { data, error } = await this.supabase
         .from('patients')
         .select('*')

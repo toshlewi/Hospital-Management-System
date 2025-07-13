@@ -39,25 +39,33 @@ import {
   Divider
 } from '@mui/material';
 import {
-  Science,
-  AutoFixHigh,
-  CheckCircle,
-  Warning,
-  Info,
-  Add,
-  Search,
-  Print,
-  Upload,
-  Send,
-  Description,
-  Person,
-  Assignment,
-  Visibility,
-  Pending,
-  Schedule,
-  Error
+  Search as SearchIcon,
+  Add as AddIcon,
+  Edit as EditIcon,
+  Visibility as ViewIcon,
+  Payment as PaymentIcon,
+  Receipt as ReceiptIcon,
+  MedicalServices as MedicalIcon,
+  Person as PersonIcon,
+  ExpandMore as ExpandMoreIcon,
+  CheckCircle as CheckCircleIcon,
+  Warning as WarningIcon,
+  Error as ErrorIcon,
+  LocalHospital as HospitalIcon,
+  Medication as MedicationIcon,
+  Notes as NotesIcon,
+  Science as LabIcon,
+  Image as ImagingIcon,
+  Save as SaveIcon,
+  Send as SendIcon,
+  History as HistoryIcon,
+  Description as DescriptionIcon,
+  Close as CloseIcon,
+  Check as CheckIcon,
+  Cancel as CancelIcon,
+  Info as InfoIcon
 } from '@mui/icons-material';
-import { patientAPI, aiAPI } from '../services/api';
+import { patientAPI } from '../services/api';
 import { useDebounce } from 'use-debounce';
 
 const Lab = () => {
@@ -65,9 +73,6 @@ const Lab = () => {
   const [selectedTest, setSelectedTest] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [aiAnalysis, setAiAnalysis] = useState(null);
-  const [openSendDialog, setOpenSendDialog] = useState(false);
-  const [sendSuccess, setSendSuccess] = useState(false);
   const [labOrders, setLabOrders] = useState([]);
   const [patientsWithOrders, setPatientsWithOrders] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
@@ -76,10 +81,10 @@ const Lab = () => {
   const [resultLoading, setResultLoading] = useState(false);
   const [resultSuccess, setResultSuccess] = useState('');
   const [resultError, setResultError] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState('');
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState('');
+  const [openSendDialog, setOpenSendDialog] = useState(false);
+  const [sendSuccess, setSendSuccess] = useState(false);
   const [debouncedResultText] = useDebounce(resultText, 600);
   const [uploadLoading, setUploadLoading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState('');
@@ -230,21 +235,6 @@ const Lab = () => {
     }
   };
 
-  // Real-time AI analysis of result
-  useEffect(() => {
-    if (selectedOrder && debouncedResultText) {
-      setAiLoading(true);
-      setAiError('');
-      setAiAnalysis(null);
-      aiAPI.diagnose({ note_text: debouncedResultText })
-        .then(result => setAiAnalysis(result))
-        .catch(() => setAiError('AI analysis failed.'))
-        .finally(() => setAiLoading(false));
-    } else {
-      setAiAnalysis(null);
-    }
-  }, [selectedOrder, debouncedResultText]);
-
   // Handle file upload
   const handleLabFileUpload = async (event) => {
     if (!selectedOrder) return;
@@ -304,11 +294,11 @@ const Lab = () => {
 
   const getTestStatusIcon = (status) => {
     switch (status?.toLowerCase()) {
-      case 'completed': return <CheckCircle />;
-      case 'in_progress': return <Pending />;
-      case 'ordered': return <Schedule />;
-      case 'cancelled': return <Error />;
-      default: return <Assignment />;
+      case 'completed': return <CheckCircleIcon />;
+      case 'in_progress': return <ExpandMoreIcon />; // Placeholder for Pending icon
+      case 'ordered': return <ExpandMoreIcon />; // Placeholder for Schedule icon
+      case 'cancelled': return <ErrorIcon />;
+      default: return <ExpandMoreIcon />; // Placeholder for Assignment icon
     }
   };
 
@@ -358,12 +348,12 @@ const Lab = () => {
       )}
 
       <Typography variant="h4" sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Science fontSize="large" /> Lab Department
+        <LabIcon fontSize="large" /> Lab Department
       </Typography>
 
       <Grid container spacing={3}>
-        {/* Left Sidebar - Patient List */}
-        <Grid item xs={12} md={3}>
+        {/* Left Sidebar - Lab Patients */}
+        <Grid item xs={12} md={4}>
           <Card sx={{ 
             boxShadow: 3,
             height: 'calc(100vh - 100px)',
@@ -383,38 +373,9 @@ const Lab = () => {
                 mb: 2,
                 color: 'primary.main'
               }}>
-                <Science sx={{ mr: 1 }} /> Lab Patients
+                <LabIcon sx={{ mr: 1 }} /> Lab Patients
               </Typography>
               
-              {/* Debug button to create test order */}
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={async () => {
-                  try {
-                    // Create a test lab order for the first patient
-                    const allPatients = await patientAPI.getAllPatients();
-                    if (allPatients.length > 0) {
-                      const testOrder = await patientAPI.addTestOrder(allPatients[0].patient_id, {
-                        test_name: 'Blood Test',
-                        test_type: 'lab',
-                        clinical_notes: 'Debug test order',
-                        priority: 'routine',
-                        requesting_physician: 'Dr. Smith',
-                        status: 'ordered',
-                        order_date: new Date().toISOString()
-                      });
-                      console.log('Created test order:', testOrder);
-                      fetchLabOrders(); // Refresh the list
-                    }
-                  } catch (error) {
-                    console.error('Error creating test order:', error);
-                  }
-                }}
-                sx={{ mb: 2 }}
-              >
-                Create Test Lab Order
-              </Button>
               <TextField
                 label="Search patients by name or ID"
                 variant="outlined"
@@ -423,76 +384,63 @@ const Lab = () => {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 InputProps={{
-                  startAdornment: <Search sx={{ mr: 1, color: 'action.active' }} />,
+                  startAdornment: <SearchIcon sx={{ mr: 1, color: 'action.active' }} />,
                 }}
                 sx={{ mb: 2 }}
               />
-
-              {/* Filters */}
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Filter by Status
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                  {['all', 'ordered', 'completed'].map((status) => (
-                    <Chip
-                      key={status}
-                      label={status.charAt(0).toUpperCase() + status.slice(1)}
-                      onClick={() => setFilterStatus(status)}
-                      color={filterStatus === status ? 'primary' : 'default'}
-                      size="small"
-                    />
-                  ))}
-                </Box>
-              </Box>
-
-              <Divider sx={{ my: 2 }} />
-
-              <Box sx={{ flex: 1, overflowY: 'auto' }}>
+              
+              <Box sx={{ flex: 1, overflow: 'auto' }}>
                 {loading ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
                     <CircularProgress />
                   </Box>
-                ) : fetchError ? (
-                  <Alert severity="error">{fetchError}</Alert>
-                ) : filteredPatients.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary">No patients found.</Typography>
+                ) : labOrders.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary" align="center">
+                    No lab orders found
+                  </Typography>
                 ) : (
-                  filteredPatients.map(patient => (
-                    <Card
-                      key={patient.order_id}
-                      sx={{
-                        mb: 1,
-                        cursor: 'pointer',
-                        backgroundColor: selectedPatient && selectedPatient.order_id === patient.order_id ? 'primary.light' : 'white',
-                        border: selectedPatient && selectedPatient.order_id === patient.order_id ? `2px solid ${theme.palette.primary.main}` : '1px solid #eee',
-                        transition: 'background 0.2s, border 0.2s'
-                      }}
-                      onClick={() => handleSelectPatient(patient)}
-                    >
-                      <CardContent sx={{ display: 'flex', alignItems: 'center', py: 1 }}>
-                        <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
-                          {patient.patient?.first_name?.[0] || 'P'}
-                        </Avatar>
-                        <Box sx={{ flex: 1 }}>
-                          <Typography variant="subtitle1">{patient.patient?.first_name || 'N/A'} {patient.patient?.last_name || ''}</Typography>
-                          <Typography variant="body2" color="text.secondary">ID: {patient.patient?.patient_id || 'N/A'}</Typography>
-                        </Box>
-                        <Chip 
-                          label={patient.status || 'N/A'} 
-                          size="small"
-                          color={patient.status === 'completed' ? 'success' : (patient.status === 'ordered' ? 'warning' : 'default')}
+                  <List dense>
+                    {getFilteredTestOrders().map((order) => (
+                      <ListItem 
+                        key={order.order_id}
+                        button
+                        selected={selectedOrder?.order_id === order.order_id}
+                        onClick={() => handleSelectOrder(order)}
+                        sx={{ 
+                          mb: 1, 
+                          borderRadius: 1,
+                          border: '1px solid',
+                          borderColor: 'divider'
+                        }}
+                      >
+                        <ListItemText
+                          primary={`${order.patient_first_name} ${order.patient_last_name}`}
+                          secondary={
+                            <Box>
+                              <Typography variant="body2" color="text.secondary">
+                                {order.test_name}
+                              </Typography>
+                              <Chip 
+                                label={order.status || 'N/A'}
+                                color={statusColor(order.status)}
+                                icon={order.status === 'completed' ? <CheckCircleIcon /> : <WarningIcon />}
+                                size="small"
+                                sx={{ mt: 0.5 }}
+                              />
+                            </Box>
+                          }
                         />
-                      </CardContent>
-                    </Card>
-                  ))
+                      </ListItem>
+                    ))}
+                  </List>
                 )}
               </Box>
             </CardContent>
           </Card>
         </Grid>
-        {/* Main Area - Lab Orders */}
-        <Grid item xs={12} md={6}>
+
+        {/* Main Content - Test Results */}
+        <Grid item xs={12} md={8}>
           <Card sx={{ boxShadow: 3, minHeight: 'calc(100vh - 100px)' }}>
             <CardContent>
               {selectedPatient ? (
@@ -555,7 +503,7 @@ const Lab = () => {
                                 <Chip
                                   label={order.status || 'N/A'}
                                   color={statusColor(order.status)}
-                                  icon={order.status === 'completed' ? <CheckCircle /> : <Warning />}
+                                  icon={order.status === 'completed' ? <CheckCircleIcon /> : <WarningIcon />}
                                 />
                               </TableCell>
                               <TableCell>{order.ordered_at && new Date(order.ordered_at).toLocaleString()}</TableCell>
@@ -587,7 +535,7 @@ const Lab = () => {
                       {/* File upload UI */}
                       <Box sx={{ mb: 2 }}>
                         <Typography variant="subtitle1" gutterBottom sx={{ display: 'flex', alignItems: 'center', color: 'primary.main' }}>
-                          <Description sx={{ mr: 1 }} /> Upload Lab Result (Image or Document)
+                          <DescriptionIcon sx={{ mr: 1 }} /> Upload Lab Result (Image or Document)
                         </Typography>
                         <Box sx={{ border: '2px dashed', borderColor: 'divider', borderRadius: 1, p: 3, textAlign: 'center' }}>
                           <input
@@ -601,7 +549,7 @@ const Lab = () => {
                             <Button
                               component="span"
                               variant="outlined"
-                              startIcon={<Upload />}
+                              startIcon={<ImagingIcon />}
                               disabled={uploadLoading}
                             >
                               {uploadLoading ? 'Uploading...' : 'Upload File'}
@@ -647,108 +595,6 @@ const Lab = () => {
             </CardContent>
           </Card>
         </Grid>
-        {/* Right Sidebar - AI Analysis */}
-        <Grid item xs={12} md={3}>
-          <Card sx={{ 
-            boxShadow: 3,
-            height: 'calc(100vh - 100px)',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            <CardContent sx={{ 
-              display: 'flex', 
-              flexDirection: 'column',
-              height: '100%',
-              p: 2
-            }}>
-              <Typography variant="h6" gutterBottom sx={{ 
-                display: 'flex', 
-                alignItems: 'center',
-                mb: 2,
-                color: 'primary.main'
-              }}>
-                <AutoFixHigh sx={{ mr: 1 }} /> AI Analysis
-              </Typography>
-              {selectedOrder ? (
-                resultText.trim() === '' ? (
-                  <Typography variant="body2" color="text.secondary" align="center">
-                    Enter a result to get AI analysis
-                  </Typography>
-                ) : aiLoading ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                    <CircularProgress />
-                  </Box>
-                ) : aiError ? (
-                  <Alert severity="error">{aiError}</Alert>
-                ) : aiAnalysis ? (
-                  <>
-                    {/* Diagnosis */}
-                    {aiAnalysis.diagnosis && (
-                      <Box sx={{ mb: 3 }}>
-                        <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
-                          AI Diagnosis
-                        </Typography>
-                        <Box sx={{ 
-                          p: 1.5, 
-                          mb: 1, 
-                          borderRadius: 1,
-                          bgcolor: 'success.light',
-                          boxShadow: 1
-                        }}>
-                          <Typography variant="body2">
-                            {aiAnalysis.diagnosis}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    )}
-                    {/* Recommendations */}
-                    {aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0 && (
-                      <Box sx={{ mb: 3 }}>
-                        <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
-                          Recommendations
-                        </Typography>
-                        {aiAnalysis.recommendations.map((rec, index) => (
-                          <Box 
-                            key={index}
-                            sx={{ 
-                              p: 1.5, 
-                              mb: 1, 
-                              borderRadius: 1,
-                              bgcolor: 'warning.light',
-                              boxShadow: 1
-                            }}
-                          >
-                            <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start' }}>
-                              <Info fontSize="small" sx={{ mr: 1, mt: '2px' }} />
-                              {rec}
-                            </Typography>
-                          </Box>
-                        ))}
-                      </Box>
-                    )}
-                    {/* Raw AI output fallback */}
-                    {!aiAnalysis.diagnosis && !aiAnalysis.recommendations && (
-                      <Box sx={{ mb: 3 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          {typeof aiAnalysis === 'string' ? aiAnalysis : JSON.stringify(aiAnalysis)}
-                        </Typography>
-                      </Box>
-                    )}
-                  </>
-                ) : (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                    <CircularProgress />
-                  </Box>
-                )
-              ) : (
-                <Typography variant="body2" color="text.secondary" align="center">
-                  Select a test order to view AI analysis
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
       </Grid>
 
       {/* Send to Doctor Dialog */}
@@ -768,7 +614,7 @@ const Lab = () => {
             onClick={handleConfirmSend} 
             variant="contained" 
             color="primary"
-            startIcon={<Send />}
+            startIcon={<SendIcon />}
           >
             Send Results
           </Button>
@@ -784,7 +630,7 @@ const Lab = () => {
       >
         <DialogTitle>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Person sx={{ mr: 1 }} />
+            <PersonIcon sx={{ mr: 1 }} />
             Patient Details & Test Orders
           </Box>
         </DialogTitle>
@@ -877,7 +723,7 @@ const Lab = () => {
                     <Typography variant="h6">Test Orders</Typography>
                     <Button
                       variant="contained"
-                      startIcon={<Add />}
+                      startIcon={<AddIcon />}
                       onClick={() => {
                         // Add new test order functionality
                         showSnackbar('Test order functionality coming soon', 'info');
@@ -923,13 +769,13 @@ const Lab = () => {
                               </TableCell>
                               <TableCell>
                                 <IconButton size="small">
-                                  <Visibility />
+                                  <ViewIcon />
                                 </IconButton>
                                 <IconButton size="small">
-                                  <Upload />
+                                  <ImagingIcon />
                                 </IconButton>
                                 <IconButton size="small">
-                                  <Print />
+                                  <ReceiptIcon />
                                 </IconButton>
                               </TableCell>
                             </TableRow>

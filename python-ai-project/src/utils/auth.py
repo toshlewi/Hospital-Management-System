@@ -21,7 +21,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = None) -> Option
     For now, returns a mock user for development
     """
     # In production, this would validate JWT tokens
-    # For development, return a mock user
+    # For development, return a mock user even without credentials
     return User(
         username="doctor",
         email="doctor@hospital.com",

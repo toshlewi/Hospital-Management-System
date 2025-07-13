@@ -32,7 +32,6 @@ import {
 import {
   PhotoCamera,
   History,
-  AutoFixHigh,
   CheckCircle,
   Warning,
   Info,
@@ -49,11 +48,11 @@ import {
   Send,
   LocalHospital,
   Description,
-  Image,
+  Image as ImagingIcon,
   Assignment
 } from '@mui/icons-material';
 import DICOMViewer from '../components/imaging/DICOMViewer'; // Correct path for DICOMViewer
-import { patientAPI, aiAPI } from '../services/api';
+import { patientAPI } from '../services/api';
 
 const Imaging = () => {
   const theme = useTheme();
@@ -63,17 +62,16 @@ const Imaging = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [reportText, setReportText] = useState('');
-  const [aiAnalysis, setAiAnalysis] = useState(null);
   const [imageUploadLoading, setImageUploadLoading] = useState(false);
   const [imageUploadSuccess, setImageUploadSuccess] = useState('');
   const [imageUploadError, setImageUploadError] = useState('');
   const [reportSubmitLoading, setReportSubmitLoading] = useState(false);
   const [reportSubmitSuccess, setReportSubmitSuccess] = useState('');
   const [reportSubmitError, setReportSubmitError] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState('');
+  const [loading, setLoading] = useState(true);
 
   const fetchImagingOrders = useCallback(async () => {
+    setLoading(true);
     try {
       const allPatients = await patientAPI.getAllPatients();
       let imagingOrders = [];
@@ -106,6 +104,8 @@ const Imaging = () => {
     } catch (err) {
       console.error('Error fetching imaging orders:', err);
       setImagingPatients([]);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -113,23 +113,9 @@ const Imaging = () => {
     fetchImagingOrders();
   }, [fetchImagingOrders]);
 
-  useEffect(() => {
-    if (selectedPatient && selectedPatient.status === 'completed' && reportText) {
-      setAiLoading(true);
-      setAiError('');
-      aiAPI.diagnose({ note_text: reportText })
-        .then(result => setAiAnalysis(result))
-        .catch(() => setAiError('AI analysis failed.'))
-        .finally(() => setAiLoading(false));
-    } else {
-      setAiAnalysis(null);
-    }
-  }, [selectedPatient, reportText]);
-
   const handlePatientSelect = (patient) => {
     setSelectedPatient(patient);
     setReportText(patient.result || '');
-    setAiAnalysis(null); // Will be set after AI call
   };
 
   const handleReportChange = (event) => {
@@ -205,8 +191,8 @@ const Imaging = () => {
       }}
     >
       <Grid container spacing={3}>
-        {/* Left Sidebar - Patient List */}
-        <Grid item xs={12} md={3}>
+        {/* Left Sidebar - Imaging Patients */}
+        <Grid item xs={12} md={4}>
           <Card sx={{ 
             boxShadow: 3,
             height: 'calc(100vh - 100px)',
@@ -226,10 +212,9 @@ const Imaging = () => {
                 mb: 2,
                 color: 'primary.main'
               }}>
-                <PhotoCamera sx={{ mr: 1 }} /> Imaging Patients
+                <ImagingIcon sx={{ mr: 1 }} /> Imaging Patients
               </Typography>
-
-              {/* Search Bar */}
+              
               <TextField
                 label="Search patients by name or ID"
                 variant="outlined"
@@ -242,100 +227,58 @@ const Imaging = () => {
                 }}
                 sx={{ mb: 2 }}
               />
-
-              {/* Filters */}
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Filter by Status
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                  {['all', 'pending', 'completed'].map((status) => (
-                    <Chip
-                      key={status}
-                      label={status.charAt(0).toUpperCase() + status.slice(1)}
-                      onClick={() => setFilterStatus(status)}
-                      color={filterStatus === status ? 'primary' : 'default'}
-                      size="small"
-                    />
-                  ))}
-                </Box>
-              </Box>
-
-              <Divider sx={{ my: 2 }} />
-
-              {/* Patient List */}
-              <List sx={{ 
-                flex: 1,
-                overflow: 'auto',
-                '& .MuiListItem-root': {
-                  borderRadius: 1,
-                  mb: 0.5,
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                  }
-                }
-              }}>
-                {filteredPatients.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 2 }}>
-                    No patients found.
+              
+              <Box sx={{ flex: 1, overflow: 'auto' }}>
+                {loading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                    <CircularProgress />
+                  </Box>
+                ) : imagingPatients.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary" align="center">
+                    No imaging orders found
                   </Typography>
                 ) : (
-                  filteredPatients.map((patient) => (
-                    <React.Fragment key={patient.order_id}>
-                    <ListItem 
-                      button 
+                  <List dense>
+                    {filteredPatients.map((patient) => (
+                      <ListItem 
+                        key={patient.order_id}
+                        button
                         selected={selectedPatient?.order_id === patient.order_id}
-                      onClick={() => handlePatientSelect(patient)}
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                          alignItems: 'flex-start',
-                          p: 2
-                      }}
-                    >
-                      <Box sx={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between',
-                        width: '100%',
-                        mb: 1
-                      }}>
-                          <Typography variant="subtitle2" fontWeight="bold">
-                            {patient.patient?.first_name || 'N/A'} {patient.patient?.last_name || ''}
-                        </Typography>
-                        <Chip 
-                            label={patient.status || 'N/A'} 
-                          size="small"
-                            color={patient.status === 'completed' ? 'success' : (patient.status === 'pending' ? 'warning' : 'default')}
+                        onClick={() => handlePatientSelect(patient)}
+                        sx={{ 
+                          mb: 1, 
+                          borderRadius: 1,
+                          border: '1px solid',
+                          borderColor: 'divider'
+                        }}
+                      >
+                        <ListItemText
+                          primary={`${patient.patient?.first_name || 'N/A'} ${patient.patient?.last_name || ''}`}
+                          secondary={
+                            <Box>
+                              <Typography variant="body2" color="text.secondary">
+                                {patient.test_types?.name || patient.imaging_type || 'Imaging Test'}
+                              </Typography>
+                              <Chip 
+                                label={patient.status || 'N/A'}
+                                color={patient.status === 'completed' ? 'success' : 'warning'}
+                                size="small"
+                                sx={{ mt: 0.5 }}
+                              />
+                            </Box>
+                          }
                         />
-                      </Box>
-                        <Typography variant="body2" color="primary" fontWeight="bold">
-                          {patient.test_types?.name || patient.imaging_type || 'Imaging Test'}
-                        </Typography>
-                        {patient.body_part && (
-                      <Typography variant="body2" color="text.secondary">
-                            Body Part: {patient.body_part}
-                          </Typography>
-                        )}
-                        {patient.differential_diagnosis && (
-                          <Typography variant="caption" color="warning.dark" sx={{ fontStyle: 'italic' }}>
-                            DDx: {patient.differential_diagnosis}
-                      </Typography>
-                        )}
-                      <Typography variant="caption" color="text.secondary">
-                          Ordered: {patient.ordered_at ? new Date(patient.ordered_at).toLocaleString() : 'N/A'}
-                      </Typography>
-                    </ListItem>
-                    <Divider component="li" />
-                  </React.Fragment>
-                  ))
+                      </ListItem>
+                    ))}
+                  </List>
                 )}
-              </List>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Main Content - Patient Details and Imaging */}
-        <Grid item xs={12} md={6}>
+        {/* Main Content - Imaging Details */}
+        <Grid item xs={12} md={8}>
           {selectedPatient ? (
             <Card sx={{ 
               boxShadow: 3,
@@ -470,7 +413,7 @@ const Imaging = () => {
                     alignItems: 'center',
                     color: 'primary.main'
                   }}>
-                    <Image sx={{ mr: 1 }} /> Imaging Study
+                    <ImagingIcon sx={{ mr: 1 }} /> Imaging Study
                   </Typography>
                   {selectedPatient.imageUrl ? (
                     <Box sx={{ 
@@ -594,137 +537,6 @@ const Imaging = () => {
               </CardContent>
             </Card>
           )}
-        </Grid>
-
-        {/* Right Sidebar - AI Analysis */}
-        <Grid item xs={12} md={3}>
-          <Card sx={{ 
-            boxShadow: 3,
-            height: 'calc(100vh - 100px)',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            <CardContent sx={{ 
-              display: 'flex', 
-              flexDirection: 'column',
-              height: '100%',
-              p: 2
-            }}>
-              <Typography variant="h6" gutterBottom sx={{ 
-                display: 'flex', 
-                alignItems: 'center',
-                mb: 2,
-                color: 'primary.main'
-              }}>
-                <AutoFixHigh sx={{ mr: 1 }} /> AI Analysis
-              </Typography>
-              
-              {selectedPatient ? (
-                <>
-                  {selectedPatient.status === 'pending' ? (
-                    <Typography variant="body2" color="text.secondary" align="center">
-                      Complete the study to get AI analysis
-                    </Typography>
-                  ) : aiLoading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                      <CircularProgress />
-                    </Box>
-                  ) : aiError ? (
-                    <Alert severity="error">{aiError}</Alert>
-                  ) : aiAnalysis ? (
-                    <>
-                      {/* Image Analysis */}
-                      <Box sx={{ mb: 3 }}>
-                        <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
-                          Image Analysis
-                        </Typography>
-                        <Box sx={{ 
-                          p: 1.5, 
-                          mb: 1, 
-                          borderRadius: 1,
-                          bgcolor: 'info.light',
-                          boxShadow: 1
-                        }}>
-                          <Typography variant="body2">
-                            {aiAnalysis.imageAnalysis}
-                          </Typography>
-                        </Box>
-                      </Box>
-
-                      {/* Report Analysis */}
-                      <Box sx={{ mb: 3 }}>
-                        <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
-                          Report Analysis
-                        </Typography>
-                        <Box sx={{ 
-                          p: 1.5, 
-                          mb: 1, 
-                          borderRadius: 1,
-                          bgcolor: 'info.light',
-                          boxShadow: 1
-                        }}>
-                          <Typography variant="body2">
-                            {aiAnalysis.reportAnalysis}
-                          </Typography>
-                        </Box>
-                      </Box>
-
-                      {/* Diagnosis */}
-                      <Box sx={{ mb: 3 }}>
-                        <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
-                          AI Diagnosis
-                        </Typography>
-                        <Box sx={{ 
-                          p: 1.5, 
-                          mb: 1, 
-                          borderRadius: 1,
-                          bgcolor: 'success.light',
-                          boxShadow: 1
-                        }}>
-                          <Typography variant="body2">
-                            {aiAnalysis.diagnosis}
-                          </Typography>
-                        </Box>
-                      </Box>
-
-                      {/* Recommendations */}
-                      <Box sx={{ mb: 3 }}>
-                        <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
-                          Recommendations
-                        </Typography>
-                        {aiAnalysis.recommendations?.map((rec, index) => (
-                          <Box 
-                            key={index}
-                            sx={{ 
-                              p: 1.5, 
-                              mb: 1, 
-                              borderRadius: 1,
-                              bgcolor: 'warning.light',
-                              boxShadow: 1
-                            }}
-                          >
-                            <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start' }}>
-                              <Info fontSize="small" sx={{ mr: 1, mt: '2px' }} />
-                              {rec}
-                            </Typography>
-                          </Box>
-                        ))}
-                      </Box>
-                    </>
-                  ) : (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                      <CircularProgress />
-                    </Box>
-                  )}
-                </>
-              ) : (
-                <Typography variant="body2" color="text.secondary" align="center">
-                  Select a patient to view AI analysis
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
         </Grid>
       </Grid>
     </Container>

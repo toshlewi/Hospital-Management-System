@@ -72,16 +72,13 @@ import {
   Close as CloseIcon,
   Check as CheckIcon,
   Cancel as CancelIcon,
-  AutoFixHigh as AIIcon,
-  Lightbulb as SuggestionIcon,
-  TrendingUp as TrendingUpIcon,
   Info as InfoIcon
 } from '@mui/icons-material';
-import { patientAPI, aiAPI } from '../../services/api';
+import { patientAPI } from '../../services/api';
 import pharmacyService from '../../services/pharmacyService';
-import RealTimeDiagnosis from '../../components/ai/RealTimeDiagnosis';
 
-const Outpatient = () => {
+
+const Outpatient = ({ onPatientSelect }) => {
   // State for patient management
   const [patients, setPatients] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
@@ -147,73 +144,13 @@ const Outpatient = () => {
   const [billingItems, setBillingItems] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
 
-  // AI State
-  const [aiAnalysis, setAiAnalysis] = useState(null);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState('');
-  const [aiSuggestions, setAiSuggestions] = useState([]);
-  const [aiDiagnosis, setAiDiagnosis] = useState(null);
-  const [aiRecommendations, setAiRecommendations] = useState([]);
-  const [aiRiskAssessment, setAiRiskAssessment] = useState(null);
+
 
   useEffect(() => {
     loadPatients();
   }, []);
 
-  // AI Analysis effect
-  useEffect(() => {
-    if (selectedPatient && patientDetails && medicalNotes.length > 0) {
-      performAIAnalysis();
-    }
-  }, [selectedPatient, patientDetails, medicalNotes]);
 
-  const performAIAnalysis = async () => {
-    if (!selectedPatient || !patientDetails) return;
-
-    setAiLoading(true);
-    setAiError('');
-    
-    try {
-      // Combine patient data for AI analysis
-      const patientData = {
-        patient_info: {
-          age: calculateAge(patientDetails.date_of_birth),
-          gender: patientDetails.gender,
-          blood_type: patientDetails.blood_type,
-          status: patientDetails.status
-        },
-        medical_history: medicalNotes.map(note => note.note_text).join(' '),
-        prescriptions: prescriptions.map(p => p.medication_name).join(', '),
-        lab_results: labOrders.filter(o => o.status === 'completed').map(o => o.result).join(' '),
-        imaging_results: imagingOrders.filter(o => o.status === 'completed').map(o => o.result).join(' ')
-      };
-
-      // Get AI diagnosis and recommendations
-      const aiResponse = await aiAPI.diagnose({
-        note_text: patientData.medical_history,
-        test_results: patientData.lab_results,
-        doctor_notes: `Patient: ${patientDetails.first_name} ${patientDetails.last_name}, Age: ${patientData.patient_info.age}, Gender: ${patientData.patient_info.gender}`
-      });
-
-      setAiDiagnosis(aiResponse.diagnosis);
-      setAiRecommendations(aiResponse.recommendations || []);
-
-      // Generate AI suggestions based on patient data
-      const suggestions = generateAISuggestions(patientData);
-      setAiSuggestions(suggestions);
-
-      // Generate risk assessment
-      const riskAssessment = generateRiskAssessment(patientData);
-      setAiRiskAssessment(riskAssessment);
-
-      setAiAnalysis(aiResponse);
-    } catch (error) {
-      console.error('AI analysis error:', error);
-      setAiError('AI analysis failed. Please try again.');
-    } finally {
-      setAiLoading(false);
-    }
-  };
 
   const calculateAge = (dateOfBirth) => {
     if (!dateOfBirth) return 0;
@@ -227,108 +164,7 @@ const Outpatient = () => {
     return age;
   };
 
-  const generateAISuggestions = (patientData) => {
-    const suggestions = [];
-    const age = patientData.patient_info.age;
-    const medicalHistory = patientData.medical_history.toLowerCase();
-    const labResults = patientData.lab_results.toLowerCase();
 
-    // Age-based suggestions
-    if (age > 65) {
-      suggestions.push({
-        type: 'screening',
-        title: 'Geriatric Assessment',
-        description: 'Consider comprehensive geriatric assessment including fall risk, cognitive function, and medication review.',
-        priority: 'high'
-      });
-    }
-
-    // Symptom-based suggestions
-    if (medicalHistory.includes('chest pain') || medicalHistory.includes('cardiac')) {
-      suggestions.push({
-        type: 'lab',
-        title: 'Cardiac Workup',
-        description: 'Consider ECG, troponin, and cardiac enzymes for chest pain evaluation.',
-        priority: 'urgent'
-      });
-    }
-
-    if (medicalHistory.includes('fever') || medicalHistory.includes('infection')) {
-      suggestions.push({
-        type: 'lab',
-        title: 'Infection Workup',
-        description: 'Consider CBC, CRP, blood cultures, and appropriate imaging.',
-        priority: 'medium'
-      });
-    }
-
-    if (medicalHistory.includes('diabetes') || labResults.includes('glucose')) {
-      suggestions.push({
-        type: 'monitoring',
-        title: 'Diabetes Management',
-        description: 'Monitor blood glucose, HbA1c, and consider diabetes complications screening.',
-        priority: 'medium'
-      });
-    }
-
-    // Lab result-based suggestions
-    if (labResults.includes('low hemoglobin') || labResults.includes('anemia')) {
-      suggestions.push({
-        type: 'investigation',
-        title: 'Anemia Workup',
-        description: 'Consider iron studies, B12, folate, and investigate underlying cause.',
-        priority: 'medium'
-      });
-    }
-
-    return suggestions;
-  };
-
-  const generateRiskAssessment = (patientData) => {
-    const age = patientData.patient_info.age;
-    const medicalHistory = patientData.medical_history.toLowerCase();
-    let riskScore = 0;
-    const riskFactors = [];
-
-    // Age risk
-    if (age > 65) {
-      riskScore += 2;
-      riskFactors.push('Advanced age');
-    }
-
-    // Medical history risk factors
-    if (medicalHistory.includes('diabetes')) {
-      riskScore += 2;
-      riskFactors.push('Diabetes');
-    }
-
-    if (medicalHistory.includes('hypertension') || medicalHistory.includes('high blood pressure')) {
-      riskScore += 1;
-      riskFactors.push('Hypertension');
-    }
-
-    if (medicalHistory.includes('chest pain') || medicalHistory.includes('cardiac')) {
-      riskScore += 3;
-      riskFactors.push('Cardiac symptoms');
-    }
-
-    if (medicalHistory.includes('fever') && medicalHistory.includes('severe')) {
-      riskScore += 2;
-      riskFactors.push('Severe infection');
-    }
-
-    // Determine risk level
-    let riskLevel = 'Low';
-    if (riskScore >= 5) riskLevel = 'High';
-    else if (riskScore >= 3) riskLevel = 'Medium';
-
-    return {
-      score: riskScore,
-      level: riskLevel,
-      factors: riskFactors,
-      recommendations: riskScore >= 3 ? ['Close monitoring recommended', 'Consider specialist consultation'] : ['Routine follow-up']
-    };
-  };
 
   const loadPatients = async () => {
     setLoading(true);
@@ -386,6 +222,11 @@ const Outpatient = () => {
     setSelectedPatient(patient);
     setPatientDialog(true);
     await loadPatientDetails(patient.patient_id);
+    
+    // Notify parent component about patient selection
+    if (onPatientSelect) {
+      onPatientSelect(patient);
+    }
   };
 
   // Medical Notes Functions
@@ -1159,31 +1000,7 @@ const Outpatient = () => {
                     </Box>
                   )}
 
-                  {/* AI Diagnosis Tab */}
-                  {activeTab === 6 && selectedPatient && patientDetails && (
-                    <Box>
-                      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <AIIcon sx={{ mr: 1, color: 'primary.main' }} />
-                        Real-time AI Diagnosis
-                      </Typography>
-                      
-                      <RealTimeDiagnosis
-                        patientId={selectedPatient.patient_id}
-                        patientData={{
-                          medical_history: patientDetails,
-                          lab_results: labOrders.filter(order => order.status === 'completed'),
-                          imaging_results: imagingOrders.filter(order => order.status === 'completed'),
-                          prescriptions: prescriptions,
-                          medical_notes: medicalNotes
-                        }}
-                        onDiagnosisUpdate={(result) => {
-                          // Update AI analysis state
-                          setAiAnalysis(result);
-                          showSnackbar('AI diagnosis updated', 'success');
-                        }}
-                      />
-                    </Box>
-                  )}
+
 
               {/* Billing Tab */}
                   {activeTab === 7 && billingStatus && (
@@ -1252,134 +1069,7 @@ const Outpatient = () => {
                 </Box>
               </Grid>
 
-              {/* Right Column - AI Analysis */}
-              <Grid item xs={12} md={4}>
-                <Card sx={{ height: 'fit-content', position: 'sticky', top: 20 }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <AIIcon sx={{ mr: 1, color: 'primary.main' }} />
-                      AI Analysis & Recommendations
-                    </Typography>
-                    {aiLoading ? (
-                      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100px">
-                        <CircularProgress size={24} sx={{ mr: 2 }} />
-                        <Typography variant="body2">Analyzing patient data...</Typography>
-                      </Box>
-                    ) : aiError ? (
-                      <Alert severity="error" sx={{ mb: 2 }}>{aiError}</Alert>
-                    ) : aiAnalysis ? (
-                      <Box>
-                        {/* AI Diagnosis */}
-                        {aiDiagnosis && (
-                          <Box sx={{ mb: 3 }}>
-                            <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
-                              AI Diagnosis
-                            </Typography>
-                            <Box sx={{ 
-                              p: 1.5, 
-                              mb: 1, 
-                              borderRadius: 1,
-                              bgcolor: 'success.light',
-                              boxShadow: 1
-                            }}>
-                              <Typography variant="body2">
-                                {aiDiagnosis}
-                              </Typography>
-                            </Box>
-            </Box>
-                        )}
 
-                        {/* Risk Assessment */}
-                        {aiRiskAssessment && (
-                          <Box sx={{ mb: 3 }}>
-                            <Typography variant="subtitle2" gutterBottom sx={{ color: 'warning.main' }}>
-                              Risk Assessment
-                            </Typography>
-                            <Box sx={{ 
-                              p: 1.5, 
-                              mb: 1, 
-                              borderRadius: 1,
-                              bgcolor: 'warning.light',
-                              boxShadow: 1
-                            }}>
-                              <Typography variant="body2">
-                                Level: <strong>{aiRiskAssessment.level}</strong>
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                Score: {aiRiskAssessment.score}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                Factors: {aiRiskAssessment.factors?.join(', ')}
-                              </Typography>
-                            </Box>
-                          </Box>
-                        )}
-
-                        {/* AI Recommendations */}
-                        {aiSuggestions && aiSuggestions.length > 0 && (
-                          <Box sx={{ mb: 3 }}>
-                            <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main' }}>
-                              AI Recommendations
-                            </Typography>
-                            {aiSuggestions.map((suggestion, index) => (
-                              <Box 
-                                key={index}
-                                sx={{ 
-                                  p: 1.5, 
-                                  mb: 1, 
-                                  borderRadius: 1,
-                                  bgcolor: 'info.light',
-                                  boxShadow: 1
-                                }}
-                              >
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                                  <Typography variant="subtitle2" fontWeight="bold">
-                                    {suggestion.title}
-                                  </Typography>
-                                  <Chip 
-                                    label={suggestion.priority} 
-                                    size="small" 
-                                    color={suggestion.priority === 'urgent' ? 'error' : suggestion.priority === 'high' ? 'warning' : 'info'} 
-                                  />
-                                </Box>
-                                <Typography variant="body2" color="text.secondary">
-                                  {suggestion.description}
-                                </Typography>
-                              </Box>
-                            ))}
-                          </Box>
-                        )}
-
-                        {/* AI Recommendations from API */}
-                        {aiRecommendations && aiRecommendations.length > 0 && (
-                          <Box sx={{ mb: 3 }}>
-                            <Typography variant="subtitle2" gutterBottom sx={{ color: 'info.main' }}>
-                              Treatment Recommendations
-                            </Typography>
-                            <List dense>
-                              {aiRecommendations.map((rec, index) => (
-                                <ListItem key={index} sx={{ px: 0 }}>
-                                  <ListItemIcon sx={{ minWidth: 30 }}>
-                                    <InfoIcon sx={{ color: 'info.main', fontSize: 'small' }} />
-                                  </ListItemIcon>
-                                  <ListItemText 
-                                    primary={rec} 
-                                    primaryTypographyProps={{ variant: 'body2' }}
-                                  />
-                                </ListItem>
-                              ))}
-                            </List>
-                          </Box>
-                        )}
-                      </Box>
-                    ) : (
-                      <Typography variant="body2" color="text.secondary" align="center">
-                        Select a patient to view AI analysis
-                      </Typography>
-                    )}
-                  </CardContent>
-                </Card>
-              </Grid>
             </Grid>
           )}
         </DialogContent>
