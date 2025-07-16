@@ -9,3 +9,4 @@ sqlalchemy
 pydantic-settings
 loguru
 aiohttp
+beautifulsoup4
