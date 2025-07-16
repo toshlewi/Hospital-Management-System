@@ -1,0 +1,10 @@
+diabetes
+hypertension
+asthma
+malaria
+covid-19
+breast cancer
+stroke
+pneumonia
+hiv
+alzheimer's disease 

@@ -1,26 +1,59 @@
 // backend/controllers/ai.controller.js
 
+// Improved intent detection for general medical questions or keyword-based queries
+function isGeneralQuestion(text) {
+    if (!text) return false;
+    const lower = text.trim().toLowerCase();
+    // Check for question mark, question words, or medical keywords
+    return (
+        /\?$/.test(lower) ||
+        /^(what|how|when|why|who|where|which|list|give|explain)/i.test(lower) ||
+        lower.includes('symptom') ||
+        lower.includes('signs') ||
+        lower.includes('side effect') ||
+        lower.includes('what is')
+    );
+}
+
 exports.diagnose = async (req, res) => {
     // Proxy request to Python AI service
     const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
     try {
         const { note_text, test_results, doctor_notes, patient_id } = req.body;
-        // Compose payload for AI service
-        const payload = {
-            patient_id: patient_id || 1,
-            notes: note_text || '',
-            timestamp: new Date().toISOString()
-        };
-        const response = await fetch('http://localhost:8000/api/v1/diagnosis/analyze-notes', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        if (!response.ok) {
-            return res.status(response.status).json({ error: 'AI service error', status: response.status });
+        const text = note_text || '';
+        let response, result;
+
+        if (isGeneralQuestion(text)) {
+            // Route to clinical-support for general questions
+            const payload = { clinical_question: text };
+            response = await fetch('http://localhost:8000/api/v1/clinical-support/query', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                return res.status(response.status).json({ error: 'AI service error', status: response.status });
+            }
+            result = await response.json();
+            res.json({ ...result, ai: true, routed: 'clinical-support' });
+        } else {
+            // Compose payload for AI service (diagnosis)
+            const payload = {
+                patient_id: patient_id || 1,
+                notes: text,
+                timestamp: new Date().toISOString()
+            };
+            response = await fetch('http://localhost:8000/api/v1/diagnosis/analyze-notes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                return res.status(response.status).json({ error: 'AI service error', status: response.status });
+            }
+            result = await response.json();
+            res.json({ ...result, ai: true, routed: 'diagnosis' });
         }
-        const result = await response.json();
-        res.json({ ...result, ai: true });
     } catch (error) {
         res.status(500).json({ error: error.message, ai: false });
     }

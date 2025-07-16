@@ -61,6 +61,7 @@ import {
   PhotoCamera
 } from '@mui/icons-material';
 import { useDebounce } from 'use-debounce';
+import { aiAPI } from '../../services/api';
 
 const RightSideAIPanel = ({ 
   patientId, 
@@ -190,25 +191,14 @@ const RightSideAIPanel = ({
     try {
       // Debug logging
       console.log('Analyzing notes:', { patientId, currentNotes });
-      
-      // Use the direct API call instead of the service
-      const response = await fetch('http://localhost:8000/api/v1/diagnosis/analyze-notes-flexible', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          patient_id: patientId || 1, // Fallback to 1 if patientId is undefined
-          notes: currentNotes,
-          timestamp: new Date().toISOString()
-        })
+
+      // Use the backend API instead of direct Python call
+      const result = await aiAPI.diagnose({
+        note_text: currentNotes,
+        patient_id: patientId || 1,
+        timestamp: new Date().toISOString()
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
       setAnalysisResult(result);
       setConfidenceScore(result.confidence || 0);
       setUrgencyLevel(getUrgencyLevel(result.urgency_score || 0));

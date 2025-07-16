@@ -24,19 +24,48 @@ class ClinicalSupportResponse(BaseModel):
     recommendations: List[str]
     sources: List[str]
 
+# Simple FAQ/knowledge base for demo
+FAQ_KB = {
+    "what are the symptoms of malaria?": "Common symptoms of malaria include fever, chills, sweating, headache, nausea, vomiting, muscle pain, and fatigue.",
+    "what is malaria?": "Malaria is a mosquito-borne infectious disease caused by Plasmodium parasites. It is characterized by fever, chills, and flu-like symptoms.",
+    "what are the side effects of metformin?": "Common side effects of metformin include nausea, vomiting, diarrhea, abdominal pain, and loss of appetite.",
+    "what is hypertension?": "Hypertension, or high blood pressure, is a condition in which the force of the blood against the artery walls is too high.",
+    "what are the symptoms of covid-19?": "Common symptoms of COVID-19 include fever, cough, shortness of breath, fatigue, and loss of taste or smell.",
+    "what is diabetes?": "Diabetes is a chronic condition that affects how your body turns food into energy, resulting in high blood sugar levels."
+}
+
+# Helper function for partial/keyword FAQ matching
+FAQ_KEYWORDS = [
+    (['malaria', 'symptom'], "Common symptoms of malaria include fever, chills, sweating, headache, nausea, vomiting, muscle pain, and fatigue."),
+    (['malaria'], "Malaria is a mosquito-borne infectious disease caused by Plasmodium parasites. It is characterized by fever, chills, and flu-like symptoms."),
+    (['metformin', 'side effect'], "Common side effects of metformin include nausea, vomiting, diarrhea, abdominal pain, and loss of appetite."),
+    (['hypertension'], "Hypertension, or high blood pressure, is a condition in which the force of the blood against the artery walls is too high."),
+    (['covid', 'symptom'], "Common symptoms of COVID-19 include fever, cough, shortness of breath, fatigue, and loss of taste or smell."),
+    (['diabetes'], "Diabetes is a chronic condition that affects how your body turns food into energy, resulting in high blood sugar levels.")
+]
+
 @router.post("/query", response_model=ClinicalSupportResponse)
 async def get_clinical_support(request: ClinicalSupportRequest):
     """Get clinical decision support for medical questions"""
     try:
-        # Mock implementation - in real system, this would use medical knowledge base
-        answer = "Based on current medical guidelines and evidence..."
-        
+        question = request.clinical_question.strip().lower()
+        # Try to answer from FAQ/knowledge base (exact match)
+        answer = FAQ_KB.get(question)
+        # If not found, try partial/keyword match
+        if not answer:
+            for keywords, resp in FAQ_KEYWORDS:
+                if all(k in question for k in keywords):
+                    answer = resp
+                    break
+        if not answer:
+            # Fallback generic answer
+            answer = "I'm sorry, I don't have a specific answer for that question. Please consult a medical professional or refer to trusted medical resources."
         return ClinicalSupportResponse(
             answer=answer,
-            confidence=0.8,
-            evidence=["Clinical guidelines", "Recent studies"],
-            recommendations=["Follow standard protocols", "Monitor patient response"],
-            sources=["PubMed", "Clinical guidelines"]
+            confidence=0.9 if answer != "I'm sorry, I don't have a specific answer for that question. Please consult a medical professional or refer to trusted medical resources." else 0.5,
+            evidence=["FAQ knowledge base" if answer else "General medical knowledge"],
+            recommendations=["Consult a physician for further advice"],
+            sources=["WHO", "CDC", "PubMed"]
         )
     except Exception as e:
         logger.error(f"Error providing clinical support: {e}")

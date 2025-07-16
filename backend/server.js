@@ -58,5 +58,4 @@ process.on('SIGINT', async () => {
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}.`);
-  console.log(`📊 Database: ${dbService.useSupabase ? 'Supabase (Cloud)' : 'PostgreSQL (Local)'}`);
 }); 
