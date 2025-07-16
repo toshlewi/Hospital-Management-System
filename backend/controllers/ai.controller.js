@@ -18,6 +18,7 @@ function isGeneralQuestion(text) {
 exports.diagnose = async (req, res) => {
     // Proxy request to Python AI service
     const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
     try {
         const { note_text, test_results, doctor_notes, patient_id } = req.body;
         const text = note_text || '';
@@ -26,7 +27,7 @@ exports.diagnose = async (req, res) => {
         if (isGeneralQuestion(text)) {
             // Route to clinical-support for general questions
             const payload = { clinical_question: text };
-            response = await fetch('http://localhost:8000/api/v1/clinical-support/query', {
+            response = await fetch(`${AI_SERVICE_URL}/api/v1/clinical-support/query`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -43,7 +44,7 @@ exports.diagnose = async (req, res) => {
                 notes: text,
                 timestamp: new Date().toISOString()
             };
-            response = await fetch('http://localhost:8000/api/v1/diagnosis/analyze-notes', {
+            response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnosis/analyze-notes`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

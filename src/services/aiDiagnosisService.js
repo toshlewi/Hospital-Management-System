@@ -3,32 +3,17 @@
  * Connects to the Python AI service for real-time diagnosis
  */
 
-const AI_SERVICE_BASE_URL = process.env.REACT_APP_AI_SERVICE_URL || 'http://localhost:8000';
+import { api } from './api';
 
 class AIDiagnosisService {
-  constructor() {
-    this.baseURL = AI_SERVICE_BASE_URL;
-  }
-
   async analyzeNotes(patientId, notes) {
     try {
-      const response = await fetch(`${this.baseURL}/api/v1/diagnosis/analyze-notes-flexible`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          patient_id: patientId,
-          notes: notes,
-          timestamp: new Date().toISOString()
-        })
+      const response = await api.post('/ai/diagnose', {
+        note_text: notes,
+        patient_id: patientId,
+        timestamp: new Date().toISOString()
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      return response.data;
     } catch (error) {
       console.error('Error analyzing notes:', error);
       throw error;
