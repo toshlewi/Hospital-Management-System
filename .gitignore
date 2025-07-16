@@ -1,218 +1,33 @@
-# Dependencies
+# Node
 node_modules/
-jspm_packages/
+backend/node_modules/
 
-# Production builds
+# Python
+python-ai-project/venv/
+python-ai-project/.env
+python-ai-project/__pycache__/
+
+# Environment files
+.env
+.env.*
+backend/.env
+
+# Build
 build/
 dist/
-.next/
-.nuxt/
-out/
-.storybook-out/
-
-# Environment variables and configuration
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.example
-config/
-*.config.js
-*.config.json
-
-# Logs
-logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+*.sqlite3
 
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage/
-*.lcov
-.nyc_output
-
-# Cache directories
-.cache/
-.parcel-cache/
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
-.eslintcache
-
-# Optional npm cache directory
-.npm
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# Editor directories and files
-.idea/
-.vscode/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# OS-specific files
+# OS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
-desktop.ini
 
-# Temporary files
-*.tmp
-*.temp
-*.bak
-*.old
-*.orig
-*.swp
-*.swo
-*.pid
-*.seed
-*.out
-*.err
-*.lock
-*.gz
-*.zip
-*.tar
-*.rar
-*.7z
-*.tgz
-*.xz
-*.bz2
-*.Z
-*.lz
-*.lzma
-*.cab
-*.iso
-*.img
-*.bin
-*.dmg
-*.msi
-*.exe
-*.dll
-*.so
-*.deb
-*.rpm
-*.apk
-*.app
-*.ipa
-*.jar
-*.war
-*.ear
-*.class
-*.dex
-*.o
-*.obj
-*.elf
-*.a
-*.lib
-*.exp
-*.pdb
-*.idb
-*.ilk
-*.map
-*.user
-*.sdf
+# Editor
+.vscode/
+.idea/
 
-# Python-related files (for AI components)
-__pycache__/
+# Misc
 *.pyc
 *.pyo
 *.pyd
-.Python
-*.py[cod]
-*$py.class
-venv/
-env/
-.venv/
-.env/
-python-ai-project/venv/
-ENV/
-*.egg
-*.egg-info/
-.mypy_cache/
-.pytest_cache/
-.tox/
-.pylint.d/
-*.coverage
-.coverage.*
-*.pot
-*.mo
-
-# Hospital Management System specific
-# AI Service specific
-python-ai-project/logs/
-python-ai-project/data/medical_knowledge/
-python-ai-project/models/
-python-ai-project/cache/
-python-ai-project/.env
-python-ai-project/config.yaml
-
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-*.sql
-
-# Medical data (sensitive)
-data/patients/
-data/medical_records/
-uploads/medical_files/
-uploads/imaging/
-uploads/lab_results/
-
-# API keys and secrets
-secrets/
-keys/
-*.key
-*.pem
-*.p12
-
-# Data files
-*.csv
-*.tsv
-*.xls
-*.xlsx
-*.json
-*.parquet
-*.h5
-*.hdf5
-*.pkl
-*.joblib
-*.npy
-*.npz
-*.sav
-*.rda
-*.rds
-*.feather
-*.orc
-*.mdb
-*.accdb
-
-# Jupyter
-.ipynb_checkpoints
-
-# Uploads and file storage
-uploads/
-public/uploads/
+__pycache__/
