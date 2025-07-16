@@ -8,7 +8,9 @@ const app = express();
 // Middleware
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://hospital-frontend-xxxx.onrender.com', // replace with your actual frontend Render URL
+  'https://hospital-frontend-5na8.onrender.com', // deployed frontend
+  'https://hospital-backend-771y.onrender.com', // deployed backend (for service-to-service calls)
+  'https://hospital-ai-service.onrender.com'    // deployed AI service (if backend calls AI directly)
 ];
 app.use(cors({
   origin: function (origin, callback) {
