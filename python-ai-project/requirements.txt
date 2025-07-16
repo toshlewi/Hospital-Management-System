@@ -7,3 +7,4 @@ spacy
 requests
 sqlalchemy
 pydantic-settings
+loguru
