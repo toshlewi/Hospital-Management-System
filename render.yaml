@@ -1,0 +1,53 @@
+services:
+  - type: web
+    name: hospital-backend
+    env: node
+    plan: free
+    branch: main
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: PORT
+        value: 3001
+      - key: NODE_ENV
+        value: production
+
+  - type: web
+    name: hospital-frontend
+    env: node
+    plan: free
+    branch: main
+    rootDir: .
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: REACT_APP_API_URL
+        sync: false
+
+  - type: web
+    name: hospital-ai-service
+    env: python
+    plan: free
+    branch: main
+    rootDir: python-ai-project
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn src.api.fastapi_app:app --host 0.0.0.0 --port 8000
+    healthCheckPath: /health
+    envVars:
+      - key: AI_SERVICE_SECRET
+        sync: false
+      - key: PORT
+        value: 8000
+      - key: NODE_ENV
+        value: production 
