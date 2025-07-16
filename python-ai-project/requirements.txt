@@ -8,3 +8,4 @@ requests
 sqlalchemy
 pydantic-settings
 loguru
+aiohttp
