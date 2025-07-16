@@ -49,6 +49,9 @@ async def startup_event():
 app.include_router(diagnosis.router, prefix="/api/v1/diagnosis", tags=["diagnosis"])
 app.include_router(clinical_support.router, prefix="/api/v1/clinical-support", tags=["clinical-support"])
 
+# Register custom 405 handler
+diagnosis.add_custom_405_handler(app)
+
 @app.get("/")
 async def root():
     """Root endpoint"""

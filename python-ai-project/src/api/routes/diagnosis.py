@@ -3,8 +3,11 @@ FastAPI routes for real-time AI diagnosis
 Provides endpoints for analyzing clinician notes, patient data, and generating comprehensive diagnosis.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Request
+from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.exception_handlers import RequestValidationError
+from fastapi.exceptions import RequestValidationError as FastAPIRequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 import asyncio
@@ -495,3 +498,26 @@ async def _generate_final_analysis(patient_id: int, analysis_result: Dict[str, A
     except Exception as e:
         logger.error(f"Error generating final analysis: {e}")
         return {"error": str(e)} 
+
+def custom_method_not_allowed_handler(request: Request, exc):
+    import logging
+    logger = logging.getLogger("uvicorn.error")
+    logger.warning(f"405 Method Not Allowed: {request.method} {request.url.path}")
+    return JSONResponse(
+        status_code=405,
+        content={
+            "error": "Method Not Allowed",
+            "detail": f"{request.method} not allowed on {request.url.path}"
+        }
+    )
+
+# Register the custom handler with the FastAPI app
+from fastapi import status
+from fastapi.applications import FastAPI
+
+def add_custom_405_handler(app: FastAPI):
+    from starlette.status import HTTP_405_METHOD_NOT_ALLOWED
+    app.add_exception_handler(HTTP_405_METHOD_NOT_ALLOWED, custom_method_not_allowed_handler)
+
+# At the bottom of the file, after app is created:
+# add_custom_405_handler(app) 
