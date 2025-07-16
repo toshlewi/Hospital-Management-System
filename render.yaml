@@ -21,6 +21,8 @@ services:
         value: 3001
       - key: NODE_ENV
         value: production
+      - key: AI_SERVICE_URL
+        value: https://hospital-ai-service.onrender.com
 
   - type: web
     name: hospital-frontend
