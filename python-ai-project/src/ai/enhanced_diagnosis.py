@@ -12,6 +12,7 @@ from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
 import re
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,8 @@ class EnhancedDiagnosisAI:
         self.medical_knowledge_base = {}
         self.patient_contexts = {}
         self.diagnosis_cache = {}
+        self._external_cache = {}  # key: (data, timestamp)
+        self._cache_ttl = 3600  # 1 hour in seconds
         
     async def initialize_knowledge_base(self):
         """Initialize medical knowledge from multiple sources"""
@@ -40,6 +43,40 @@ class EnhancedDiagnosisAI:
         except Exception as e:
             logger.error(f"Error initializing knowledge base: {e}")
     
+    async def _fetch_with_retries(self, session, url, max_retries=3, backoff_factor=1.5):
+        retries = 0
+        delay = 1.0
+        while retries < max_retries:
+            async with session.get(url) as response:
+                if response.status == 429:
+                    logger.warning(f"429 Too Many Requests for {url}, retrying in {delay:.1f}s...")
+                    await asyncio.sleep(delay)
+                    retries += 1
+                    delay *= backoff_factor
+                    continue
+                elif response.status >= 500:
+                    logger.warning(f"{response.status} error for {url}, retrying in {delay:.1f}s...")
+                    await asyncio.sleep(delay)
+                    retries += 1
+                    delay *= backoff_factor
+                    continue
+                return response
+        logger.error(f"Failed to fetch {url} after {max_retries} retries.")
+        return response  # Return last response (may be error)
+
+    def _get_cached(self, key):
+        entry = self._external_cache.get(key)
+        if entry:
+            data, ts = entry
+            if time.time() - ts < self._cache_ttl:
+                return data
+            else:
+                del self._external_cache[key]
+        return None
+
+    def _set_cache(self, key, data):
+        self._external_cache[key] = (data, time.time())
+
     async def _load_who_data(self):
         """Load WHO health data and guidelines"""
         try:
@@ -56,11 +93,17 @@ class EnhancedDiagnosisAI:
                 ]
                 
                 for indicator in indicators:
+                    cache_key = f"who_{indicator}"
+                    cached = self._get_cached(cache_key)
+                    if cached:
+                        self.medical_knowledge_base[cache_key] = cached
+                        continue
                     url = f"{self.who_api_base}/Indicator?$filter=IndicatorCode eq '{indicator}'"
-                    async with session.get(url) as response:
-                        if response.status == 200:
-                            data = await response.json()
-                            self.medical_knowledge_base[f"who_{indicator}"] = data
+                    response = await self._fetch_with_retries(session, url)
+                    if response.status == 200:
+                        data = await response.json()
+                        self.medical_knowledge_base[cache_key] = data
+                        self._set_cache(cache_key, data)
                             
         except Exception as e:
             logger.error(f"Error loading WHO data: {e}")
@@ -73,12 +116,18 @@ class EnhancedDiagnosisAI:
                 drugs = ["aspirin", "warfarin", "metformin", "lisinopril", "atorvastatin"]
                 
                 for drug in drugs:
+                    cache_key = f"drug_{drug}"
+                    cached = self._get_cached(cache_key)
+                    if cached:
+                        self.medical_knowledge_base[cache_key] = cached
+                        continue
                     url = f"{self.drug_interaction_api}?search=active_ingredient:{drug}&limit=1"
-                    async with session.get(url) as response:
-                        if response.status == 200:
-                            data = await response.json()
-                            if data.get('results'):
-                                self.medical_knowledge_base[f"drug_{drug}"] = data['results'][0]
+                    response = await self._fetch_with_retries(session, url)
+                    if response.status == 200:
+                        data = await response.json()
+                        if data.get('results'):
+                            self.medical_knowledge_base[cache_key] = data['results'][0]
+                            self._set_cache(cache_key, data['results'][0])
                                 
         except Exception as e:
             logger.error(f"Error loading drug interactions: {e}")
@@ -96,11 +145,17 @@ class EnhancedDiagnosisAI:
                 ]
                 
                 for term in search_terms:
+                    cache_key = f"research_{term.replace(' ', '_')}"
+                    cached = self._get_cached(cache_key)
+                    if cached:
+                        self.medical_knowledge_base[cache_key] = cached
+                        continue
                     url = f"{self.pubmed_api_base}esearch.fcgi?db=pubmed&term={term}&retmode=json&retmax=5"
-                    async with session.get(url) as response:
-                        if response.status == 200:
-                            data = await response.json()
-                            self.medical_knowledge_base[f"research_{term.replace(' ', '_')}"] = data
+                    response = await self._fetch_with_retries(session, url)
+                    if response.status == 200:
+                        data = await response.json()
+                        self.medical_knowledge_base[cache_key] = data
+                        self._set_cache(cache_key, data)
                             
         except Exception as e:
             logger.error(f"Error loading medical research: {e}")

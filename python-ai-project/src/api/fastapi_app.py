@@ -2,7 +2,7 @@
 FastAPI application for AI-powered hospital management system
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
@@ -79,6 +79,9 @@ async def health_check():
 async def global_exception_handler(request, exc):
     """Global exception handler"""
     logger.error(f"Global exception: {exc}")
+    # Log 429s specifically
+    if hasattr(exc, 'status_code') and exc.status_code == status.HTTP_429_TOO_MANY_REQUESTS:
+        logger.error(f"429 Too Many Requests: {request.url} - {exc}")
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error"}

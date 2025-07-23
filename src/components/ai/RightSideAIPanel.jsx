@@ -188,36 +188,50 @@ const RightSideAIPanel = ({
     setIsAnalyzing(true);
     setError('');
 
-    try {
-      // Debug logging
-      console.log('Analyzing notes:', { patientId, currentNotes });
+    let retries = 0;
+    let delay = 1000;
+    while (retries < 3) {
+      try {
+        // Debug logging
+        console.log('Analyzing notes:', { patientId, currentNotes });
 
-      // Use the backend API instead of direct Python call
-      const result = await aiAPI.diagnose({
-        note_text: currentNotes,
-        patient_id: patientId || 1,
-        timestamp: new Date().toISOString()
-      });
+        // Use the backend API instead of direct Python call
+        const result = await aiAPI.diagnose({
+          note_text: currentNotes,
+          patient_id: patientId || 1,
+          timestamp: new Date().toISOString()
+        });
 
-      setAnalysisResult(result);
-      setConfidenceScore(result.confidence || 0);
-      setUrgencyLevel(getUrgencyLevel(result.urgency_score || 0));
-      setDataSources(result.data_sources || dataSources);
+        setAnalysisResult(result);
+        setConfidenceScore(result.confidence || 0);
+        setUrgencyLevel(getUrgencyLevel(result.urgency_score || 0));
+        setDataSources(result.data_sources || dataSources);
 
-      // Update parent component
-      if (onAnalysisUpdate) {
-        onAnalysisUpdate(result);
+        // Update parent component
+        if (onAnalysisUpdate) {
+          onAnalysisUpdate(result);
+        }
+
+        setSuccess('Analysis completed successfully');
+        setTimeout(() => setSuccess(''), 3000);
+        setIsAnalyzing(false);
+        return;
+      } catch (error) {
+        if (error.response && error.response.status === 429) {
+          setError('Too many requests. Retrying...');
+          await new Promise(res => setTimeout(res, delay));
+          retries += 1;
+          delay *= 2;
+          continue;
+        }
+        console.error('Error analyzing notes:', error);
+        setError(`Failed to analyze notes: ${error.message}`);
+        setIsAnalyzing(false);
+        return;
       }
-
-      setSuccess('Analysis completed successfully');
-      setTimeout(() => setSuccess(''), 3000);
-
-    } catch (error) {
-      console.error('Error analyzing notes:', error);
-      setError(`Failed to analyze notes: ${error.message}`);
-    } finally {
-      setIsAnalyzing(false);
     }
+    setError('Failed to analyze notes after multiple attempts due to rate limiting. Please try again later.');
+    setIsAnalyzing(false);
   };
 
   const clearAnalysis = () => {

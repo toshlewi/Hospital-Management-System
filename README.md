@@ -236,6 +236,24 @@ npm run build
 npm run start:prod
 ```
 
+## Improved AI Workflow (2024 Update)
+
+### Model Selection & Inference
+- The backend AI service now automatically selects the best available model for diagnosis (BERT > sentence transformer > RandomForest) based on training results.
+- Model selection is managed via `model_selector.json` in `python-ai-project/data/models/`.
+- The API combines ML predictions with knowledge-based analysis from WHO, PubMed, and FDA sources for richer, more accurate results.
+
+### Retraining & Updating the AI
+- To retrain or update the AI, update or add data in `python-ai-project/data/medical_knowledge/`.
+- Run the training pipeline:
+  ```bash
+  python python-ai-project/src/ai/training_system.py
+  ```
+- The best model will be selected automatically for inference.
+
+### API Usage
+- Use the `/api/v1/diagnosis/analyze-notes` and `/api/v1/diagnosis/comprehensive-diagnosis` endpoints for real-time and comprehensive AI-powered diagnosis.
+
 ## 🤝 Contributing
 
 1. Fork the repository

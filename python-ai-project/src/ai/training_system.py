@@ -507,7 +507,21 @@ class MedicalAITrainingSystem:
         with open(summary_path, 'w') as f:
             json.dump(summary, f, indent=2)
         
-        logger.info(f"Training completed. Models trained: {list(models_trained.keys())}")
+        # Save model selector (for inference)
+        selector = {}
+        if 'bert' in models_trained:
+            selector['diagnosis'] = 'bert'
+        elif 'sentence_transformer' in models_trained:
+            selector['diagnosis'] = 'sentence_transformer'
+        elif 'diagnosis' in models_trained:
+            selector['diagnosis'] = 'diagnosis'
+        else:
+            selector['diagnosis'] = None
+        selector_path = self.models_dir / "model_selector.json"
+        with open(selector_path, 'w') as f:
+            json.dump(selector, f, indent=2)
+        
+        logger.info(f"Training completed. Models trained: {list(models_trained.keys())}. Model selector: {selector}")
         return models_trained
 
 def main():
