@@ -10,3 +10,4 @@ rich
 pillow
 pydantic
 aiohttp
+beautifulsoup4
