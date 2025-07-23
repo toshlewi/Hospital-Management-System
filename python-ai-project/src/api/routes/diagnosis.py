@@ -160,6 +160,12 @@ class RealTimeAnalysisResponse(BaseModel):
     medical_category: str
     confidence: float
     recommendations: List[str]
+    primary_diagnosis: str
+    primary_confidence: float
+    differential_diagnosis: List[Dict[str, float]]
+    recommended_tests: List[str]
+    recommended_medications: List[str]
+    explanation: Optional[str] = None
 
 @router.post("/analyze-notes", response_model=RealTimeAnalysisResponse)
 async def analyze_clinician_notes(
@@ -170,22 +176,47 @@ async def analyze_clinician_notes(
     """
     try:
         logger.info(f"Received analyze-notes request: patient_id={request.patient_id}, notes_length={len(request.notes)}")
-        
-        # Mock response for development
+        result = await best_diagnosis_ai.analyze_clinician_notes(request.notes, request.patient_id)
+        ml_pred = result.get('ml_prediction', {})
+        enhanced = result.get('enhanced_analysis', {})
+        # Primary diagnosis and confidence
+        primary_diagnosis = ml_pred.get('prediction', None)
+        primary_confidence = ml_pred.get('confidence', 0.0)
+        # Differential diagnosis with probabilities
+        differential = []
+        if 'probabilities' in ml_pred and hasattr(best_diagnosis_ai.model, 'classes_'):
+            for label, prob in zip(best_diagnosis_ai.model.classes_, ml_pred['probabilities']):
+                if label != primary_diagnosis:
+                    differential.append({label: round(prob * 100, 2)})
+        # If not confident, say 'I don't know'
+        if not primary_diagnosis or primary_confidence < 0.3:
+            primary_diagnosis = "I don't know"
+            primary_confidence = 0.0
+            differential = []
+        # Recommended tests and medications from enhanced AI
+        recommended_tests = enhanced.get('recommendations', [])
+        recommended_medications = []
+        for rec in recommended_tests:
+            if any(word in rec.lower() for word in ['medication', 'drug', 'prescribe', 'start', 'give']):
+                recommended_medications.append(rec)
+        recommended_tests = [rec for rec in recommended_tests if rec not in recommended_medications]
+        # Explanation (optional)
+        explanation = f"Diagnosis based on input: {request.notes}"
         return RealTimeAnalysisResponse(
             patient_id=request.patient_id,
             timestamp=datetime.now(),
-            symptoms=["chest pain", "shortness of breath"],
-            urgency_score=0.7,
-            medical_category="Cardiovascular",
-            confidence=0.85,
-            recommendations=[
-                "Immediate ECG recommended",
-                "Consider cardiac enzymes",
-                "Monitor vital signs closely"
-            ]
+            symptoms=enhanced.get('symptoms', []),
+            urgency_score=enhanced.get('urgency_score', 0.0),
+            medical_category=enhanced.get('conditions', [{}])[0].get('condition', 'Unknown') if enhanced.get('conditions') else 'Unknown',
+            confidence=primary_confidence,
+            recommendations=enhanced.get('recommendations', []),
+            primary_diagnosis=primary_diagnosis,
+            primary_confidence=round(primary_confidence * 100, 2),
+            differential_diagnosis=differential,
+            recommended_tests=recommended_tests,
+            recommended_medications=recommended_medications,
+            explanation=explanation
         )
-        
     except Exception as e:
         logger.error(f"Error in analyze_clinician_notes: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -208,18 +239,47 @@ async def generate_comprehensive_diagnosis(
         )
         if "error" in diagnosis_result:
             raise HTTPException(status_code=500, detail=diagnosis_result["error"])
-        # Convert to response model (mock for now)
+        ml_pred = diagnosis_result.get('ml_prediction', {})
+        enhanced = diagnosis_result.get('enhanced_analysis', {})
+        # Primary diagnosis and confidence
+        primary_diagnosis = ml_pred.get('prediction', None)
+        primary_confidence = ml_pred.get('confidence', 0.0)
+        # Differential diagnosis with probabilities
+        differential = []
+        if 'probabilities' in ml_pred and hasattr(best_diagnosis_ai.model, 'classes_'):
+            for label, prob in zip(best_diagnosis_ai.model.classes_, ml_pred['probabilities']):
+                if label != primary_diagnosis:
+                    differential.append({label: round(prob * 100, 2)})
+        # If not confident, say 'I don't know'
+        if not primary_diagnosis or primary_confidence < 0.3:
+            primary_diagnosis = "I don't know"
+            primary_confidence = 0.0
+            differential = []
+        # Recommended tests and medications from enhanced AI
+        recommended_tests = enhanced.get('recommendations', [])
+        recommended_medications = []
+        for rec in recommended_tests:
+            if any(word in rec.lower() for word in ['medication', 'drug', 'prescribe', 'start', 'give']):
+                recommended_medications.append(rec)
+        recommended_tests = [rec for rec in recommended_tests if rec not in recommended_medications]
+        # Compose response
         response = DiagnosisResponse(
             patient_id=diagnosis_result["patient_id"],
             timestamp=datetime.fromisoformat(diagnosis_result["timestamp"]),
-            primary_diagnosis=diagnosis_result.get("ml_prediction", {}),
-            differential_diagnosis=[],
+            primary_diagnosis={
+                "diagnosis": primary_diagnosis,
+                "confidence": round(primary_confidence * 100, 2)
+            },
+            differential_diagnosis=differential,
             risk_assessment={},
-            treatment_plan={},
+            treatment_plan={
+                "recommended_tests": recommended_tests,
+                "recommended_medications": recommended_medications
+            },
             next_steps=[],
-            confidence_score=diagnosis_result.get("ml_prediction", {}).get("confidence", 0.0),
-            urgency_level=diagnosis_result.get("enhanced_analysis", {}).get("urgency_level", "Unknown"),
-            data_sources=diagnosis_result.get("enhanced_analysis", {}).get("data_sources", {})
+            confidence_score=round(primary_confidence * 100, 2),
+            urgency_level=enhanced.get("urgency_level", "Unknown"),
+            data_sources=enhanced.get("data_sources", {})
         )
         logger.info(f"Comprehensive diagnosis completed for patient {request.patient_id}")
         return response

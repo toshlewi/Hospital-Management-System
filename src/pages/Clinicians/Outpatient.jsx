@@ -254,7 +254,6 @@ const Outpatient = ({ onPatientSelect }) => {
   // Lab Order Functions
   const handleSubmitLabOrder = async () => {
     if (!labOrder.test_name.trim()) return;
-    
     setSubmittingLabOrder(true);
     try {
       const newOrder = await patientAPI.addTestOrder(selectedPatient.patient_id, {
@@ -276,6 +275,7 @@ const Outpatient = ({ onPatientSelect }) => {
       });
       setLabOrderDialog(false);
       showSnackbar('Lab order submitted successfully');
+      await loadPatientDetails(selectedPatient.patient_id); // Always refresh after order
     } catch (error) {
       console.error('Error submitting lab order:', error);
       showSnackbar('Error submitting lab order', 'error');
@@ -287,7 +287,6 @@ const Outpatient = ({ onPatientSelect }) => {
   // Prescription Functions
   const handleSubmitPrescription = async () => {
     if (!prescription.medication_name.trim() || !prescription.dosage.trim()) return;
-    
     setSubmittingPrescription(true);
     try {
       const newPrescription = await patientAPI.createPrescription(selectedPatient.patient_id, {
@@ -306,6 +305,7 @@ const Outpatient = ({ onPatientSelect }) => {
       });
       setPrescriptionDialog(false);
       showSnackbar('Prescription created successfully');
+      await loadPatientDetails(selectedPatient.patient_id); // Always refresh after prescription
     } catch (error) {
       console.error('Error creating prescription:', error);
       showSnackbar('Error creating prescription', 'error');
@@ -317,7 +317,6 @@ const Outpatient = ({ onPatientSelect }) => {
   // Imaging Order Functions
   const handleSubmitImagingOrder = async () => {
     if (!imagingOrder.imaging_type.trim()) return;
-    
     setSubmittingImagingOrder(true);
     try {
       const newOrder = await patientAPI.addTestOrder(selectedPatient.patient_id, {
@@ -343,6 +342,7 @@ const Outpatient = ({ onPatientSelect }) => {
       });
       setImagingOrderDialog(false);
       showSnackbar('Imaging order submitted successfully');
+      await loadPatientDetails(selectedPatient.patient_id); // Always refresh after order
     } catch (error) {
       console.error('Error submitting imaging order:', error);
       showSnackbar('Error submitting imaging order', 'error');
@@ -405,7 +405,7 @@ const Outpatient = ({ onPatientSelect }) => {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Container maxWidth="xl" sx={{ py: 4, minHeight: '100vh' }}>
       <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
         <MedicalIcon sx={{ mr: 2, color: 'primary.main' }} />
         Outpatient Clinic - Clinician Portal

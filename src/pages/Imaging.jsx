@@ -133,7 +133,7 @@ const Imaging = () => {
         status: 'completed'
       });
       setReportSubmitSuccess('Report submitted and test marked as completed!');
-      fetchImagingOrders();
+      await fetchImagingOrders(); // Always refresh after submit
     } catch (err) {
       setReportSubmitError('Failed to submit report.');
     } finally {
@@ -156,7 +156,7 @@ const Imaging = () => {
       formData.append('test_order_id', selectedPatient.order_id);
       await patientAPI.addImaging(selectedPatient.patient_id, formData);
       setImageUploadSuccess('Image uploaded successfully!');
-      fetchImagingOrders();
+      await fetchImagingOrders(); // Always refresh after upload
     } catch (err) {
       setImageUploadError('Failed to upload image.');
     } finally {
@@ -186,7 +186,7 @@ const Imaging = () => {
       sx={{ 
         py: 3,
         mt: 8,
-        minHeight: 'calc(100vh - 64px)',
+        minHeight: '100vh', // Full screen height
         backgroundColor: '#f5f5f5'
       }}
     >

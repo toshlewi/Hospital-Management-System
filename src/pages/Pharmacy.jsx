@@ -189,8 +189,8 @@ const Pharmacy = () => {
         },
         ...hist
       ]);
-      fetchDrugs();
-      fetchPrescriptions();
+      await fetchDrugs();
+      await fetchPrescriptions(); // Always refresh after dispensing
       setError('');
     } catch (err) {
       setError('Failed to dispense drug: ' + (err.message || ''));
@@ -219,7 +219,7 @@ const Pharmacy = () => {
       sx={{ 
         py: 3,
         mt: 8, // Add margin top to account for fixed header
-        minHeight: 'calc(100vh - 64px)', // Subtract header height
+        minHeight: '100vh', // Full screen height
         backgroundColor: '#f5f5f5',
         '& .MuiCard-root': {
           height: '100%',

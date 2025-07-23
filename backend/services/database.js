@@ -885,19 +885,22 @@ class DatabaseService {
   // Update prescription
   async updatePrescription(prescriptionId, updateData) {
     try {
+      const updateFields = {
+        status: updateData.status,
+        medications: updateData.medications,
+        dosage: updateData.dosage,
+        instructions: updateData.instructions,
+        quantity: updateData.quantity
+      };
+      if (updateData.status === 'completed') {
+        updateFields.dispensed_at = new Date().toISOString();
+      }
       const { data, error } = await this.supabase
         .from('prescriptions')
-        .update({
-          status: updateData.status,
-          medications: updateData.medications,
-          dosage: updateData.dosage,
-          instructions: updateData.instructions,
-          quantity: updateData.quantity
-        })
+        .update(updateFields)
         .eq('prescription_id', prescriptionId)
         .select()
         .single();
-      
       if (error) throw error;
       return data;
     } catch (error) {
@@ -922,8 +925,11 @@ class DatabaseService {
         }])
         .select()
         .single();
-      
       if (error) throw error;
+      // Patch: update test_order status to completed
+      if (resultData.order_id) {
+        await this.updateTestOrder(resultData.order_id, { status: 'completed' });
+      }
       return data;
     } catch (error) {
       console.error('Error adding lab result:', error);
@@ -945,8 +951,11 @@ class DatabaseService {
         }])
         .select()
         .single();
-      
       if (error) throw error;
+      // Patch: update test_order status to completed
+      if (imagingData.order_id) {
+        await this.updateTestOrder(imagingData.order_id, { status: 'completed' });
+      }
       return data;
     } catch (error) {
       console.error('Error adding imaging:', error);

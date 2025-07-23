@@ -227,7 +227,7 @@ const Lab = () => {
         status: 'completed'
       });
       setResultSuccess('Result saved and sent to doctor!');
-      fetchLabOrders();
+      await fetchLabOrders(); // Always refresh after save
     } catch (err) {
       setResultError('Failed to save result.');
     } finally {
@@ -251,6 +251,7 @@ const Lab = () => {
       const res = await patientAPI.uploadLabResult(selectedOrder.patient.patient_id, formData);
       setUploadSuccess('File uploaded successfully!');
       setUploadedFile({ path: res.file_path, type: file.type, name: file.name });
+      await fetchLabOrders(); // Always refresh after upload
     } catch (err) {
       setUploadError('Failed to upload file.');
     } finally {
@@ -327,7 +328,7 @@ const Lab = () => {
       sx={{ 
         py: 3,
         mt: 8,
-        minHeight: 'calc(100vh - 64px)',
+        minHeight: '100vh', // Full screen height
         backgroundColor: '#f5f5f5'
       }}
     >
