@@ -202,7 +202,19 @@ class EnhancedDiagnosisAI:
             
         except Exception as e:
             logger.error(f"Error analyzing clinician notes: {e}")
-            return {"error": str(e)}
+            return {
+                "patient_id": patient_id,
+                "timestamp": datetime.now().isoformat(),
+                "symptoms": [],
+                "conditions": [],
+                "urgency_score": 0.0,
+                "urgency_level": "low",
+                "recommendations": [],
+                "risk_assessment": {},
+                "confidence": 0.0,
+                "data_sources": {},
+                "error": str(e)
+            }
     
     def _extract_symptoms(self, notes: str) -> List[str]:
         """Extract symptoms from clinician notes"""
