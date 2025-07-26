@@ -140,17 +140,7 @@ exports.getTestResults = async (req, res) => {
     }
 };
 
-// Get Patient's Prescriptions
-exports.getPrescriptions = async (req, res) => {
-    try {
-        const prescriptions = await dbService.getPrescriptions(req.params.id);
-        res.send(prescriptions);
-    } catch (err) {
-        res.status(500).send({
-            message: err.message || "Error retrieving prescriptions."
-        });
-    }
-};
+
 
 // --- Medical Notes ---
 exports.getMedicalNotes = async (req, res) => {
@@ -499,6 +489,19 @@ exports.addTestOrder = async (req, res) => {
     // Validate required fields
     if (!orderData.test_name) {
       return res.status(400).json({ message: 'Test name is required' });
+    }
+    
+    // Additional validation for imaging orders
+    if (orderData.test_type === 'imaging') {
+      if (!orderData.body_part || !orderData.body_part.trim()) {
+        return res.status(400).json({ message: 'Body part is required for imaging orders' });
+      }
+      if (!orderData.clinical_notes || !orderData.clinical_notes.trim()) {
+        return res.status(400).json({ message: 'Clinical notes are required for imaging orders' });
+      }
+      if (!orderData.differential_diagnosis || !orderData.differential_diagnosis.trim()) {
+        return res.status(400).json({ message: 'Differential diagnosis is required for imaging orders' });
+      }
     }
     
     const order = await dbService.addTestOrder(patientId, orderData);

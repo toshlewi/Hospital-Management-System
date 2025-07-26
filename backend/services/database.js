@@ -380,7 +380,7 @@ class DatabaseService {
   }
 
   // Prescription operations
-  async getPrescriptions() {
+  async getAllPrescriptions() {
     try {
       const { data, error } = await this.supabase
         .from('prescriptions')
