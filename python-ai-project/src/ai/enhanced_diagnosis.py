@@ -146,9 +146,15 @@ class EnhancedDiagnosisAI:
             logger.error(f"Error loading WHO data: {e}")
 
     async def _load_drug_interactions(self):
-        """Load drug interaction data (simplified to avoid API issues)"""
+        """Load drug interaction data using enhanced API system"""
         try:
-            # Use static drug interaction data instead of FDA API calls
+            # Import the enhanced drug interaction API
+            from .drug_interaction_api import DrugInteractionAPI
+            
+            # Initialize the drug interaction API
+            self.drug_interaction_api = DrugInteractionAPI()
+            
+            # Load basic drug data for compatibility
             drug_data = {
                 "drug_aspirin": {
                     "interactions": ["warfarin", "ibuprofen", "alcohol"],
@@ -512,8 +518,13 @@ class EnhancedDiagnosisAI:
             return {"error": str(e)}
     
     async def analyze_drug_interactions(self, medications: List[str]) -> Dict[str, Any]:
-        """Analyze potential drug interactions"""
+        """Analyze potential drug interactions using enhanced API system"""
         try:
+            # Use the enhanced drug interaction API if available
+            if hasattr(self, 'drug_interaction_api'):
+                return await self.drug_interaction_api.analyze_medication_list(medications)
+            
+            # Fallback to original method
             interactions = []
             
             for i, med1 in enumerate(medications):

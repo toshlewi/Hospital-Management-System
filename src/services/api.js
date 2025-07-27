@@ -125,17 +125,109 @@ export const patientAPI = {
   },
 
   // Get patient's prescriptions
-  getPatientPrescriptions: (patientId) => api.get(`/patients/${patientId}/prescriptions`).then(res => res.data)
+  getPatientPrescriptions: (patientId) => api.get(`/patients/${patientId}/prescriptions`).then(res => res.data),
+
+  // Get patient's dispensed prescriptions (for history)
+  getDispensedPrescriptions: (patientId) => api.get(`/patients/${patientId}/prescriptions/dispensed`).then(res => res.data)
 };
 
-// AI Diagnosis
+// AI Comprehensive API
 export const aiAPI = {
+  // Diagnosis Analysis
   diagnose: async (data) => {
     try {
       const response = await api.post('/ai/diagnose', data);
       return response.data;
     } catch (error) {
       console.error('Error with AI diagnosis:', error);
+      throw error;
+    }
+  },
+
+  // Lab Test Analysis
+  analyzeLabResults: async (data) => {
+    try {
+      const response = await api.post('/ai/analyze-lab-results', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error with lab analysis:', error);
+      throw error;
+    }
+  },
+
+  // Drug Interaction Analysis
+  analyzeDrugInteractions: async (data) => {
+    try {
+      const response = await api.post('/ai/analyze-drug-interactions', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error with drug interaction analysis:', error);
+      throw error;
+    }
+  },
+
+  // Symptom Analysis
+  analyzeSymptoms: async (data) => {
+    try {
+      const response = await api.post('/ai/analyze-symptoms', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error with symptom analysis:', error);
+      throw error;
+    }
+  },
+
+  // Treatment Analysis
+  analyzeTreatment: async (data) => {
+    try {
+      const response = await api.post('/ai/analyze-treatment', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error with treatment analysis:', error);
+      throw error;
+    }
+  },
+
+  // Imaging Analysis
+  analyzeImaging: async (data) => {
+    try {
+      const response = await api.post('/ai/analyze-imaging', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error with imaging analysis:', error);
+      throw error;
+    }
+  },
+
+  // Comprehensive Analysis
+  analyzeComprehensive: async (data) => {
+    try {
+      const response = await api.post('/ai/analyze-comprehensive', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error with comprehensive analysis:', error);
+      throw error;
+    }
+  },
+
+  // Real-time Analysis
+  analyzeRealTime: async (data) => {
+    try {
+      const response = await api.post('/ai/analyze-real-time', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error with real-time analysis:', error);
+      throw error;
+    }
+  },
+
+  // Get Patient History for AI Analysis
+  getPatientHistory: async (patientId) => {
+    try {
+      const response = await api.get(`/patients/${patientId}/history`);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting patient history:', error);
       throw error;
     }
   }

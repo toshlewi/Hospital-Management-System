@@ -435,6 +435,8 @@ const Outpatient = ({ onPatientSelect }) => {
     );
   }
 
+
+
   return (
     <Container maxWidth="xl" sx={{ py: 4, minHeight: '100vh' }}>
       <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>

@@ -381,6 +381,22 @@ exports.getPrescriptions = async (req, res) => {
   }
 };
 
+// Get patient's dispensed prescriptions
+exports.getDispensedPrescriptions = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const prescriptions = await dbService.getAllPrescriptions(patientId);
+    // Filter to only dispensed prescriptions
+    const dispensedPrescriptions = prescriptions.filter(p => 
+      p.status === 'completed' || p.dispensed_at !== null
+    );
+    res.json(dispensedPrescriptions);
+  } catch (error) {
+    console.error('Error fetching dispensed prescriptions:', error);
+    res.status(500).json({ message: 'Error fetching dispensed prescriptions', error: error.message });
+  }
+};
+
 // Create new patient
 exports.createPatient = async (req, res) => {
   try {

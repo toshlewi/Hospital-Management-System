@@ -227,12 +227,34 @@ class DatabaseService {
         .from('prescriptions')
         .select('*')
         .eq('patient_id', patientId)
+        .neq('status', 'completed') // Only get active prescriptions
+        .is('dispensed_at', null) // Only get non-dispensed prescriptions
         .order('prescribed_date', { ascending: false });
       
       if (error) throw error;
       return data;
     } catch (error) {
       console.error('Error fetching prescriptions:', error);
+      throw error;
+    }
+  }
+
+  async getAllPrescriptions(patientId) {
+    try {
+      if (!this.supabase) {
+        throw new Error('Supabase connection not available');
+      }
+      
+      const { data, error } = await this.supabase
+        .from('prescriptions')
+        .select('*')
+        .eq('patient_id', patientId)
+        .order('prescribed_date', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching all prescriptions:', error);
       throw error;
     }
   }

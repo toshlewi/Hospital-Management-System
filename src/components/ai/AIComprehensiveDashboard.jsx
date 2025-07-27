@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -9,22 +9,26 @@ import {
   Chip,
   Alert,
   CircularProgress,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Divider,
+  Tabs,
+  Tab,
   Grid,
   Paper,
   IconButton,
   Tooltip,
   Badge,
   LinearProgress,
-  Tabs,
-  Tab,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Divider,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
   Table,
   TableBody,
   TableCell,
@@ -38,11 +42,9 @@ import {
   Switch,
   FormControlLabel,
   Slider,
-  Collapse,
-  Fade,
-  Zoom,
-  Slide,
-  ResizeHandle
+  Rating,
+  Avatar,
+  Stack
 } from '@mui/material';
 import {
   AutoFixHigh,
@@ -107,75 +109,17 @@ import {
   ThumbDown,
   Star,
   StarBorder,
-  StarHalf,
-  DragIndicator,
-  UnfoldMore,
-  UnfoldLess,
-  Minimize,
-  Maximize,
-  Fullscreen,
-  FullscreenExit,
-  ZoomIn,
-  ZoomOut,
-  FitScreen,
-  ViewModule,
-  ViewList,
-  ViewComfy,
-  ViewHeadline,
-  ViewStream,
-  ViewWeek,
-  ViewDay,
-  ViewAgenda,
-  ViewCarousel,
-  ViewQuilt,
-  ViewSidebar,
-  ViewTimeline,
-  ViewInAr,
-  ViewComfyAlt,
-  ViewCompact,
-  ViewCompactAlt,
-  ViewCozy,
-  ViewKanban,
-  ViewListAlt,
-  ViewModuleAlt,
-  ViewQuiltAlt,
-  ViewSidebarAlt,
-  ViewStreamAlt,
-  ViewTimelineAlt,
-  ViewWeekAlt,
-  ViewDayAlt,
-  ViewAgendaAlt,
-  ViewCarouselAlt,
-  ViewInArAlt,
-  ViewComfyAlt2,
-  ViewCompactAlt2,
-  ViewCozyAlt,
-  ViewKanbanAlt,
-  ViewListAlt2,
-  ViewModuleAlt2,
-  ViewQuiltAlt2,
-  ViewSidebarAlt2,
-  ViewStreamAlt2,
-  ViewTimelineAlt2,
-  ViewWeekAlt2,
-  ViewDayAlt2,
-  ViewAgendaAlt2,
-  ViewCarouselAlt2,
-  ViewInArAlt2
+  StarHalf
 } from '@mui/icons-material';
 import { useDebounce } from 'use-debounce';
 import { aiAPI } from '../../services/api';
 
-const RightSideAIPanel = ({ 
+const AIComprehensiveDashboard = ({ 
   patientId, 
   patientData, 
-  currentPage, 
-  currentData, 
   onAnalysisUpdate,
   isOpen = true,
-  onClose,
-  width = 400,
-  onWidthChange
+  onClose
 }) => {
   // State management
   const [activeTab, setActiveTab] = useState(0);
@@ -191,17 +135,20 @@ const RightSideAIPanel = ({
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [autoAnalysis, setAutoAnalysis] = useState(true);
+  const [analysisMode, setAnalysisMode] = useState('comprehensive'); // comprehensive, focused, quick
+  const [confidenceThreshold, setConfidenceThreshold] = useState(0.7);
   const [realTimeUpdates, setRealTimeUpdates] = useState(true);
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [patientHistory, setPatientHistory] = useState(null);
-  const [notes, setNotes] = useState('');
-  const [debouncedNotes] = useDebounce(notes, 1000);
 
-  // Refs
-  const panelRef = useRef(null);
-  const resizeRef = useRef(null);
-  const isResizing = useRef(false);
+  // Input states
+  const [notes, setNotes] = useState('');
+  const [medications, setMedications] = useState([]);
+  const [labResults, setLabResults] = useState([]);
+  const [imagingResults, setImagingResults] = useState([]);
+  const [symptoms, setSymptoms] = useState([]);
+
+  // Debounced inputs
+  const [debouncedNotes] = useDebounce(notes, 1000);
+  const [debouncedMedications] = useDebounce(medications, 500);
 
   // Tab configuration
   const tabs = [
@@ -213,13 +160,6 @@ const RightSideAIPanel = ({
     { label: 'Imaging', icon: <Image />, key: 'imaging' }
   ];
 
-  // Initialize component
-  useEffect(() => {
-    if (patientId) {
-      loadPatientHistory();
-    }
-  }, [patientId]);
-
   // Real-time analysis triggers
   useEffect(() => {
     if (realTimeUpdates && debouncedNotes && debouncedNotes.trim().length > 10) {
@@ -227,25 +167,19 @@ const RightSideAIPanel = ({
     }
   }, [debouncedNotes, realTimeUpdates]);
 
+  useEffect(() => {
+    if (realTimeUpdates && debouncedMedications.length > 0) {
+      analyzeDrugInteractions();
+    }
+  }, [debouncedMedications, realTimeUpdates]);
+
   // Auto-analysis on patient data change
   useEffect(() => {
-    if (autoAnalysis && (patientData || currentData)) {
+    if (autoAnalysis && patientData) {
       analyzeComprehensive();
     }
-  }, [patientData, currentData, autoAnalysis]);
+  }, [patientData, autoAnalysis]);
 
-  // Load patient history
-  const loadPatientHistory = async () => {
-    try {
-      // Load patient history from API
-      const history = await aiAPI.getPatientHistory(patientId);
-      setPatientHistory(history);
-    } catch (error) {
-      console.error('Error loading patient history:', error);
-    }
-  };
-
-  // Comprehensive analysis
   const analyzeComprehensive = async () => {
     setIsAnalyzing(true);
     setError('');
@@ -287,11 +221,10 @@ const RightSideAIPanel = ({
     }
   };
 
-  // Individual analysis functions
   const analyzeDiagnosis = async () => {
     try {
       const result = await aiAPI.diagnose({
-        note_text: notes || JSON.stringify({ patientData, currentData, patientHistory }),
+        note_text: notes || JSON.stringify(patientData),
         patient_id: patientId || 1,
         timestamp: new Date().toISOString()
       });
@@ -305,7 +238,7 @@ const RightSideAIPanel = ({
     try {
       const result = await aiAPI.analyzeLabResults({
         patient_id: patientId || 1,
-        lab_results: currentData?.labResults || [],
+        lab_results: labResults,
         notes: notes
       });
       return result;
@@ -316,29 +249,10 @@ const RightSideAIPanel = ({
 
   const analyzeDrugInteractions = async () => {
     try {
-      // Get medications from multiple sources
-      let medications = currentData?.medications || [];
-      
-      // If no medications in currentData, try to get from patient prescriptions
-      if (medications.length === 0 && patientData?.prescriptions) {
-        medications = patientData.prescriptions
-          .map(p => p.medication_name || p.medications)
-          .filter(Boolean);
-      }
-      
-      // If still no medications, use some common drugs for testing
-      if (medications.length === 0) {
-        medications = ['Paracetamol', 'Ibuprofen', 'Amoxicillin'];
-      }
-      
-      console.log('Analyzing drug interactions for medications:', medications);
-      
       const result = await aiAPI.analyzeDrugInteractions({
         patient_id: patientId || 1,
         medications: medications
       });
-      
-      console.log('Drug interaction analysis result:', result);
       return result;
     } catch (error) {
       throw new Error(`Drug interaction analysis failed: ${error.message}`);
@@ -349,7 +263,7 @@ const RightSideAIPanel = ({
     try {
       const result = await aiAPI.analyzeSymptoms({
         patient_id: patientId || 1,
-        symptoms: currentData?.symptoms || [],
+        symptoms: symptoms,
         notes: notes
       });
       return result;
@@ -363,8 +277,8 @@ const RightSideAIPanel = ({
       const result = await aiAPI.analyzeTreatment({
         patient_id: patientId || 1,
         diagnosis: analysisResults.diagnosis,
-        symptoms: currentData?.symptoms || [],
-        lab_results: currentData?.labResults || []
+        symptoms: symptoms,
+        lab_results: labResults
       });
       return result;
     } catch (error) {
@@ -376,7 +290,7 @@ const RightSideAIPanel = ({
     try {
       const result = await aiAPI.analyzeImaging({
         patient_id: patientId || 1,
-        imaging_results: currentData?.imagingResults || []
+        imaging_results: imagingResults
       });
       return result;
     } catch (error) {
@@ -384,29 +298,24 @@ const RightSideAIPanel = ({
     }
   };
 
-  // Resize functionality
-  const handleMouseDown = (e) => {
-    isResizing.current = true;
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+  const clearAllAnalysis = () => {
+    setAnalysisResults({
+      diagnosis: null,
+      labTests: null,
+      drugInteractions: null,
+      symptoms: null,
+      treatment: null,
+      imaging: null
+    });
+    setNotes('');
+    setMedications([]);
+    setLabResults([]);
+    setImagingResults([]);
+    setSymptoms([]);
+    setError('');
+    setSuccess('');
   };
 
-  const handleMouseMove = (e) => {
-    if (!isResizing.current) return;
-    
-    const newWidth = window.innerWidth - e.clientX;
-    if (newWidth > 300 && newWidth < 800) {
-      onWidthChange?.(newWidth);
-    }
-  };
-
-  const handleMouseUp = () => {
-    isResizing.current = false;
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
-  };
-
-  // Utility functions
   const getUrgencyColor = (level) => {
     switch (level?.toLowerCase()) {
       case 'critical': return 'error';
@@ -422,21 +331,6 @@ const RightSideAIPanel = ({
     return 'error';
   };
 
-  const clearAllAnalysis = () => {
-    setAnalysisResults({
-      diagnosis: null,
-      labTests: null,
-      drugInteractions: null,
-      symptoms: null,
-      treatment: null,
-      imaging: null
-    });
-    setNotes('');
-    setError('');
-    setSuccess('');
-  };
-
-  // Render functions for each tab
   const renderDiagnosisTab = () => (
     <Box>
       <Card sx={{ mb: 2 }}>
@@ -459,7 +353,7 @@ const RightSideAIPanel = ({
                 </Alert>
               </Grid>
 
-              {analysisResults.diagnosis.differential_diagnosis && Array.isArray(analysisResults.diagnosis.differential_diagnosis) && (
+              {analysisResults.diagnosis.differential_diagnosis && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle1" gutterBottom>
                     Differential Diagnosis
@@ -480,7 +374,7 @@ const RightSideAIPanel = ({
                 </Grid>
               )}
 
-              {analysisResults.diagnosis.recommended_tests && Array.isArray(analysisResults.diagnosis.recommended_tests) && (
+              {analysisResults.diagnosis.recommended_tests && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle1" gutterBottom>
                     Recommended Tests
@@ -514,7 +408,7 @@ const RightSideAIPanel = ({
           
           {analysisResults.labTests ? (
             <Grid container spacing={2}>
-              {analysisResults.labTests.abnormal_values && Array.isArray(analysisResults.labTests.abnormal_values) && (
+              {analysisResults.labTests.abnormal_values && (
                 <Grid item xs={12}>
                   <Alert severity="warning" sx={{ mb: 2 }}>
                     <Typography variant="subtitle2" gutterBottom>
@@ -537,7 +431,7 @@ const RightSideAIPanel = ({
                 </Grid>
               )}
 
-              {analysisResults.labTests.trends && Array.isArray(analysisResults.labTests.trends) && (
+              {analysisResults.labTests.trends && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle1" gutterBottom>
                     Trends Analysis
@@ -591,7 +485,7 @@ const RightSideAIPanel = ({
                 </Alert>
               </Grid>
 
-              {analysisResults.drugInteractions.warnings && Array.isArray(analysisResults.drugInteractions.warnings) && (
+              {analysisResults.drugInteractions.warnings && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle1" gutterBottom>
                     ⚠️ Warnings
@@ -609,7 +503,7 @@ const RightSideAIPanel = ({
                 </Grid>
               )}
 
-              {analysisResults.drugInteractions.recommendations && Array.isArray(analysisResults.drugInteractions.recommendations) && (
+              {analysisResults.drugInteractions.recommendations && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle1" gutterBottom>
                     💡 Recommendations
@@ -627,7 +521,7 @@ const RightSideAIPanel = ({
                 </Grid>
               )}
 
-              {analysisResults.drugInteractions.interactions && Array.isArray(analysisResults.drugInteractions.interactions) && (
+              {analysisResults.drugInteractions.interactions && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle1" gutterBottom>
                     🔍 Detailed Interactions
@@ -664,34 +558,9 @@ const RightSideAIPanel = ({
               )}
             </Grid>
           ) : (
-            <Box>
-              <Typography color="text.secondary" gutterBottom>
-                No drug interaction analysis available.
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                The system will analyze interactions when medications are available from:
-              </Typography>
-              <List dense>
-                <ListItem>
-                  <ListItemIcon>
-                    <Info color="info" />
-                  </ListItemIcon>
-                  <ListItemText primary="Current patient prescriptions" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <Info color="info" />
-                  </ListItemIcon>
-                  <ListItemText primary="Active medications list" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <Info color="info" />
-                  </ListItemIcon>
-                  <ListItemText primary="Sample medications (for testing)" />
-                </ListItem>
-              </List>
-            </Box>
+            <Typography color="text.secondary">
+              No drug interaction analysis available. Add medications to see analysis.
+            </Typography>
           )}
         </CardContent>
       </Card>
@@ -707,7 +576,7 @@ const RightSideAIPanel = ({
             Symptom Analysis
           </Typography>
           
-          {analysisResults.symptoms && Array.isArray(analysisResults.symptoms) && analysisResults.symptoms.length > 0 ? (
+          {analysisResults.symptoms ? (
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <Typography variant="subtitle1" gutterBottom>
@@ -764,7 +633,7 @@ const RightSideAIPanel = ({
             Treatment Plan Analysis
           </Typography>
           
-          {analysisResults.treatment && Array.isArray(analysisResults.treatment) ? (
+          {analysisResults.treatment ? (
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <Typography variant="subtitle1" gutterBottom>
@@ -801,14 +670,14 @@ const RightSideAIPanel = ({
             Imaging Analysis
           </Typography>
           
-          {analysisResults.imaging && analysisResults.imaging.findings && Array.isArray(analysisResults.imaging.findings) ? (
+          {analysisResults.imaging ? (
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <Typography variant="subtitle1" gutterBottom>
                   Imaging Findings
                 </Typography>
                 <List dense>
-                  {analysisResults.imaging.findings.map((finding, index) => (
+                  {analysisResults.imaging.findings?.map((finding, index) => (
                     <ListItem key={index}>
                       <ListItemIcon>
                         <Image color="info" />
@@ -844,134 +713,43 @@ const RightSideAIPanel = ({
     }
   };
 
-  // If minimized, show only a small indicator
-  if (isMinimized) {
-    return (
-      <Box
-        sx={{
-          position: 'fixed',
-          right: 0,
-          top: '50%',
-          transform: 'translateY(-50%)',
-          zIndex: 1000,
-          bgcolor: 'primary.main',
-          color: 'white',
-          p: 1,
-          borderRadius: '8px 0 0 8px',
-          cursor: 'pointer',
-          boxShadow: 2
-        }}
-        onClick={() => setIsMinimized(false)}
-      >
-        <SmartToy sx={{ fontSize: 24 }} />
-      </Box>
-    );
-  }
-
-  // If collapsed, show only header
-  if (isCollapsed) {
-    return (
-      <Box
-        sx={{
-          position: 'fixed',
-          right: 0,
-          top: 0,
-          height: '100vh',
-          width: 60,
-          bgcolor: 'primary.main',
-          color: 'white',
-          zIndex: 1000,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          pt: 2,
-          boxShadow: 2
-        }}
-      >
-        <SmartToy sx={{ fontSize: 24, mb: 2 }} />
-        <IconButton 
-          sx={{ color: 'white', mb: 1 }} 
-          onClick={() => setIsCollapsed(false)}
-        >
-          <UnfoldMore />
-        </IconButton>
-        <IconButton 
-          sx={{ color: 'white', mb: 1 }} 
-          onClick={() => setIsMinimized(true)}
-        >
-          <Minimize />
-        </IconButton>
-        <IconButton 
-          sx={{ color: 'white' }} 
-          onClick={onClose}
-        >
-          <Close />
-        </IconButton>
-      </Box>
-    );
-  }
-
   return (
-    <Box
-      ref={panelRef}
-      sx={{
-        position: 'fixed',
-        right: 0,
-        top: 0,
-        height: '100vh',
-        width: { xs: '100vw', md: width }, // Responsive width
-        bgcolor: 'background.paper',
-        borderLeft: { xs: 'none', md: '2px solid' },
-        borderColor: 'primary.main',
-        zIndex: 1000,
-        display: 'flex',
-        flexDirection: 'column',
-        boxShadow: '-4px 0 20px rgba(0,0,0,0.1)',
-        background: 'linear-gradient(135deg, #fafbfc 0%, #f0f2f5 100%)'
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      maxWidth="xl"
+      fullWidth
+      PaperProps={{
+        sx: {
+          height: '90vh',
+          maxHeight: '90vh',
+          background: 'linear-gradient(135deg, #fafbfc 0%, #f0f2f5 100%)'
+        }
       }}
     >
-      {/* Resize Handle */}
-      <Box
-        ref={resizeRef}
-        onMouseDown={handleMouseDown}
-        sx={{
-          position: 'absolute',
-          left: -4,
-          top: 0,
-          width: 8,
-          height: '100%',
-          cursor: 'col-resize',
-          bgcolor: 'transparent',
-          '&:hover': {
-            bgcolor: 'primary.main',
-            opacity: 0.3
-          }
-        }}
-      />
-
-      {/* Header */}
-      <Box sx={{ 
-        p: 2,
+      <DialogTitle sx={{ 
         background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
         color: 'white',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center'
       }}>
-        <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>
-          <SmartToy sx={{ mr: 1.5, fontSize: '1.5rem' }} />
-          AI Assistant
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <SmartToy sx={{ mr: 2, fontSize: '2rem' }} />
+          <Typography variant="h5" fontWeight="bold">
+            AI Comprehensive Medical Dashboard
+          </Typography>
+        </Box>
         
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Tooltip title="Collapse">
-            <IconButton onClick={() => setIsCollapsed(true)} sx={{ color: 'white' }} size="small">
-              <UnfoldLess />
+          <Tooltip title="Settings">
+            <IconButton sx={{ color: 'white' }} size="small">
+              <Settings />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Minimize">
-            <IconButton onClick={() => setIsMinimized(true)} sx={{ color: 'white' }} size="small">
-              <Minimize />
+          <Tooltip title="Help">
+            <IconButton sx={{ color: 'white' }} size="small">
+              <Help />
             </IconButton>
           </Tooltip>
           <Tooltip title="Close">
@@ -980,123 +758,137 @@ const RightSideAIPanel = ({
             </IconButton>
           </Tooltip>
         </Box>
-      </Box>
+      </DialogTitle>
 
-      {/* Control Panel */}
-      <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={autoAnalysis}
-                onChange={(e) => setAutoAnalysis(e.target.checked)}
-                size="small"
-              />
-            }
-            label="Auto"
-          />
-          <FormControlLabel
-            control={
-              <Switch
-                checked={realTimeUpdates}
-                onChange={(e) => setRealTimeUpdates(e.target.checked)}
-                size="small"
-              />
-            }
-            label="Real-time"
-          />
+      <DialogContent sx={{ p: 0, display: 'flex', flexDirection: 'column' }}>
+        {/* Control Panel */}
+        <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} md={6}>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={autoAnalysis}
+                      onChange={(e) => setAutoAnalysis(e.target.checked)}
+                    />
+                  }
+                  label="Auto Analysis"
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={realTimeUpdates}
+                      onChange={(e) => setRealTimeUpdates(e.target.checked)}
+                    />
+                  }
+                  label="Real-time Updates"
+                />
+              </Box>
+            </Grid>
+            
+            <Grid item xs={12} md={6}>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                <FormControl size="small" sx={{ minWidth: 120 }}>
+                  <InputLabel>Analysis Mode</InputLabel>
+                  <Select
+                    value={analysisMode}
+                    onChange={(e) => setAnalysisMode(e.target.value)}
+                    label="Analysis Mode"
+                  >
+                    <MenuItem value="comprehensive">Comprehensive</MenuItem>
+                    <MenuItem value="focused">Focused</MenuItem>
+                    <MenuItem value="quick">Quick</MenuItem>
+                  </Select>
+                </FormControl>
+                
+                <Button
+                  variant="contained"
+                  startIcon={<AutoFixHigh />}
+                  onClick={analyzeComprehensive}
+                  disabled={isAnalyzing}
+                >
+                  {isAnalyzing ? 'Analyzing...' : 'Run Analysis'}
+                </Button>
+                
+                <Button
+                  variant="outlined"
+                  startIcon={<Clear />}
+                  onClick={clearAllAnalysis}
+                >
+                  Clear
+                </Button>
+              </Box>
+            </Grid>
+          </Grid>
         </Box>
+
+        {/* Alerts */}
+        {error && (
+          <Alert severity="error" sx={{ m: 2 }} onClose={() => setError('')}>
+            {error}
+          </Alert>
+        )}
         
-        <Button
-          variant="contained"
-          startIcon={<AutoFixHigh />}
-          onClick={analyzeComprehensive}
-          disabled={isAnalyzing}
-          fullWidth
-          size="small"
-        >
-          {isAnalyzing ? 'Analyzing...' : 'Run Analysis'}
-        </Button>
-      </Box>
+        {success && (
+          <Alert severity="success" sx={{ m: 2 }} onClose={() => setSuccess('')}>
+            {success}
+          </Alert>
+        )}
 
-      {/* Alerts */}
-      {error && (
-        <Alert severity="error" sx={{ m: 2 }} onClose={() => setError('')}>
-          {error}
-        </Alert>
-      )}
-      
-      {success && (
-        <Alert severity="success" sx={{ m: 2 }} onClose={() => setSuccess('')}>
-          {success}
-        </Alert>
-      )}
-
-      {/* Progress Indicator */}
-      {isAnalyzing && (
-        <Box sx={{ p: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <CircularProgress size={16} sx={{ mr: 1 }} />
-            <Typography variant="body2" color="text.secondary">
-              AI analyzing...
-            </Typography>
+        {/* Progress Indicator */}
+        {isAnalyzing && (
+          <Box sx={{ p: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <CircularProgress size={20} sx={{ mr: 1 }} />
+              <Typography variant="body2" color="text.secondary">
+                AI is analyzing medical data...
+              </Typography>
+            </Box>
+            <LinearProgress />
           </Box>
-          <LinearProgress />
+        )}
+
+        {/* Main Content */}
+        <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+          {/* Tabs */}
+          <Box sx={{ width: 200, borderRight: 1, borderColor: 'divider' }}>
+            <Tabs
+              orientation="vertical"
+              value={activeTab}
+              onChange={(e, newValue) => setActiveTab(newValue)}
+              sx={{ borderRight: 1, borderColor: 'divider' }}
+            >
+              {tabs.map((tab, index) => (
+                <Tab
+                  key={index}
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {tab.icon}
+                      <Typography variant="body2">{tab.label}</Typography>
+                      {analysisResults[tab.key] && (
+                        <Badge badgeContent="✓" color="success" />
+                      )}
+                    </Box>
+                  }
+                  sx={{ 
+                    alignItems: 'flex-start',
+                    textAlign: 'left',
+                    minHeight: 60
+                  }}
+                />
+              ))}
+            </Tabs>
+          </Box>
+
+          {/* Tab Content */}
+          <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+            {renderTabContent()}
+          </Box>
         </Box>
-      )}
-
-      {/* Tabs */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs
-          value={activeTab}
-          onChange={(e, newValue) => setActiveTab(newValue)}
-          variant="scrollable"
-          scrollButtons="auto"
-          sx={{ minHeight: 48 }}
-        >
-          {tabs.map((tab, index) => (
-            <Tab
-              key={index}
-              label={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  {tab.icon}
-                  <Typography variant="caption">{tab.label}</Typography>
-                  {analysisResults[tab.key] && analysisResults[tab.key] !== null && (
-                    <Badge badgeContent="✓" color="success" size="small" />
-                  )}
-                </Box>
-              }
-              sx={{ 
-                minHeight: 48,
-                fontSize: '0.75rem',
-                '& .MuiTab-iconWrapper': { fontSize: '1rem' }
-              }}
-            />
-          ))}
-        </Tabs>
-      </Box>
-
-      {/* Tab Content */}
-      <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
-        {renderTabContent()}
-      </Box>
-
-      {/* Notes Input */}
-      <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
-        <TextField
-          fullWidth
-          multiline
-          rows={2}
-          variant="outlined"
-          placeholder="Add notes for AI analysis..."
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          disabled={isAnalyzing}
-          size="small"
-        />
-      </Box>
-    </Box>
+      </DialogContent>
+    </Dialog>
   );
 };
 
-export default RightSideAIPanel; 
+export default AIComprehensiveDashboard; 

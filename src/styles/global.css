@@ -227,4 +227,47 @@ code {
   background-color: #d1ecf1;
   color: #0c5460;
   border: 1px solid #bee5eb;
+}
+
+/* Responsive table styles for AI layout compatibility */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive table {
+  min-width: 100%;
+  white-space: nowrap;
+}
+
+/* Ensure tables don't overflow in AI layout */
+.ai-layout-content table {
+  max-width: 100%;
+  table-layout: auto;
+}
+
+.ai-layout-content .MuiTableContainer-root {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* Responsive grid adjustments for AI layout */
+.ai-layout-content .MuiGrid-container {
+  max-width: 100%;
+}
+
+.ai-layout-content .MuiGrid-item {
+  min-width: 0;
+}
+
+/* Ensure cards don't overflow */
+.ai-layout-content .MuiCard-root {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Responsive text handling */
+.ai-layout-content .MuiTypography-root {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 } 

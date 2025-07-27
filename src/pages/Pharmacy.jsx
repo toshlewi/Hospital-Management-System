@@ -40,7 +40,9 @@ import {
   Add,
   Remove,
   Search,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  ExpandMore,
+  ExpandLess
 } from '@mui/icons-material';
 import pharmacyService from '../services/pharmacyService';
 
@@ -52,8 +54,9 @@ const Pharmacy = () => {
   const [drugs, setDrugs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [openAdd, setOpenAdd] = useState(false);
-  const [newDrug, setNewDrug] = useState({ name: '', description: '', quantity: 0, unit: '' });
+  const [newDrug, setNewDrug] = useState({ name: '', description: '', quantity: 0, unit: '', price: 0 });
   const [restockDrugId, setRestockDrugId] = useState(null);
   const [restockQty, setRestockQty] = useState(0);
   const [prescriptions, setPrescriptions] = useState([]);
@@ -62,10 +65,9 @@ const Pharmacy = () => {
   const [dispenseLoading, setDispenseLoading] = useState(false);
 
   const [selectedPatientId, setSelectedPatientId] = useState(null);
-  const [dispensedIds, setDispensedIds] = useState([]);
   const [dispenseQuantities, setDispenseQuantities] = useState({});
   const [dispensedHistory, setDispensedHistory] = useState([]);
-  const [showStock, setShowStock] = useState(false);
+  const [showStock, setShowStock] = useState(true); // Start with stock visible
   const [stockSearch, setStockSearch] = useState('');
   const [patientSearch, setPatientSearch] = useState('');
 
@@ -88,14 +90,11 @@ const Pharmacy = () => {
     setPrescLoading(true);
     try {
       const allPatients = await patientAPI.getAllPatients();
-      console.log('All patients:', allPatients);
       let allPrescriptions = [];
       
       for (const patient of allPatients) {
         try {
-          console.log(`Fetching prescriptions for patient ${patient.patient_id} (${patient.first_name} ${patient.last_name})`);
           const patientPrescriptions = await patientAPI.getPrescriptions(patient.patient_id);
-          console.log(`Prescriptions for ${patient.first_name}:`, patientPrescriptions);
           
           if (patientPrescriptions && patientPrescriptions.length > 0) {
             patientPrescriptions.forEach(prescription => {
@@ -110,7 +109,6 @@ const Pharmacy = () => {
         }
       }
       
-      console.log('All prescriptions fetched:', allPrescriptions);
       setPrescriptions(allPrescriptions);
       setPrescError('');
     } catch (err) {
@@ -121,15 +119,41 @@ const Pharmacy = () => {
     }
   };
 
-  // Add polling for real-time updates
+  // Load dispensed prescriptions for history
+  const loadDispensedHistory = async () => {
+    try {
+      const allPatients = await patientAPI.getAllPatients();
+      let allDispensedPrescriptions = [];
+      
+      for (const patient of allPatients) {
+        try {
+          const dispensedPrescriptions = await patientAPI.getDispensedPrescriptions(patient.patient_id);
+          if (dispensedPrescriptions && dispensedPrescriptions.length > 0) {
+            dispensedPrescriptions.forEach(prescription => {
+              prescription.patient = patient;
+              prescription.patient_first_name = patient.first_name;
+              prescription.patient_last_name = patient.last_name;
+              prescription.dispensedAt = prescription.dispensed_at ? new Date(prescription.dispensed_at).toLocaleString() : 'Unknown';
+              prescription.quantityDispensed = prescription.quantity || 1;
+            });
+            allDispensedPrescriptions = allDispensedPrescriptions.concat(dispensedPrescriptions);
+          }
+        } catch (error) {
+          console.error(`Error fetching dispensed prescriptions for patient ${patient.patient_id}:`, error);
+        }
+      }
+      
+      setDispensedHistory(allDispensedPrescriptions);
+    } catch (err) {
+      console.error('Error loading dispensed history:', err);
+    }
+  };
+
+  // Initial data load
   useEffect(() => {
     fetchDrugs();
     fetchPrescriptions();
-    const interval = setInterval(() => {
-      fetchDrugs();
-      fetchPrescriptions();
-    }, 10000); // Poll every 10 seconds
-    return () => clearInterval(interval);
+    loadDispensedHistory();
   }, []);
 
   // Group prescriptions by patient and deduplicate by medication
@@ -143,10 +167,9 @@ const Pharmacy = () => {
         prescriptions: []
       };
     }
-    // Only add if not already dispensed and not a duplicate medication for this patient
-    const alreadyDispensed = dispensedIds.includes(presc.prescription_id);
+    // Only add if not a duplicate medication for this patient (dispensed prescriptions are filtered by backend)
     const alreadyExists = acc[pid].prescriptions.some(p => (p.medications || p.medication_name) === (presc.medications || presc.medication_name));
-    if (!alreadyDispensed && !alreadyExists) {
+    if (!alreadyExists) {
       acc[pid].prescriptions.push(presc);
     }
     return acc;
@@ -162,25 +185,59 @@ const Pharmacy = () => {
 
   // Add new drug
   const handleAddDrug = async () => {
+    // Validation
+    if (!newDrug.name.trim()) {
+      setError('Drug name is required');
+      return;
+    }
+    if (!newDrug.description.trim()) {
+      setError('Drug description is required');
+      return;
+    }
+    if (newDrug.quantity <= 0) {
+      setError('Quantity must be greater than 0');
+      return;
+    }
+    if (!newDrug.unit.trim()) {
+      setError('Unit is required');
+      return;
+    }
+    
     try {
       await pharmacyService.addDrug(newDrug);
       setOpenAdd(false);
-      setNewDrug({ name: '', description: '', quantity: 0, unit: '' });
+      setNewDrug({ name: '', description: '', quantity: 0, unit: '', price: 0 });
+      setSuccess('Drug added successfully!');
+      setError('');
       fetchDrugs();
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError('Failed to add drug');
+      setError('Failed to add drug: ' + (err.message || 'Unknown error'));
+      setSuccess('');
     }
   };
 
   // Restock
   const handleRestock = async () => {
+    // Validation
+    if (restockQty <= 0) {
+      setError('Restock quantity must be greater than 0');
+      return;
+    }
+    
     try {
       await pharmacyService.restockDrug(restockDrugId, restockQty);
       setRestockDrugId(null);
       setRestockQty(0);
+      setSuccess('Drug restocked successfully!');
+      setError('');
       fetchDrugs();
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError('Failed to restock drug');
+      setError('Failed to restock drug: ' + (err.message || 'Unknown error'));
+      setSuccess('');
     }
   };
 
@@ -190,14 +247,17 @@ const Pharmacy = () => {
     try {
       // Try all possible fields for medication name
       const medName = prescription.medications || prescription.medication_name || '';
+      
       let drug = drugs.find(d => d.name.trim().toLowerCase() === medName.trim().toLowerCase());
       if (!drug) drug = drugs.find(d => d.name.toLowerCase().includes(medName.trim().toLowerCase()));
       if (!drug && medName) drug = drugs.find(d => medName.toLowerCase().startsWith(d.name.toLowerCase()));
+      
       if (!drug) throw new Error(`Drug '${medName}' not found in stock. Please check the stock list or restock.`);
 
       const quantityToDispense = dispenseQuantities[prescription.prescription_id] || prescription.quantity || 1;
+      
       await pharmacyService.dispenseDrug(drug.drug_id, quantityToDispense, prescription.prescription_id);
-      setDispensedIds(ids => [...ids, prescription.prescription_id]);
+      
       setDispensedHistory(hist => [
         {
           ...prescription,
@@ -206,10 +266,13 @@ const Pharmacy = () => {
         },
         ...hist
       ]);
-      // Remove dispensed prescription from UI immediately
-      setPrescriptions(prev => prev.filter(p => p.prescription_id !== prescription.prescription_id));
+      // Refresh prescriptions to get updated list (dispensed ones will be filtered out by backend)
+      await fetchPrescriptions();
       await fetchDrugs();
-      await fetchPrescriptions(); // Always reload prescriptions after dispensing
+      await loadDispensedHistory(); // Refresh dispensed history
+      
+      setSuccess('Drug dispensed successfully!');
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err.message || 'Failed to dispense drug');
     } finally {
@@ -219,9 +282,9 @@ const Pharmacy = () => {
 
 
 
-  // Get prescriptions for selected patient
+  // Get prescriptions for selected patient (dispensed prescriptions are filtered by backend)
   const selectedPatientPrescriptions = selectedPatientId && patientsWithPrescriptions[selectedPatientId]
-    ? patientsWithPrescriptions[selectedPatientId].prescriptions.filter(p => !dispensedIds.includes(p.prescription_id))
+    ? patientsWithPrescriptions[selectedPatientId].prescriptions
     : [];
 
   // Filter patient list based on search
@@ -264,7 +327,111 @@ const Pharmacy = () => {
         </Box>
       </Box>
 
-      <Grid container spacing={3} sx={{ height: 'calc(100vh - 120px)', width: '100%', px: 4, m: 0 }}>
+      {/* Success and Error Alerts */}
+      {success && (
+        <Box sx={{ px: 4, mb: 2 }}>
+          <Alert severity="success" onClose={() => setSuccess('')}>
+            {success}
+          </Alert>
+        </Box>
+      )}
+      {error && (
+        <Box sx={{ px: 4, mb: 2 }}>
+          <Alert severity="error" onClose={() => setError('')}>
+            {error}
+          </Alert>
+        </Box>
+      )}
+
+      {/* Stock Section - Collapsible */}
+      <Box sx={{ mb: 3, px: 4 }}>
+        <Card sx={{ boxShadow: 3, mb: 3 }}>
+          <CardContent sx={{ p: 0 }}>
+            {/* Stock Header - Clickable to toggle */}
+            <Box 
+              sx={{ 
+                p: 2, 
+                cursor: 'pointer',
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between',
+                borderBottom: showStock ? '1px solid' : 'none',
+                borderColor: 'divider',
+                '&:hover': {
+                  bgcolor: 'action.hover'
+                }
+              }}
+              onClick={() => setShowStock(!showStock)}
+            >
+              <Typography variant="h5" sx={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                color: 'primary.main',
+                mb: 0
+              }}>
+                <Inventory sx={{ mr: 1 }} /> Pharmacy Stock
+                <Chip 
+                  label={`${drugs.length} items`} 
+                  size="small" 
+                  color="primary" 
+                  sx={{ ml: 2 }}
+                />
+              </Typography>
+              <IconButton size="small">
+                {showStock ? <ExpandLess /> : <ExpandMore />}
+              </IconButton>
+            </Box>
+            
+            {/* Stock Content - Collapsible */}
+            <Collapse in={showStock}>
+              <Box sx={{ p: 2 }}>
+                <TableContainer component={Paper} sx={{ boxShadow: 2, borderRadius: 2 }}>
+                  <Table>
+                    <TableHead sx={{ bgcolor: 'primary.light' }}>
+                      <TableRow>
+                        <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Name</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Description</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Quantity</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Unit</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Last Restocked</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {loading ? (
+                        <TableRow><TableCell colSpan={6}>Loading...</TableCell></TableRow>
+                      ) : drugs.length === 0 ? (
+                        <TableRow><TableCell colSpan={6}>No drugs in stock. (Check backend data and API mapping.)</TableCell></TableRow>
+                      ) : drugs.map(drug => (
+                        <TableRow key={drug.drug_id}>
+                          <TableCell>{drug.name}</TableCell>
+                          <TableCell>{drug.description}</TableCell>
+                          <TableCell>{drug.quantity}</TableCell>
+                          <TableCell>{drug.unit}</TableCell>
+                          <TableCell>{new Date(drug.last_restocked).toLocaleString()}</TableCell>
+                          <TableCell>
+                            <Button 
+                              size="small" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setRestockDrugId(drug.drug_id);
+                              }}
+                            >
+                              Restock
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            </Collapse>
+          </CardContent>
+        </Card>
+      </Box>
+
+      <Grid container spacing={3} sx={{ height: 'calc(100vh - 300px)', width: '100%', px: 4, m: 0 }}>
         {/* Left Sidebar - Pending Prescriptions */}
         <Grid item xs={12} md={4} sx={{ height: '100%' }}>
           <Card sx={{ 
@@ -410,16 +577,9 @@ const Pharmacy = () => {
                                 inputProps={{ min: 1, style: { width: 60 } }}
                                 sx={{ mr: 1 }}
                               />
-                              {dispensedIds.includes(presc.prescription_id) ? (
-                                <Alert severity="success" sx={{ p: 0.5, m: 0 }}>Dispensed</Alert>
-                              ) : (
-                                <>
-                                  <Button variant="contained" size="small" disabled={dispenseLoading} onClick={() => handleDispense(presc)}>
-                                    Dispense
-                                  </Button>
-
-                                </>
-                              )}
+                              <Button variant="contained" size="small" disabled={dispenseLoading} onClick={() => handleDispense(presc)}>
+                                Dispense
+                              </Button>
                             </Box>
                           </TableCell>
                         </TableRow>
@@ -438,50 +598,6 @@ const Pharmacy = () => {
                 </Typography>
                 
                 {/* Add medication history display */}
-
-                {/* Stock Update Section */}
-                <Box sx={{ mb: 4 }}>
-                  <Typography variant="h5" gutterBottom sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center',
-                    color: 'primary.main',
-                    mb: 2
-                  }}>
-                    <LocalPharmacy sx={{ mr: 1 }} /> Pharmacy Stock
-                  </Typography>
-                  <TableContainer component={Paper} sx={{ boxShadow: 2, borderRadius: 2 }}>
-                    <Table>
-                      <TableHead sx={{ bgcolor: 'primary.light' }}>
-                        <TableRow>
-                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Name</TableCell>
-                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Description</TableCell>
-                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Quantity</TableCell>
-                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Unit</TableCell>
-                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Last Restocked</TableCell>
-                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {loading ? (
-                          <TableRow><TableCell colSpan={6}>Loading...</TableCell></TableRow>
-                        ) : drugs.length === 0 ? (
-                          <TableRow><TableCell colSpan={6}>No drugs in stock. (Check backend data and API mapping.)</TableCell></TableRow>
-                        ) : drugs.map(drug => (
-                          <TableRow key={drug.drug_id}>
-                            <TableCell>{drug.name}</TableCell>
-                            <TableCell>{drug.description}</TableCell>
-                            <TableCell>{drug.quantity}</TableCell>
-                            <TableCell>{drug.unit}</TableCell>
-                            <TableCell>{new Date(drug.last_restocked).toLocaleString()}</TableCell>
-                            <TableCell>
-                              <Button size="small" onClick={() => setRestockDrugId(drug.drug_id)}>Restock</Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Box>
                 
                 <Box sx={{ 
                   display: 'flex', 
@@ -550,6 +666,7 @@ const Pharmacy = () => {
           <TextField label="Description" fullWidth margin="dense" value={newDrug.description} onChange={e => setNewDrug({ ...newDrug, description: e.target.value })} />
           <TextField label="Quantity" type="number" fullWidth margin="dense" value={newDrug.quantity} onChange={e => setNewDrug({ ...newDrug, quantity: Number(e.target.value) })} />
           <TextField label="Unit" fullWidth margin="dense" value={newDrug.unit} onChange={e => setNewDrug({ ...newDrug, unit: e.target.value })} />
+          <TextField label="Price" type="number" fullWidth margin="dense" value={newDrug.price || 0} onChange={e => setNewDrug({ ...newDrug, price: Number(e.target.value) })} />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenAdd(false)}>Cancel</Button>

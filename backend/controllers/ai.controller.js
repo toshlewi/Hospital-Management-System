@@ -122,6 +122,292 @@ exports.diagnose = async (req, res) => {
     }
 };
 
+// Lab Test Analysis
+exports.analyzeLabResults = async (req, res) => {
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+    
+    try {
+        const { patient_id, lab_results, notes } = req.body;
+        
+        const payload = {
+            patient_id: patient_id || 1,
+            lab_data: lab_results || [],
+            notes: notes || ''
+        };
+        
+        const response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnosis/analyze-lab-results`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        if (!response.ok) {
+            return res.status(response.status).json({ 
+                error: 'AI service error', 
+                status: response.status,
+                message: 'Lab analysis service unavailable'
+            });
+        }
+        
+        const result = await response.json();
+        res.json({ ...result, ai: true, timestamp: new Date().toISOString() });
+    } catch (error) {
+        console.error('Lab Analysis Error:', error);
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            message: error.message, 
+            ai: false 
+        });
+    }
+};
+
+// Drug Interaction Analysis
+exports.analyzeDrugInteractions = async (req, res) => {
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+    
+    try {
+        const { patient_id, medications } = req.body;
+        
+        const payload = {
+            patient_id: patient_id || 1,
+            medications: medications || []
+        };
+        
+        const response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnosis/analyze-drug-interactions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        if (!response.ok) {
+            return res.status(response.status).json({ 
+                error: 'AI service error', 
+                status: response.status,
+                message: 'Drug interaction service unavailable'
+            });
+        }
+        
+        const result = await response.json();
+        res.json({ ...result, ai: true, timestamp: new Date().toISOString() });
+    } catch (error) {
+        console.error('Drug Interaction Analysis Error:', error);
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            message: error.message, 
+            ai: false 
+        });
+    }
+};
+
+// Symptom Analysis
+exports.analyzeSymptoms = async (req, res) => {
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+    
+    try {
+        const { patient_id, symptoms, notes } = req.body;
+        
+        const payload = {
+            patient_id: patient_id || 1,
+            symptoms: symptoms || [],
+            notes: notes || ''
+        };
+        
+        const response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnosis/analyze-symptoms`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        if (!response.ok) {
+            return res.status(response.status).json({ 
+                error: 'AI service error', 
+                status: response.status,
+                message: 'Symptom analysis service unavailable'
+            });
+        }
+        
+        const result = await response.json();
+        res.json({ ...result, ai: true, timestamp: new Date().toISOString() });
+    } catch (error) {
+        console.error('Symptom Analysis Error:', error);
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            message: error.message, 
+            ai: false 
+        });
+    }
+};
+
+// Treatment Analysis
+exports.analyzeTreatment = async (req, res) => {
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+    
+    try {
+        const { patient_id, diagnosis, symptoms, lab_results } = req.body;
+        
+        const payload = {
+            patient_id: patient_id || 1,
+            diagnosis: diagnosis || {},
+            symptoms: symptoms || [],
+            lab_results: lab_results || []
+        };
+        
+        const response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnosis/analyze-treatment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        if (!response.ok) {
+            return res.status(response.status).json({ 
+                error: 'AI service error', 
+                status: response.status,
+                message: 'Treatment analysis service unavailable'
+            });
+        }
+        
+        const result = await response.json();
+        res.json({ ...result, ai: true, timestamp: new Date().toISOString() });
+    } catch (error) {
+        console.error('Treatment Analysis Error:', error);
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            message: error.message, 
+            ai: false 
+        });
+    }
+};
+
+// Imaging Analysis
+exports.analyzeImaging = async (req, res) => {
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+    
+    try {
+        const { patient_id, imaging_results } = req.body;
+        
+        const payload = {
+            patient_id: patient_id || 1,
+            imaging_data: imaging_results || []
+        };
+        
+        const response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnosis/analyze-imaging`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        if (!response.ok) {
+            return res.status(response.status).json({ 
+                error: 'AI service error', 
+                status: response.status,
+                message: 'Imaging analysis service unavailable'
+            });
+        }
+        
+        const result = await response.json();
+        res.json({ ...result, ai: true, timestamp: new Date().toISOString() });
+    } catch (error) {
+        console.error('Imaging Analysis Error:', error);
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            message: error.message, 
+            ai: false 
+        });
+    }
+};
+
+// Comprehensive Analysis
+exports.analyzeComprehensive = async (req, res) => {
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+    
+    try {
+        const { patient_id, notes, medications, lab_results, imaging_results, symptoms } = req.body;
+        
+        const payload = {
+            patient_id: patient_id || 1,
+            notes: notes || '',
+            medications: medications || [],
+            lab_results: lab_results || [],
+            imaging_results: imaging_results || [],
+            symptoms: symptoms || []
+        };
+        
+        const response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnosis/analyze-comprehensive`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        if (!response.ok) {
+            return res.status(response.status).json({ 
+                error: 'AI service error', 
+                status: response.status,
+                message: 'Comprehensive analysis service unavailable'
+            });
+        }
+        
+        const result = await response.json();
+        res.json({ ...result, ai: true, timestamp: new Date().toISOString() });
+    } catch (error) {
+        console.error('Comprehensive Analysis Error:', error);
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            message: error.message, 
+            ai: false 
+        });
+    }
+};
+
+// Real-time Analysis
+exports.analyzeRealTime = async (req, res) => {
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+    
+    try {
+        const { patient_id, notes, medications, lab_results, imaging_results, symptoms } = req.body;
+        
+        const payload = {
+            patient_id: patient_id || 1,
+            notes: notes || '',
+            medications: medications || [],
+            lab_results: lab_results || [],
+            imaging_results: imaging_results || [],
+            symptoms: symptoms || []
+        };
+        
+        const response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnosis/analyze-real-time`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        if (!response.ok) {
+            return res.status(response.status).json({ 
+                error: 'AI service error', 
+                status: response.status,
+                message: 'Real-time analysis service unavailable'
+            });
+        }
+        
+        const result = await response.json();
+        res.json({ ...result, ai: true, timestamp: new Date().toISOString() });
+    } catch (error) {
+        console.error('Real-time Analysis Error:', error);
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            message: error.message, 
+            ai: false 
+        });
+    }
+};
+
+// Legacy pharmacy check for backward compatibility
 exports.pharmacyCheck = async (req, res) => {
     // In a real system, you would call an AI model here.
     // For now, we mock the response based on the input.

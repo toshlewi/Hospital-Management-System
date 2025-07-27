@@ -8,6 +8,7 @@ router.get('/patients/:id', patientController.getPatientById);
 router.get('/patients/:id/billing', patientController.getPatientBillingStatus);
 router.get('/patients/:patientId/notes', patientController.getMedicalNotes);
 router.get('/patients/:patientId/prescriptions', patientController.getPrescriptions);
+router.get('/patients/:patientId/prescriptions/dispensed', patientController.getDispensedPrescriptions);
 router.get('/patients/:patientId/tests', patientController.getTestOrders);
 router.get('/patients/:patientId/imaging', patientController.getImaging);
 router.post('/patients', patientController.createPatient);

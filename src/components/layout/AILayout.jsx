@@ -30,13 +30,19 @@ const AILayout = ({ children, currentPage, patientId, patientData, currentData }
     <Layout>
       <Box sx={{ display: 'flex', height: '100%' }}>
         {/* Main Content */}
-        <Box sx={{ 
-          flexGrow: 1, 
-          mr: isAIPanelOpen ? '400px' : 0, // Reduced from 450px to 400px
-          transition: 'margin-right 0.3s ease-in-out',
-          minHeight: '100vh',
-          width: '100%'
-        }}>
+        <Box 
+          className="ai-layout-content"
+          sx={{ 
+            flexGrow: 1, 
+            mr: isAIPanelOpen ? { xs: 0, md: '500px' } : 0, // Responsive margin
+            transition: 'margin-right 0.3s ease-in-out',
+            minHeight: '100vh',
+            width: '100%',
+            pr: isAIPanelOpen ? { xs: 1, md: 3 } : 0, // Responsive padding
+            overflow: 'auto', // Allow vertical scroll, prevent horizontal
+            maxWidth: isAIPanelOpen ? { xs: '100vw', md: 'calc(100vw - 500px)' } : '100vw' // Responsive max width
+          }}
+        >
           {children}
         </Box>
 
