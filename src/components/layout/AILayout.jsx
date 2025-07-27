@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Fab, Zoom } from '@mui/material';
-import { SmartToy } from '@mui/icons-material';
+import { Box } from '@mui/material';
 import Layout from './Layout';
 import RightSideAIPanel from '../ai/RightSideAIPanel';
 
@@ -22,8 +21,8 @@ const AILayout = ({ children, currentPage, patientId, patientData, currentData }
     console.log('AI Analysis updated:', analysis);
   };
 
-  const toggleAIPanel = () => {
-    setIsAIPanelOpen(!isAIPanelOpen);
+  const handleAIPanelClose = () => {
+    setIsAIPanelOpen(false);
   };
 
   return (
@@ -54,33 +53,8 @@ const AILayout = ({ children, currentPage, patientId, patientData, currentData }
           currentData={currentData}
           onAnalysisUpdate={handleAnalysisUpdate}
           isOpen={isAIPanelOpen}
-          onClose={() => setIsAIPanelOpen(false)}
+          onClose={handleAIPanelClose}
         />
-
-        {/* Floating Action Button to toggle AI panel */}
-        <Zoom in={!isAIPanelOpen}>
-          <Fab
-            color="primary"
-            aria-label="AI Assistant"
-            onClick={toggleAIPanel}
-            sx={{
-              position: 'fixed',
-              bottom: 24,
-              right: 24,
-              zIndex: 1000,
-              background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
-              boxShadow: '0 4px 12px rgba(25, 118, 210, 0.4)',
-              '&:hover': {
-                background: 'linear-gradient(135deg, #1565c0 0%, #0d47a1 100%)',
-                boxShadow: '0 6px 16px rgba(25, 118, 210, 0.6)',
-                transform: 'translateY(-2px)'
-              },
-              transition: 'all 0.3s ease'
-            }}
-          >
-            <SmartToy sx={{ fontSize: '1.5rem' }} />
-          </Fab>
-        </Zoom>
       </Box>
     </Layout>
   );

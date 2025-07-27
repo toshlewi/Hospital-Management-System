@@ -336,7 +336,7 @@ const Lab = () => {
 
   return (
     <Box sx={{
-      width: '100vw',
+      width: '100%',
       minHeight: '100vh',
       backgroundColor: '#f5f5f5',
       overflowX: 'hidden',
@@ -373,7 +373,7 @@ const Lab = () => {
         </Button>
       </Box>
 
-      <Grid container spacing={3} sx={{ height: 'calc(100vh - 120px)', width: '100%', px: 4, m: 0 }}>
+      <Grid container spacing={3} sx={{ height: 'calc(100vh - 140px)', width: '100%', px: 4, m: 0, overflow: 'hidden' }}>
         {/* Left Sidebar - Lab Patients */}
         <Grid item xs={12} md={4} sx={{ height: '100%' }}>
           <Card sx={{ 
@@ -412,7 +412,7 @@ const Lab = () => {
                 sx={{ mb: 2 }}
               />
               
-              <Box sx={{ flex: 1, overflow: 'auto' }}>
+              <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
                 {loading ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
                     <CircularProgress />
@@ -467,8 +467,8 @@ const Lab = () => {
 
         {/* Main Content - Test Results */}
         <Grid item xs={12} md={8} sx={{ height: '100%' }}>
-          <Card sx={{ boxShadow: 3, height: '100%', overflow: 'auto' }}>
-            <CardContent>
+          <Card sx={{ boxShadow: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <CardContent sx={{ flex: 1, overflow: 'auto', p: 2 }}>
               {selectedPatient ? (
                 <>
                   <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
