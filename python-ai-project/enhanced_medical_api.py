@@ -2,6 +2,7 @@
 """
 Enhanced Medical AI API with Advanced Training
 Integrates with PubMed and FDA APIs for 95%+ accuracy
+Now includes automatic daily updates and training
 """
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
@@ -13,19 +14,26 @@ import json
 from datetime import datetime
 import os
 
-# Import the advanced AI system
+# Import the advanced AI system and auto scheduler
 from advanced_medical_ai import AdvancedMedicalAI
+from auto_training_scheduler import AutoTrainingScheduler
 
 app = FastAPI(
     title="Enhanced Medical AI API",
-    description="Advanced Medical AI with 95%+ accuracy using PubMed and FDA data",
+    description="Advanced Medical AI with 95%+ accuracy using PubMed, FDA, and WHO data with automatic daily updates",
     version="3.0.0"
 )
 
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],
+    allow_origins=[
+        "http://localhost:3000", 
+        "http://localhost:3001", 
+        "http://localhost:3002",
+        "https://hospital-frontend-5na8.onrender.com",
+        "https://hospital-backend.onrender.com"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -65,32 +73,62 @@ class TrainingStatusResponse(BaseModel):
     training_progress: str
     estimated_completion: Optional[str] = None
 
-# Initialize the advanced AI system
+class AutoUpdateStatusResponse(BaseModel):
+    is_running: bool
+    last_update: Optional[str]
+    update_count: int
+    next_update: Optional[str]
+    ai_accuracy: float
+    diseases_count: int
+    data_sources: Dict[str, Dict[str, str]]
+
+# Initialize the advanced AI system and auto scheduler
 advanced_ai = AdvancedMedicalAI()
+auto_scheduler = AutoTrainingScheduler()
 training_task = None
+scheduler_task = None
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize the advanced AI system on startup"""
-    global advanced_ai
+    """Initialize the advanced AI system and auto scheduler on startup"""
+    global advanced_ai, auto_scheduler, scheduler_task
+    
     try:
         # Load existing model if available
         await advanced_ai.load_existing_data()
         print(f"✅ Loaded AI model with {advanced_ai.accuracy:.2%} accuracy")
         print(f"🏥 Diseases in database: {len(advanced_ai.diseases_database)}")
+        
+        # Initialize auto scheduler
+        await auto_scheduler.initialize()
+        print(f"🔄 Auto scheduler initialized with {auto_scheduler.update_count} previous updates")
+        
+        # Start auto scheduler in background
+        scheduler_task = asyncio.create_task(auto_scheduler.start_scheduler())
+        print("🚀 Auto training scheduler started - will update daily at midnight")
+        
     except Exception as e:
         print(f"⚠️ Could not load existing model: {e}")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup on shutdown"""
+    global scheduler_task
+    if scheduler_task:
+        await auto_scheduler.stop_scheduler()
+        scheduler_task.cancel()
 
 @app.get("/")
 async def root():
     """API status and information"""
     return {
-        "message": "Enhanced Medical AI API",
+        "message": "Enhanced Medical AI API with Auto-Training",
         "version": "3.0.0",
         "status": "running",
         "model_accuracy": f"{advanced_ai.accuracy:.2%}",
         "diseases_learned": len(advanced_ai.diseases_database),
-        "training_status": advanced_ai.training_status
+        "training_status": advanced_ai.training_status,
+        "auto_update_status": auto_scheduler.get_scheduler_status()
     }
 
 @app.get("/api/v1/status")
@@ -101,8 +139,93 @@ async def get_status():
         "diseases_learned": len(advanced_ai.diseases_database),
         "training_data_count": len(advanced_ai.training_data),
         "training_status": advanced_ai.training_status,
-        "last_updated": datetime.now().isoformat()
+        "last_updated": datetime.now().isoformat(),
+        "auto_update_status": auto_scheduler.get_scheduler_status()
     }
+
+@app.get("/api/v1/auto-update-status", response_model=AutoUpdateStatusResponse)
+async def get_auto_update_status():
+    """Get auto-update scheduler status"""
+    return auto_scheduler.get_scheduler_status()
+
+@app.post("/api/v1/start-auto-updates")
+async def start_auto_updates():
+    """Start automatic daily updates"""
+    global scheduler_task
+    
+    if scheduler_task and not scheduler_task.done():
+        return {
+            "status": "already_running",
+            "message": "Auto-update scheduler is already running"
+        }
+    
+    try:
+        scheduler_task = asyncio.create_task(auto_scheduler.start_scheduler())
+        return {
+            "status": "started",
+            "message": "Auto-update scheduler started successfully",
+            "next_update": "00:00 (midnight)",
+            "update_frequency": "daily"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to start auto-updates: {str(e)}")
+
+@app.post("/api/v1/stop-auto-updates")
+async def stop_auto_updates():
+    """Stop automatic daily updates"""
+    global scheduler_task
+    
+    try:
+        await auto_scheduler.stop_scheduler()
+        if scheduler_task:
+            scheduler_task.cancel()
+        return {
+            "status": "stopped",
+            "message": "Auto-update scheduler stopped successfully"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to stop auto-updates: {str(e)}")
+
+@app.post("/api/v1/trigger-manual-update")
+async def trigger_manual_update(background_tasks: BackgroundTasks):
+    """Trigger a manual update from all data sources"""
+    try:
+        # Add manual update to background tasks
+        background_tasks.add_task(auto_scheduler.perform_daily_update)
+        
+        return {
+            "status": "triggered",
+            "message": "Manual update triggered successfully",
+            "update_sources": ["PubMed", "FDA", "WHO"],
+            "estimated_duration": "5-10 minutes"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to trigger manual update: {str(e)}")
+
+@app.get("/api/v1/update-history")
+async def get_update_history():
+    """Get history of auto-updates"""
+    try:
+        update_files = []
+        auto_updates_dir = "data/auto_updates"
+        
+        if os.path.exists(auto_updates_dir):
+            for file in os.listdir(auto_updates_dir):
+                if file.startswith("update_") and file.endswith(".json"):
+                    file_path = os.path.join(auto_updates_dir, file)
+                    with open(file_path, "r") as f:
+                        update_data = json.load(f)
+                        update_files.append(update_data)
+        
+        # Sort by update ID
+        update_files.sort(key=lambda x: x.get('update_id', 0), reverse=True)
+        
+        return {
+            "total_updates": len(update_files),
+            "updates": update_files[:10]  # Return last 10 updates
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get update history: {str(e)}")
 
 @app.post("/api/v1/start-training", response_model=TrainingStatusResponse)
 async def start_training(background_tasks: BackgroundTasks):
@@ -199,19 +322,18 @@ async def diagnose_symptoms(request: SymptomRequest):
             lab_tests=top_prediction.get("lab_tests", []),
             treatments=top_prediction.get("treatments", []),
             drug_interactions=top_prediction.get("drug_interactions", []),
-            model_accuracy=result.get("model_accuracy", 0.0),
-            diseases_learned=result.get("diseases_learned", 0),
-            timestamp=result.get("analysis_time", datetime.now().isoformat())
+            model_accuracy=advanced_ai.accuracy,
+            diseases_learned=len(advanced_ai.diseases_database),
+            timestamp=datetime.now().isoformat()
         )
-        
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Diagnosis failed: {str(e)}")
 
 @app.post("/api/v1/comprehensive-analysis", response_model=ComprehensiveResponse)
 async def comprehensive_analysis(request: SymptomRequest):
-    """Perform comprehensive medical analysis with multiple predictions"""
+    """Perform comprehensive medical analysis"""
     try:
         if advanced_ai.training_status != "completed" and len(advanced_ai.diseases_database) < 100:
             raise HTTPException(
@@ -224,9 +346,12 @@ async def comprehensive_analysis(request: SymptomRequest):
         if "error" in result:
             raise HTTPException(status_code=500, detail=result["error"])
         
-        # Convert predictions to DiagnosisResponse objects
+        if not result.get("predictions"):
+            raise HTTPException(status_code=404, detail="No diagnosis found for given symptoms")
+        
+        # Convert predictions to DiagnosisResponse format
         predictions = []
-        for pred in result.get("predictions", []):
+        for pred in result["predictions"][:3]:  # Top 3 predictions
             predictions.append(DiagnosisResponse(
                 disease=pred["disease"],
                 confidence=pred["confidence"],
@@ -236,23 +361,22 @@ async def comprehensive_analysis(request: SymptomRequest):
                 lab_tests=pred.get("lab_tests", []),
                 treatments=pred.get("treatments", []),
                 drug_interactions=pred.get("drug_interactions", []),
-                model_accuracy=result.get("model_accuracy", 0.0),
-                diseases_learned=result.get("diseases_learned", 0),
-                timestamp=result.get("analysis_time", datetime.now().isoformat())
+                model_accuracy=advanced_ai.accuracy,
+                diseases_learned=len(advanced_ai.diseases_database),
+                timestamp=datetime.now().isoformat()
             ))
         
         return ComprehensiveResponse(
             predictions=predictions,
-            input_symptoms=result.get("input_symptoms", request.symptoms),
-            model_accuracy=result.get("model_accuracy", 0.0),
-            diseases_learned=result.get("diseases_learned", 0),
-            analysis_time=result.get("analysis_time", datetime.now().isoformat())
+            input_symptoms=request.symptoms,
+            model_accuracy=advanced_ai.accuracy,
+            diseases_learned=len(advanced_ai.diseases_database),
+            analysis_time=datetime.now().isoformat()
         )
-        
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Comprehensive analysis failed: {str(e)}")
 
 @app.get("/api/v1/diseases")
 async def get_diseases():
@@ -260,31 +384,34 @@ async def get_diseases():
     return {
         "diseases": list(advanced_ai.diseases_database.keys()),
         "count": len(advanced_ai.diseases_database),
-        "categories": list(set([disease.split()[0] for disease in advanced_ai.diseases_database.keys()]))
+        "last_updated": datetime.now().isoformat()
     }
 
 @app.get("/api/v1/disease/{disease_name}")
 async def get_disease_info(disease_name: str):
     """Get detailed information about a specific disease"""
-    disease_data = advanced_ai.diseases_database.get(disease_name)
-    if not disease_data:
+    if disease_name.lower() in advanced_ai.diseases_database:
+        return advanced_ai.diseases_database[disease_name.lower()]
+    else:
         raise HTTPException(status_code=404, detail=f"Disease '{disease_name}' not found")
-    
-    return disease_data
 
 @app.get("/api/v1/statistics")
 async def get_statistics():
     """Get comprehensive system statistics"""
     return {
-        "model_accuracy": advanced_ai.accuracy,
-        "diseases_learned": len(advanced_ai.diseases_database),
-        "training_data_count": len(advanced_ai.training_data),
-        "training_status": advanced_ai.training_status,
-        "api_keys": {
-            "pubmed": "configured" if advanced_ai.pubmed_api_key else "missing",
-            "fda": "configured" if advanced_ai.fda_api_key else "missing"
+        "ai_model": {
+            "accuracy": advanced_ai.accuracy,
+            "diseases_learned": len(advanced_ai.diseases_database),
+            "training_data_count": len(advanced_ai.training_data),
+            "training_status": advanced_ai.training_status
         },
-        "last_updated": datetime.now().isoformat()
+        "auto_updates": auto_scheduler.get_scheduler_status(),
+        "system_info": {
+            "version": "3.0.0",
+            "last_updated": datetime.now().isoformat(),
+            "data_sources": ["PubMed", "FDA", "WHO"],
+            "update_frequency": "Daily at midnight"
+        }
     }
 
 if __name__ == "__main__":
