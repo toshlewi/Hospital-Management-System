@@ -1,0 +1,13 @@
+condition_id,condition_name,primary_symptoms,secondary_symptoms,probability_range,severity,urgency_level,category
+DIAB001,Type 2 Diabetes,frequent urination;increased thirst;fatigue,increased hunger;blurred vision;slow healing,0.7-0.9,moderate,medium,metabolic
+DIAB002,Type 1 Diabetes,excessive thirst;weight loss;frequent urination,increased hunger;fatigue;blurred vision,0.8-0.95,high,high,metabolic
+HTN001,Hypertension,headache;chest pain;shortness of breath,dizziness;nausea;vision problems,0.6-0.8,moderate,medium,cardiovascular
+HTN002,Hypertensive Crisis,severe headache;chest pain;shortness of breath,confusion;nausea;vision changes,0.9-0.95,high,high,cardiovascular
+ASTH001,Asthma,wheezing;shortness of breath;chest tightness,coughing;rapid breathing;fatigue,0.7-0.85,moderate,medium,respiratory
+ASTH002,Asthma Attack,severe wheezing;extreme shortness of breath;chest tightness,rapid breathing;anxiety;sweating,0.9-0.95,high,high,respiratory
+PNEU001,Pneumonia,fever;cough with phlegm;shortness of breath,chest pain;fatigue;loss of appetite,0.8-0.9,high,high,respiratory
+COLD001,Common Cold,runny nose;sore throat;cough,sneezing;congestion;mild fever,0.6-0.8,low,low,respiratory
+FLU001,Influenza,high fever;body aches;fatigue,headache;cough;sore throat,0.7-0.85,moderate,medium,respiratory
+MIG001,Migraine,severe headache;nausea;sensitivity to light,aura;vomiting;sensitivity to sound,0.8-0.9,moderate,medium,neurological 
+CARD001,Coronary Artery Disease,chest pain;shortness of breath;fatigue,nausea;sweating;arm pain,0.7-0.9,high,high,cardiovascular
+CARD002,Heart Failure,shortness of breath;fatigue;swelling,cough;rapid heartbeat;weight gain,0.7-0.9,high,high,cardiovascular

@@ -49,7 +49,8 @@ import {
   LocalHospital,
   Description,
   Image as ImagingIcon,
-  Assignment
+  Assignment,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import DICOMViewer from '../components/imaging/DICOMViewer'; // Correct path for DICOMViewer
 import { patientAPI } from '../services/api';
@@ -80,11 +81,21 @@ const Imaging = () => {
         try {
           const orders = await patientAPI.getTestOrders(patient.patient_id);
           console.log(`Imaging orders for patient ${patient.patient_id}:`, orders);
-          // Filter for imaging orders
+          // Filter for imaging orders - look for orders with imaging_type or specific imaging test types
           const imagingOrdersForPatient = orders.filter(o => {
-            const isImaging = o.test_types && o.test_types.name && 
-                             o.test_types.name.toLowerCase().includes('imaging');
-            console.log(`Order ${o.order_id}: test_type=${o.test_types?.name}, isImaging=${isImaging}`);
+            // Check if it has imaging_type field (new imaging orders)
+            const hasImagingType = o.imaging_type && o.imaging_type.trim();
+            // Check if it's a known imaging test type
+            const isImagingTestType = o.test_types && o.test_types.name && 
+                                    ['x-ray', 'mri', 'ct scan', 'ultrasound', 'mammography', 'angiography', 'fluoroscopy'].includes(
+                                      o.test_types.name.toLowerCase()
+                                    );
+            // Check if test_type is 'imaging' (old orders)
+            const isImagingType = o.test_types && o.test_types.name && 
+                                o.test_types.name.toLowerCase() === 'imaging';
+            
+            const isImaging = hasImagingType || isImagingTestType || isImagingType;
+            console.log(`Order ${o.order_id}: test_type=${o.test_types?.name}, imaging_type=${o.imaging_type}, isImaging=${isImaging}`);
             return isImaging;
           });
           
@@ -103,7 +114,6 @@ const Imaging = () => {
       setImagingPatients(imagingOrders);
     } catch (err) {
       console.error('Error fetching imaging orders:', err);
-      setImagingPatients([]);
     } finally {
       setLoading(false);
     }
@@ -181,24 +191,38 @@ const Imaging = () => {
   });
 
   return (
-    <Container 
-      maxWidth="xl" 
-      sx={{ 
-        py: 3,
-        mt: 8,
-        minHeight: '100vh', // Full screen height
-        backgroundColor: '#f5f5f5'
-      }}
-    >
-      <Grid container spacing={3}>
+    <Box sx={{
+      width: '100vw',
+      minHeight: '100vh',
+      backgroundColor: '#f5f5f5',
+      overflowX: 'hidden',
+      p: 0
+    }}>
+      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 4, pt: 3 }}>
+        <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <ImagingIcon fontSize="large" /> Imaging Department
+        </Typography>
+        <Button
+          variant="outlined"
+          startIcon={<RefreshIcon />}
+          onClick={fetchImagingOrders}
+          disabled={loading}
+          sx={{ minWidth: 120 }}
+        >
+          {loading ? 'Loading...' : 'Refresh'}
+        </Button>
+      </Box>
+
+      <Grid container spacing={3} sx={{ height: 'calc(100vh - 120px)', width: '100%', px: 4, m: 0 }}>
         {/* Left Sidebar - Imaging Patients */}
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={4} sx={{ height: '100%' }}>
           <Card sx={{ 
             boxShadow: 3,
-            height: 'calc(100vh - 100px)',
+            height: '100%',
             overflow: 'hidden',
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            minWidth: 0
           }}>
             <CardContent sx={{ 
               display: 'flex', 
@@ -282,7 +306,7 @@ const Imaging = () => {
           {selectedPatient ? (
             <Card sx={{ 
               boxShadow: 3,
-              height: 'calc(100vh - 100px)',
+              height: '100%',
               overflow: 'auto'
             }}>
               <CardContent sx={{ p: 3 }}>
@@ -539,7 +563,7 @@ const Imaging = () => {
           )}
         </Grid>
       </Grid>
-    </Container>
+    </Box>
   );
 };
 

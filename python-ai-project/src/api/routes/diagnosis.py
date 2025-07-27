@@ -40,6 +40,16 @@ class BestDiagnosisAI:
         self.patient_contexts = {}
         self.diagnosis_cache = {}
         self._load_best_model()
+        # Initialize the enhanced AI knowledge base
+        asyncio.create_task(self._initialize_enhanced_ai())
+
+    async def _initialize_enhanced_ai(self):
+        """Initialize the enhanced AI knowledge base"""
+        try:
+            await self.enhanced_ai.initialize_knowledge_base()
+            print("Enhanced AI knowledge base initialized successfully")
+        except Exception as e:
+            print(f"Error initializing enhanced AI: {e}")
 
     def _load_best_model(self):
         # Load model selector
@@ -67,45 +77,110 @@ class BestDiagnosisAI:
             self.model = None
 
     async def analyze_clinician_notes(self, notes: str, patient_id: int) -> dict:
-        # Use best model for prediction
-        ml_result = None
-        if self.model:
+        try:
+            print(f"Starting analysis for patient {patient_id} with notes: {notes[:50]}...")
+            
+            # Use best model for prediction
+            ml_result = None
+            if self.model:
+                try:
+                    pred = self.model.predict([notes])[0]
+                    proba = self.model.predict_proba([notes])[0]
+                    confidence = float(max(proba))
+                    ml_result = {
+                        'prediction': pred,
+                        'confidence': confidence
+                    }
+                    print(f"ML prediction: {pred} with confidence {confidence}")
+                except Exception as e:
+                    ml_result = {'error': str(e)}
+                    print(f"ML prediction error: {e}")
+            else:
+                print("No ML model available")
+            
+            # Use enhanced AI for knowledge-based insights
             try:
-                pred = self.model.predict([notes])[0]
-                proba = self.model.predict_proba([notes])[0]
-                confidence = float(max(proba))
-                ml_result = {
-                    'prediction': pred,
-                    'confidence': confidence
-                }
+                enhanced_result = await self.enhanced_ai.analyze_clinician_notes(notes, patient_id)
+                print(f"Enhanced AI result: {enhanced_result}")
             except Exception as e:
-                ml_result = {'error': str(e)}
-        
-        # Use enhanced AI for knowledge-based insights
-        # Temporarily use a simple fallback to get the service working
-        enhanced_result = {
-            "patient_id": patient_id,
-            "timestamp": datetime.now().isoformat(),
-            "symptoms": ["fever", "headache"] if "fever" in notes.lower() or "headache" in notes.lower() else [],
-            "conditions": [{"condition": "viral infection", "probability": 0.7, "severity": "moderate", "treatment_urgency": "routine"}] if "fever" in notes.lower() else [],
-            "urgency_score": 0.3,
-            "urgency_level": "low",
-            "recommendations": ["Monitor temperature", "Rest and hydration", "Consider antipyretics if needed"],
-            "risk_assessment": {"risk_level": "low", "factors": []},
-            "confidence": 0.6,
-            "data_sources": {"who_data": 0, "drug_data": 0, "research_data": 0}
-        }
-        
-        # Combine results
-        result = {
-            'ml_prediction': ml_result,
-            'enhanced_analysis': enhanced_result
-        }
-        return result
+                print(f"Enhanced AI error: {e}")
+                # Fallback if enhanced AI fails
+                enhanced_result = {
+                    "patient_id": patient_id,
+                    "timestamp": datetime.now().isoformat(),
+                    "symptoms": [],
+                    "differential_diagnosis": [],
+                    "tests": [],
+                    "treatment_plan": [],
+                    "urgency_score": 0.3,
+                    "urgency_level": "low",
+                    "confidence": 0.0,
+                    "data_sources": {"who_data": 0, "drug_data": 0, "research_data": 0}
+                }
+            
+            print(f"Enhanced result created: {len(enhanced_result)} keys")
+            
+            # Combine results
+            result = {
+                'ml_prediction': ml_result,
+                'enhanced_analysis': enhanced_result
+            }
+            
+            print(f"Final result created: {len(result)} keys")
+            return result
+        except Exception as e:
+            print(f"Error in BestDiagnosisAI.analyze_clinician_notes: {e}")
+            logger.error(f"Error in BestDiagnosisAI.analyze_clinician_notes: {e}")
+            # Return a safe fallback
+            return {
+                'ml_prediction': {'prediction': "I don't know", 'confidence': 0.0},
+                'enhanced_analysis': {
+                    "patient_id": patient_id,
+                    "timestamp": datetime.now().isoformat(),
+                    "symptoms": [],
+                    "differential_diagnosis": [],
+                    "tests": [],
+                    "treatment_plan": [],
+                    "urgency_score": 0.0,
+                    "urgency_level": "low",
+                    "confidence": 0.0,
+                    "data_sources": {"who_data": 0, "drug_data": 0, "research_data": 0},
+                    "error": str(e)
+                }
+            }
 
     async def generate_comprehensive_diagnosis(self, patient_id: int, current_notes: str, patient_history: dict, lab_results: list, imaging_results: list) -> dict:
         # Use enhanced AI for multi-source analysis
-        enhanced_result = await self.enhanced_ai.analyze_clinician_notes(current_notes, patient_id)
+        try:
+            enhanced_result = await self.enhanced_ai.analyze_clinician_notes(current_notes, patient_id)
+            if enhanced_result is None:
+                enhanced_result = {
+                    "patient_id": patient_id,
+                    "timestamp": datetime.now().isoformat(),
+                    "symptoms": [],
+                    "conditions": [],
+                    "urgency_score": 0.0,
+                    "urgency_level": "low",
+                    "recommendations": [],
+                    "risk_assessment": {},
+                    "confidence": 0.0,
+                    "data_sources": {}
+                }
+        except Exception as e:
+            enhanced_result = {
+                "patient_id": patient_id,
+                "timestamp": datetime.now().isoformat(),
+                "symptoms": [],
+                "conditions": [],
+                "urgency_score": 0.0,
+                "urgency_level": "low",
+                "recommendations": [],
+                "risk_assessment": {},
+                "confidence": 0.0,
+                "data_sources": {},
+                "error": str(e)
+            }
+        
         # Use ML model for prediction
         ml_result = None
         if self.model:
@@ -135,19 +210,25 @@ class BestDiagnosisAI:
 # Replace legacy AI with new best-model AI
 best_diagnosis_ai = BestDiagnosisAI()
 
-# Initialize the enhanced AI knowledge base
-async def initialize_ai():
-    await best_diagnosis_ai.enhanced_ai.initialize_knowledge_base()
-
-# Initialize AI on startup
-import asyncio
+# Ensure enhanced AI is properly initialized
 try:
-    asyncio.create_task(initialize_ai())
-except:
-    pass  # Will be initialized when first request comes in
+    best_diagnosis_ai.enhanced_ai = EnhancedDiagnosisAI()
+    print("Enhanced AI instance created successfully")
+except Exception as e:
+    print(f"Error creating Enhanced AI instance: {e}")
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+# Initialize the enhanced AI knowledge base
+async def initialize_ai():
+    try:
+        await best_diagnosis_ai.enhanced_ai.initialize_knowledge_base()
+        logger.info("Enhanced AI knowledge base initialized successfully")
+    except Exception as e:
+        logger.error(f"Error initializing enhanced AI: {e}")
+
+# Initialize AI when first request comes in instead of at startup
 
 # Initialize AI diagnosis system
 # diagnosis_ai = RealTimeDiagnosisAI() # This line is removed as per the edit hint
@@ -201,52 +282,74 @@ async def analyze_clinician_notes(
     """
     try:
         logger.info(f"Received analyze-notes request: patient_id={request.patient_id}, notes_length={len(request.notes)}")
-        result = await best_diagnosis_ai.analyze_clinician_notes(request.notes, request.patient_id)
-        ml_pred = result.get('ml_prediction', {})
-        enhanced = result.get('enhanced_analysis', {})
-        # Primary diagnosis and confidence
-        primary_diagnosis = ml_pred.get('prediction', None)
-        primary_confidence = ml_pred.get('confidence', 0.0)
-        # Differential diagnosis with probabilities
+        
+        # Use the enhanced AI for analysis
+        analysis_result = await best_diagnosis_ai.analyze_clinician_notes(request.notes, request.patient_id)
+        
+        # Extract enhanced analysis results
+        enhanced = analysis_result.get('enhanced_analysis', {})
+        
+        # Extract symptoms
+        symptoms = enhanced.get('symptoms', [])
+        
+        # Extract differential diagnosis and convert to the expected format
+        diff_diagnosis = enhanced.get('differential_diagnosis', [])
         differential = []
-        if 'probabilities' in ml_pred and hasattr(best_diagnosis_ai.model, 'classes_'):
-            for label, prob in zip(best_diagnosis_ai.model.classes_, ml_pred['probabilities']):
-                if label != primary_diagnosis:
-                    differential.append({label: round(prob * 100, 2)})
-        # If not confident, say 'I don't know'
-        if not primary_diagnosis or primary_confidence < 0.3:
-            primary_diagnosis = "I don't know"
-            primary_confidence = 0.0
-            differential = []
-        # Recommended tests and medications from enhanced AI
-        recommended_tests = enhanced.get('recommendations', [])
-        recommended_medications = []
-        for rec in recommended_tests:
-            if any(word in rec.lower() for word in ['medication', 'drug', 'prescribe', 'start', 'give']):
-                recommended_medications.append(rec)
-        recommended_tests = [rec for rec in recommended_tests if rec not in recommended_medications]
-        # Explanation (optional)
-        explanation = f"Diagnosis based on input: {request.notes}"
-        # Safely get medical category
-        conditions = enhanced.get('conditions', [])
-        medical_category = 'Unknown'
-        if conditions and len(conditions) > 0:
-            medical_category = conditions[0].get('condition', 'Unknown')
+        for condition in diff_diagnosis:
+            condition_name = condition.get('condition_name', 'Unknown')
+            probability = condition.get('probability', 0.0) * 100
+            differential.append({condition_name: round(probability, 2)})
+        
+        # Get primary diagnosis from first condition or ML prediction
+        primary_diagnosis = "I don't know"
+        primary_confidence = 0.0
+        if diff_diagnosis:
+            primary_diagnosis = diff_diagnosis[0].get('condition_name', 'Unknown')
+            primary_confidence = diff_diagnosis[0].get('probability', 0.0) * 100
+        
+        # Extract tests and treatments
+        recommended_tests = enhanced.get('tests', [])
+        treatment_plan = enhanced.get('treatment_plan', [])
+        
+        # Determine urgency and category
+        urgency_score = enhanced.get('urgency_score', 0.3)
+        urgency_level = enhanced.get('urgency_level', 'low')
+        confidence = enhanced.get('confidence', 0.0)
+        
+        # Determine medical category based on primary diagnosis
+        medical_category = "General"
+        if any('cardio' in condition.get('condition_name', '').lower() for condition in diff_diagnosis):
+            medical_category = "Cardiovascular"
+        elif any('diabet' in condition.get('condition_name', '').lower() for condition in diff_diagnosis):
+            medical_category = "Endocrine"
+        elif any('respir' in condition.get('condition_name', '').lower() for condition in diff_diagnosis):
+            medical_category = "Respiratory"
+        
+        # Generate recommendations
+        recommendations = []
+        if urgency_level in ['high', 'critical']:
+            recommendations.append("Immediate medical attention required")
+        if recommended_tests:
+            recommendations.append(f"Recommended tests: {', '.join(recommended_tests[:3])}")
+        if treatment_plan:
+            recommendations.append(f"Consider treatments: {', '.join(treatment_plan[:3])}")
+        if not recommendations:
+            recommendations = ["Monitor symptoms", "Follow up if symptoms worsen"]
         
         return RealTimeAnalysisResponse(
             patient_id=request.patient_id,
             timestamp=datetime.now(),
-            symptoms=enhanced.get('symptoms', []),
-            urgency_score=enhanced.get('urgency_score', 0.0),
+            symptoms=symptoms,
+            urgency_score=urgency_score,
             medical_category=medical_category,
-            confidence=primary_confidence,
-            recommendations=enhanced.get('recommendations', []),
+            confidence=confidence,
+            recommendations=recommendations,
             primary_diagnosis=primary_diagnosis,
-            primary_confidence=round(primary_confidence * 100, 2),
+            primary_confidence=primary_confidence,
             differential_diagnosis=differential,
             recommended_tests=recommended_tests,
-            recommended_medications=recommended_medications,
-            explanation=explanation
+            recommended_medications=treatment_plan,
+            explanation=f"Enhanced AI analysis based on {len(diff_diagnosis)} potential conditions"
         )
     except Exception as e:
         logger.error(f"Error in analyze_clinician_notes: {e}")

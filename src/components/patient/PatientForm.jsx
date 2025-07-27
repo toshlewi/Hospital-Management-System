@@ -61,6 +61,18 @@ const PatientForm = ({ open, onClose, patient, onSubmit }) => {
     setLoading(true);
     setError('');
 
+    // Date of birth validation
+    const today = new Date();
+    const dob = new Date(formData.date_of_birth);
+    // Remove time for comparison
+    today.setHours(0,0,0,0);
+    dob.setHours(0,0,0,0);
+    if (!formData.date_of_birth || dob >= today) {
+      setError('Date of birth must be before today.');
+      setLoading(false);
+      return;
+    }
+
     try {
       let response;
       if (patient) {
@@ -116,6 +128,7 @@ const PatientForm = ({ open, onClose, patient, onSubmit }) => {
                 fullWidth
                 required
                 InputLabelProps={{ shrink: true }}
+                inputProps={{ max: new Date().toISOString().split('T')[0] }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>

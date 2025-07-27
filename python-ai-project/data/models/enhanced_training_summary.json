@@ -1,0 +1,22 @@
+{
+  "training_date": "2025-07-26T15:33:11.773162",
+  "models_trained": [
+    "enhanced_diagnosis",
+    "enhanced_treatment"
+  ],
+  "total_samples": {
+    "diagnosis": 12,
+    "treatment": 18,
+    "tests": 4
+  },
+  "data_sources": {
+    "structured_data": true,
+    "pubmed_data": false,
+    "clinical_trials": true,
+    "diseases_db": true
+  },
+  "model_performance": {
+    "enhanced_diagnosis": "trained_successfully",
+    "enhanced_treatment": "trained_successfully"
+  }
+}

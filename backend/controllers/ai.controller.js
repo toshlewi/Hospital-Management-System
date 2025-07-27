@@ -15,10 +15,53 @@ function isGeneralQuestion(text) {
     );
 }
 
+// Enhanced response formatter
+function formatEnhancedResponse(aiResult) {
+    const {
+        symptoms = [],
+        conditions = [],
+        recommendations = [],
+        confidence = 0,
+        urgency_score = 0,
+        data_sources = {},
+        // New fields for enhanced structure
+        differential_diagnosis = [],
+        recommended_tests = [],
+        treatment_plan = [],
+        risk_factors = [],
+        follow_up_plan = []
+    } = aiResult;
+
+    return {
+        // Core analysis results
+        symptoms,
+        conditions: differential_diagnosis.length > 0 ? differential_diagnosis : conditions,
+        confidence,
+        urgency_score,
+        data_sources,
+        
+        // Enhanced sections
+        differential_diagnosis: differential_diagnosis.length > 0 ? differential_diagnosis : conditions,
+        tests: recommended_tests,
+        treatment_plan: treatment_plan.length > 0 ? treatment_plan : recommendations,
+        risk_factors,
+        follow_up_plan,
+        
+        // Legacy support
+        recommendations,
+        
+        // Metadata
+        ai: true,
+        timestamp: new Date().toISOString(),
+        version: '2.0'
+    };
+}
+
 exports.diagnose = async (req, res) => {
     // Proxy request to Python AI service
     const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
     const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+    
     try {
         const { note_text, test_results, doctor_notes, patient_id } = req.body;
         const text = note_text || '';
@@ -33,30 +76,49 @@ exports.diagnose = async (req, res) => {
                 body: JSON.stringify(payload)
             });
             if (!response.ok) {
-                return res.status(response.status).json({ error: 'AI service error', status: response.status });
+                return res.status(response.status).json({ 
+                    error: 'AI service error', 
+                    status: response.status,
+                    message: 'Clinical support service unavailable'
+                });
             }
             result = await response.json();
-            res.json({ ...result, ai: true, routed: 'clinical-support' });
+            const enhancedResult = formatEnhancedResponse(result);
+            res.json({ ...enhancedResult, routed: 'clinical-support' });
         } else {
             // Compose payload for AI service (diagnosis)
             const payload = {
                 patient_id: patient_id || 1,
                 notes: text,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                enhanced_response: true // Request enhanced response format
             };
+            
             response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnosis/analyze-notes`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
+            
             if (!response.ok) {
-                return res.status(response.status).json({ error: 'AI service error', status: response.status });
+                return res.status(response.status).json({ 
+                    error: 'AI service error', 
+                    status: response.status,
+                    message: 'Diagnosis service unavailable'
+                });
             }
+            
             result = await response.json();
-            res.json({ ...result, ai: true, routed: 'diagnosis' });
+            const enhancedResult = formatEnhancedResponse(result);
+            res.json({ ...enhancedResult, routed: 'diagnosis' });
         }
     } catch (error) {
-        res.status(500).json({ error: error.message, ai: false });
+        console.error('AI Controller Error:', error);
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            message: error.message, 
+            ai: false 
+        });
     }
 };
 

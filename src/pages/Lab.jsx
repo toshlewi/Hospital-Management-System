@@ -63,7 +63,8 @@ import {
   Close as CloseIcon,
   Check as CheckIcon,
   Cancel as CancelIcon,
-  Info as InfoIcon
+  Info as InfoIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { patientAPI } from '../services/api';
 import { useDebounce } from 'use-debounce';
@@ -110,21 +111,22 @@ const Lab = () => {
         try {
         const orders = await patientAPI.getTestOrders(patient.patient_id);
           console.log(`Orders for patient ${patient.patient_id}:`, orders);
-          // Filter for lab orders (test_type_id that corresponds to lab tests)
+          // Show only lab orders - exclude imaging orders
           const labOrdersForPatient = orders.filter(o => {
-            // Check if it's a lab test (not imaging)
-            const isImaging = o.test_types && o.test_types.name && 
-                             o.test_types.name.toLowerCase().includes('imaging');
-            const isLab = o.test_types && o.test_types.name && 
-                         !isImaging && (
-                           o.test_types.name.toLowerCase().includes('lab') || 
-                           o.test_types.name.toLowerCase().includes('blood') ||
-                           o.test_types.name.toLowerCase().includes('urine') ||
-                           o.test_types.name.toLowerCase().includes('test') ||
-                           o.test_types.name.toLowerCase().includes('analysis')
-                         );
-            console.log(`Order ${o.order_id}: test_type=${o.test_types?.name}, isImaging=${isImaging}, isLab=${isLab}`);
-            return isLab;
+            // Exclude orders with imaging_type field (imaging orders)
+            const hasImagingType = o.imaging_type && o.imaging_type.trim();
+            // Exclude known imaging test types
+            const isImagingTestType = o.test_types && o.test_types.name && 
+                                    ['x-ray', 'mri', 'ct scan', 'ultrasound', 'mammography', 'angiography', 'fluoroscopy'].includes(
+                                      o.test_types.name.toLowerCase()
+                                    );
+            // Exclude if test_type is 'imaging' (old imaging orders)
+            const isImagingType = o.test_types && o.test_types.name && 
+                                o.test_types.name.toLowerCase() === 'imaging';
+            
+            const isImaging = hasImagingType || isImagingTestType || isImagingType;
+            console.log(`Order ${o.order_id}: test_type=${o.test_types?.name}, imaging_type=${o.imaging_type}, isImaging=${isImaging}`);
+            return !isImaging; // Show only non-imaging orders (lab orders)
           });
           
         if (labOrdersForPatient.length > 0) {
@@ -158,9 +160,12 @@ const Lab = () => {
     }
   }, []);
 
+  // Load lab orders on component mount only
   useEffect(() => {
     fetchLabOrders();
-    }, [fetchLabOrders]);
+  }, [fetchLabOrders]);
+
+
 
   const handleConfirmSend = () => {
     // In a real app, this would send the results to the doctor
@@ -187,7 +192,11 @@ const Lab = () => {
 
   // Main: Filtered lab orders for selected patient
   const patientLabOrders = selectedPatient
-    ? labOrders.filter(o => o.patient?.patient_id === selectedPatient.patient?.patient_id && (filterStatus === 'all' || o.status === filterStatus))
+    ? labOrders.filter(o => {
+        const selectedPatientId = selectedPatient.patient?.patient_id || selectedPatient.patient_id;
+        const orderPatientId = o.patient?.patient_id;
+        return orderPatientId === selectedPatientId && (filterStatus === 'all' || o.status === filterStatus);
+      })
     : [];
 
   // Status chip color
@@ -209,7 +218,10 @@ const Lab = () => {
 
   // Select a test order
   const handleSelectOrder = (order) => {
+    console.log('Selected order:', order);
+    console.log('Order patient:', order.patient);
     setSelectedOrder(order);
+    setSelectedPatient(order); // Set the selected patient to the order's patient
     setResultText(order.result || '');
     setResultSuccess('');
     setResultError('');
@@ -310,8 +322,8 @@ const Lab = () => {
 
 
   const getFilteredTestOrders = () => {
-    if (filterStatus === 'all') return testOrders;
-    return testOrders.filter(order => order.status?.toLowerCase() === filterStatus);
+    if (filterStatus === 'all') return labOrders;
+    return labOrders.filter(order => order.status?.toLowerCase() === filterStatus);
   };
 
   if (loading) {
@@ -323,15 +335,13 @@ const Lab = () => {
   }
 
   return (
-    <Container 
-      maxWidth="xl" 
-      sx={{ 
-        py: 3,
-        mt: 8,
-        minHeight: '100vh', // Full screen height
-        backgroundColor: '#f5f5f5'
-      }}
-    >
+    <Box sx={{
+      width: '100vw',
+      minHeight: '100vh',
+      backgroundColor: '#f5f5f5',
+      overflowX: 'hidden',
+      p: 0
+    }}>
       {sendSuccess && (
         <Alert 
           severity="success" 
@@ -348,19 +358,31 @@ const Lab = () => {
         </Alert>
       )}
 
-      <Typography variant="h4" sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-        <LabIcon fontSize="large" /> Lab Department
-      </Typography>
+      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 4, pt: 3 }}>
+        <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <LabIcon fontSize="large" /> Lab Department
+        </Typography>
+        <Button
+          variant="outlined"
+          startIcon={<RefreshIcon />}
+          onClick={fetchLabOrders}
+          disabled={loading}
+          sx={{ minWidth: 120 }}
+        >
+          {loading ? 'Loading...' : 'Refresh'}
+        </Button>
+      </Box>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={3} sx={{ height: 'calc(100vh - 120px)', width: '100%', px: 4, m: 0 }}>
         {/* Left Sidebar - Lab Patients */}
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={4} sx={{ height: '100%' }}>
           <Card sx={{ 
             boxShadow: 3,
-            height: 'calc(100vh - 100px)',
+            height: '100%',
             overflow: 'hidden',
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            minWidth: 0
           }}>
             <CardContent sx={{ 
               display: 'flex', 
@@ -415,12 +437,15 @@ const Lab = () => {
                         }}
                       >
                         <ListItemText
-                          primary={`${order.patient_first_name} ${order.patient_last_name}`}
+                          primary={`${order.patient?.first_name || 'Unknown'} ${order.patient?.last_name || 'Patient'}`}
                           secondary={
                             <Box>
                               <Typography variant="body2" color="text.secondary">
-                                {order.test_name}
+                                {order.test_types?.name || order.test_name}
                               </Typography>
+                              {order.clinical_notes && (
+                                <Typography variant="caption" color="text.primary">Notes: {order.clinical_notes}</Typography>
+                              )}
                               <Chip 
                                 label={order.status || 'N/A'}
                                 color={statusColor(order.status)}
@@ -441,22 +466,28 @@ const Lab = () => {
         </Grid>
 
         {/* Main Content - Test Results */}
-        <Grid item xs={12} md={8}>
-          <Card sx={{ boxShadow: 3, minHeight: 'calc(100vh - 100px)' }}>
+        <Grid item xs={12} md={8} sx={{ height: '100%' }}>
+          <Card sx={{ boxShadow: 3, height: '100%', overflow: 'auto' }}>
             <CardContent>
               {selectedPatient ? (
                 <>
                   <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Avatar sx={{ width: 56, height: 56, bgcolor: 'primary.main' }}>
-                      {selectedPatient.patient?.first_name?.[0] || 'P'}
+                      {selectedPatient.patient?.first_name?.[0] || selectedPatient.first_name?.[0] || 'P'}
                     </Avatar>
                     <Box>
-                      <Typography variant="h5">{selectedPatient.patient?.first_name || 'N/A'} {selectedPatient.patient?.last_name || ''}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Gender: {selectedPatient.patient?.gender || 'N/A'} | DOB: {selectedPatient.patient?.date_of_birth || 'N/A'} | Status: {selectedPatient.status || 'N/A'}
+                      <Typography variant="h5">
+                        {selectedPatient.patient?.first_name || selectedPatient.first_name || 'N/A'} 
+                        {selectedPatient.patient?.last_name || selectedPatient.last_name || ''}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Contact: {selectedPatient.patient?.contact_number || 'N/A'} | Email: {selectedPatient.patient?.email || 'N/A'}
+                        Gender: {selectedPatient.patient?.gender || selectedPatient.gender || 'N/A'} | 
+                        DOB: {selectedPatient.patient?.date_of_birth || selectedPatient.date_of_birth || 'N/A'} | 
+                        Status: {selectedPatient.status || 'N/A'}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Contact: {selectedPatient.patient?.contact_number || selectedPatient.contact_number || 'N/A'} | 
+                        Email: {selectedPatient.patient?.email || selectedPatient.email || 'N/A'}
                       </Typography>
                     </Box>
                   </Box>
@@ -524,6 +555,55 @@ const Lab = () => {
                   {selectedOrder && (
                     <Box sx={{ mt: 2 }}>
                       <Typography variant="h6" sx={{ mb: 1 }}>Enter/Update Result for: <b>{selectedOrder.test_types?.name || selectedOrder.test_name || 'Lab Test'}</b></Typography>
+                      
+                      {/* Test Details Section */}
+                      <Box sx={{ mb: 3, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1, backgroundColor: '#f9f9f9' }}>
+                        <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
+                          Test Details
+                        </Typography>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} md={6}>
+                            <Typography variant="body2" color="text.secondary">Test Type:</Typography>
+                            <Typography variant="body1">{selectedOrder.test_types?.name || 'Not specified'}</Typography>
+                          </Grid>
+                          {selectedOrder.imaging_type && (
+                            <Grid item xs={12} md={6}>
+                              <Typography variant="body2" color="text.secondary">Imaging Type:</Typography>
+                              <Typography variant="body1">{selectedOrder.imaging_type}</Typography>
+                            </Grid>
+                          )}
+                          {selectedOrder.body_part && (
+                            <Grid item xs={12} md={6}>
+                              <Typography variant="body2" color="text.secondary">Body Part:</Typography>
+                              <Typography variant="body1">{selectedOrder.body_part}</Typography>
+                            </Grid>
+                          )}
+                          <Grid item xs={12} md={6}>
+                            <Typography variant="body2" color="text.secondary">Priority:</Typography>
+                            <Typography variant="body1" sx={{ textTransform: 'capitalize' }}>{selectedOrder.priority || 'Not specified'}</Typography>
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <Typography variant="body2" color="text.secondary">Requesting Physician:</Typography>
+                            <Typography variant="body1">{selectedOrder.requesting_physician || 'Not specified'}</Typography>
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <Typography variant="body2" color="text.secondary">Order Date:</Typography>
+                            <Typography variant="body1">{selectedOrder.ordered_at ? new Date(selectedOrder.ordered_at).toLocaleDateString() : 'Not specified'}</Typography>
+                          </Grid>
+                          {selectedOrder.clinical_notes && (
+                            <Grid item xs={12}>
+                              <Typography variant="body2" color="text.secondary">Clinical Notes:</Typography>
+                              <Typography variant="body1">{selectedOrder.clinical_notes}</Typography>
+                            </Grid>
+                          )}
+                          {selectedOrder.differential_diagnosis && (
+                            <Grid item xs={12}>
+                              <Typography variant="body2" color="text.secondary">Differential Diagnosis:</Typography>
+                              <Typography variant="body1">{selectedOrder.differential_diagnosis}</Typography>
+                            </Grid>
+                          )}
+                        </Grid>
+                      </Box>
                       <TextField
                         label="Result"
                         multiline
@@ -853,7 +933,7 @@ const Lab = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 };
 

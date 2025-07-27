@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// Use relative path so the frontend proxy works correctly
 const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
 const api = axios.create({

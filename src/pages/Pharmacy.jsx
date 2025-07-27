@@ -39,7 +39,8 @@ import {
   Info,
   Add,
   Remove,
-  Search
+  Search,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import pharmacyService from '../services/pharmacyService';
 
@@ -120,9 +121,18 @@ const Pharmacy = () => {
     }
   };
 
-  useEffect(() => { fetchDrugs(); fetchPrescriptions(); }, []);
+  // Add polling for real-time updates
+  useEffect(() => {
+    fetchDrugs();
+    fetchPrescriptions();
+    const interval = setInterval(() => {
+      fetchDrugs();
+      fetchPrescriptions();
+    }, 10000); // Poll every 10 seconds
+    return () => clearInterval(interval);
+  }, []);
 
-  // Group prescriptions by patient
+  // Group prescriptions by patient and deduplicate by medication
   const patientsWithPrescriptions = prescriptions.reduce((acc, presc) => {
     const pid = presc.patient_id;
     if (!acc[pid]) {
@@ -133,9 +143,18 @@ const Pharmacy = () => {
         prescriptions: []
       };
     }
-    acc[pid].prescriptions.push(presc);
+    // Only add if not already dispensed and not a duplicate medication for this patient
+    const alreadyDispensed = dispensedIds.includes(presc.prescription_id);
+    const alreadyExists = acc[pid].prescriptions.some(p => (p.medications || p.medication_name) === (presc.medications || presc.medication_name));
+    if (!alreadyDispensed && !alreadyExists) {
+      acc[pid].prescriptions.push(presc);
+    }
     return acc;
   }, {});
+  // Sort prescriptions by most recent (descending by prescription_id or date)
+  Object.values(patientsWithPrescriptions).forEach(p => {
+    p.prescriptions.sort((a, b) => (b.prescription_id || 0) - (a.prescription_id || 0));
+  });
   const patientList = Object.values(patientsWithPrescriptions);
   
   console.log('Patients with prescriptions grouped:', patientsWithPrescriptions);
@@ -169,14 +188,12 @@ const Pharmacy = () => {
   const handleDispense = async (prescription) => {
     setDispenseLoading(true);
     try {
-      // Try exact match first
-      let drug = drugs.find(d => d.name.trim().toLowerCase() === prescription.medications.trim().toLowerCase());
-      // Then try includes
-      if (!drug) drug = drugs.find(d => d.name.toLowerCase().includes(prescription.medications.trim().toLowerCase()));
-      // Then try startsWith (for cases like 'Paracetamol 500mg')
-      if (!drug) drug = drugs.find(d => prescription.medications.toLowerCase().startsWith(d.name.toLowerCase()));
-
-      if (!drug) throw new Error(`Drug '${prescription.medications}' not found in stock. Please check the stock list or restock.`);
+      // Try all possible fields for medication name
+      const medName = prescription.medications || prescription.medication_name || '';
+      let drug = drugs.find(d => d.name.trim().toLowerCase() === medName.trim().toLowerCase());
+      if (!drug) drug = drugs.find(d => d.name.toLowerCase().includes(medName.trim().toLowerCase()));
+      if (!drug && medName) drug = drugs.find(d => medName.toLowerCase().startsWith(d.name.toLowerCase()));
+      if (!drug) throw new Error(`Drug '${medName}' not found in stock. Please check the stock list or restock.`);
 
       const quantityToDispense = dispenseQuantities[prescription.prescription_id] || prescription.quantity || 1;
       await pharmacyService.dispenseDrug(drug.drug_id, quantityToDispense, prescription.prescription_id);
@@ -189,12 +206,12 @@ const Pharmacy = () => {
         },
         ...hist
       ]);
+      // Remove dispensed prescription from UI immediately
+      setPrescriptions(prev => prev.filter(p => p.prescription_id !== prescription.prescription_id));
       await fetchDrugs();
-      await fetchPrescriptions(); // Always refresh after dispensing
-      setError('');
+      await fetchPrescriptions(); // Always reload prescriptions after dispensing
     } catch (err) {
-      setError('Failed to dispense drug: ' + (err.message || ''));
-      alert('Failed to dispense drug: ' + (err.message || ''));
+      setError(err.message || 'Failed to dispense drug');
     } finally {
       setDispenseLoading(false);
     }
@@ -214,34 +231,49 @@ const Pharmacy = () => {
   );
 
   return (
-    <Container 
-      maxWidth="xl" 
-      sx={{ 
-        py: 3,
-        mt: 8, // Add margin top to account for fixed header
-        minHeight: '100vh', // Full screen height
-        backgroundColor: '#f5f5f5',
-        '& .MuiCard-root': {
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column'
-        },
-        '& .MuiCardContent-root': {
-          flexGrow: 1,
-          display: 'flex',
-          flexDirection: 'column'
-        }
-      }}
-    >
-      <Grid container spacing={3}>
+    <Box sx={{
+      width: '100vw',
+      minHeight: '100vh',
+      backgroundColor: '#f5f5f5',
+      overflowX: 'hidden',
+      p: 0
+    }}>
+      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 4, pt: 3 }}>
+        <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <LocalPharmacy fontSize="large" /> Pharmacy Department
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            onClick={() => { fetchDrugs(); fetchPrescriptions(); }}
+            disabled={loading || prescLoading}
+            sx={{ minWidth: 120 }}
+          >
+            {loading || prescLoading ? 'Loading...' : 'Refresh'}
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            color="primary"
+            onClick={() => setOpenAdd(true)}
+            sx={{ minWidth: 120 }}
+          >
+            Add Drug
+          </Button>
+        </Box>
+      </Box>
+
+      <Grid container spacing={3} sx={{ height: 'calc(100vh - 120px)', width: '100%', px: 4, m: 0 }}>
         {/* Left Sidebar - Pending Prescriptions */}
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={4} sx={{ height: '100%' }}>
           <Card sx={{ 
             boxShadow: 3,
-            height: 'calc(100vh - 100px)', // Adjust height to account for header and padding
+            height: '100%',
             overflow: 'hidden',
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            minWidth: 0
           }}>
             <CardContent sx={{ 
               display: 'flex', 
@@ -313,12 +345,12 @@ const Pharmacy = () => {
         </Grid>
 
         {/* Main Content - Patient Prescription Details */}
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={8} sx={{ height: '100%' }}>
           {selectedPatientId && patientsWithPrescriptions[selectedPatientId] ? (
             <Card sx={{ 
               boxShadow: 3, 
               mb: 3,
-              height: 'calc(100vh - 100px)',
+              height: '100%',
               overflow: 'auto'
             }}>
               <CardContent sx={{ p: 3 }}>
@@ -362,7 +394,7 @@ const Pharmacy = () => {
                         <TableRow><TableCell colSpan={6}>No pending prescriptions for this patient.</TableCell></TableRow>
                       ) : selectedPatientPrescriptions.map(presc => (
                         <TableRow key={presc.prescription_id}>
-                          <TableCell>{presc.medications}</TableCell>
+                          <TableCell>{presc.medications || presc.medication_name}</TableCell>
                           <TableCell>{presc.dosage}</TableCell>
                           <TableCell>{presc.frequency || '-'}</TableCell>
                           <TableCell>{presc.duration || '-'}</TableCell>
@@ -558,7 +590,7 @@ const Pharmacy = () => {
               <TableBody>
                 {dispensedHistory.map((item, idx) => (
                   <TableRow key={item.prescription_id + '-' + idx}>
-                    <TableCell>{item.medications}</TableCell>
+                    <TableCell>{item.medications || item.medication_name}</TableCell>
                     <TableCell>{item.dosage}</TableCell>
                     <TableCell>{item.frequency || '-'}</TableCell>
                     <TableCell>{item.duration || '-'}</TableCell>
@@ -571,7 +603,7 @@ const Pharmacy = () => {
           </TableContainer>
         </Box>
       )}
-    </Container>
+    </Box>
   );
 };
 

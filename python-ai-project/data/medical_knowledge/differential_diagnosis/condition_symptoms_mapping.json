@@ -1,0 +1,470 @@
+{
+  "DIAB001": {
+    "condition_name": "Type 2 Diabetes",
+    "primary_symptoms": [
+      "frequent urination",
+      "increased thirst",
+      "fatigue"
+    ],
+    "secondary_symptoms": [
+      "increased hunger",
+      "blurred vision",
+      "slow healing"
+    ],
+    "differential_diagnosis": [
+      "DIAB002",
+      "DIAB003",
+      "HTN001"
+    ],
+    "recommended_tests": [
+      "GLU001",
+      "GLU002",
+      "CMP001"
+    ],
+    "treatment_plan": [
+      "TREAT001",
+      "TREAT003"
+    ],
+    "risk_factors": [
+      "obesity",
+      "family history",
+      "sedentary lifestyle"
+    ],
+    "follow_up_plan": [
+      "monthly glucose monitoring",
+      "quarterly HbA1c",
+      "annual eye exam"
+    ],
+    "severity": "moderate",
+    "urgency_level": "medium"
+  },
+  "DIAB002": {
+    "condition_name": "Type 1 Diabetes",
+    "primary_symptoms": [
+      "excessive thirst",
+      "weight loss",
+      "frequent urination"
+    ],
+    "secondary_symptoms": [
+      "increased hunger",
+      "fatigue",
+      "blurred vision"
+    ],
+    "differential_diagnosis": [
+      "DIAB001",
+      "DIAB003"
+    ],
+    "recommended_tests": [
+      "GLU003",
+      "GLU002",
+      "CMP001"
+    ],
+    "treatment_plan": [
+      "TREAT002",
+      "TREAT003"
+    ],
+    "risk_factors": [
+      "autoimmune disease",
+      "family history"
+    ],
+    "follow_up_plan": [
+      "daily glucose monitoring",
+      "monthly HbA1c",
+      "quarterly endocrinology visit"
+    ],
+    "severity": "high",
+    "urgency_level": "high"
+  },
+  "HTN001": {
+    "condition_name": "Hypertension",
+    "primary_symptoms": [
+      "headache",
+      "chest pain",
+      "shortness of breath"
+    ],
+    "secondary_symptoms": [
+      "dizziness",
+      "nausea",
+      "vision problems"
+    ],
+    "differential_diagnosis": [
+      "HTN002",
+      "DIAB001"
+    ],
+    "recommended_tests": [
+      "CBC001",
+      "CMP001",
+      "BNP001"
+    ],
+    "treatment_plan": [
+      "TREAT004",
+      "TREAT005"
+    ],
+    "risk_factors": [
+      "age",
+      "obesity",
+      "salt intake",
+      "stress"
+    ],
+    "follow_up_plan": [
+      "weekly blood pressure monitoring",
+      "monthly doctor visit"
+    ],
+    "severity": "moderate",
+    "urgency_level": "medium"
+  },
+  "HTN002": {
+    "condition_name": "Hypertensive Crisis",
+    "primary_symptoms": [
+      "severe headache",
+      "chest pain",
+      "shortness of breath"
+    ],
+    "secondary_symptoms": [
+      "confusion",
+      "nausea",
+      "vision changes"
+    ],
+    "differential_diagnosis": [
+      "HTN001",
+      "stroke",
+      "heart attack"
+    ],
+    "recommended_tests": [
+      "TROP001",
+      "BNP001",
+      "CBC001"
+    ],
+    "treatment_plan": [
+      "TREAT006"
+    ],
+    "risk_factors": [
+      "uncontrolled hypertension",
+      "medication non-compliance"
+    ],
+    "follow_up_plan": [
+      "immediate hospitalization",
+      "intensive monitoring"
+    ],
+    "severity": "high",
+    "urgency_level": "high"
+  },
+  "ASTH001": {
+    "condition_name": "Asthma",
+    "primary_symptoms": [
+      "wheezing",
+      "shortness of breath",
+      "chest tightness"
+    ],
+    "secondary_symptoms": [
+      "coughing",
+      "rapid breathing",
+      "fatigue"
+    ],
+    "differential_diagnosis": [
+      "ASTH002",
+      "PNEU001",
+      "COPD"
+    ],
+    "recommended_tests": [
+      "SPIRO001",
+      "ABG001"
+    ],
+    "treatment_plan": [
+      "TREAT007",
+      "TREAT008"
+    ],
+    "risk_factors": [
+      "allergies",
+      "family history",
+      "smoking"
+    ],
+    "follow_up_plan": [
+      "asthma action plan",
+      "regular spirometry",
+      "allergy testing"
+    ],
+    "severity": "moderate",
+    "urgency_level": "medium"
+  },
+  "PNEU001": {
+    "condition_name": "Pneumonia",
+    "primary_symptoms": [
+      "fever",
+      "cough with phlegm",
+      "shortness of breath"
+    ],
+    "secondary_symptoms": [
+      "chest pain",
+      "fatigue",
+      "loss of appetite"
+    ],
+    "differential_diagnosis": [
+      "ASTH001",
+      "bronchitis",
+      "tuberculosis"
+    ],
+    "recommended_tests": [
+      "WBC001",
+      "CRP001",
+      "CULT001"
+    ],
+    "treatment_plan": [
+      "TREAT010",
+      "TREAT011"
+    ],
+    "risk_factors": [
+      "age",
+      "smoking",
+      "weakened immune system"
+    ],
+    "follow_up_plan": [
+      "antibiotic completion",
+      "chest x-ray follow-up",
+      "vaccination"
+    ],
+    "severity": "high",
+    "urgency_level": "high"
+  },
+  "CARD001": {
+    "condition_id": "CARD001",
+    "condition_name": "Coronary Artery Disease",
+    "primary_symptoms": [
+      "chest pain",
+      "shortness of breath",
+      "fatigue"
+    ],
+    "secondary_symptoms": [
+      "nausea",
+      "sweating",
+      "arm pain"
+    ],
+    "differential_diagnosis": [
+      "angina",
+      "myocardial infarction",
+      "heart failure"
+    ],
+    "recommended_tests": [
+      "ECG",
+      "troponin",
+      "coronary angiography"
+    ],
+    "treatment_plan": [
+      "aspirin",
+      "beta blockers",
+      "statins"
+    ],
+    "risk_factors": [
+      "age",
+      "smoking",
+      "diabetes",
+      "hypertension"
+    ],
+    "follow_up_plan": [
+      "cardiology referral",
+      "lifestyle modification"
+    ],
+    "severity": "high",
+    "urgency_level": "high"
+  },
+  "CARD002": {
+    "condition_id": "CARD002",
+    "condition_name": "Heart Failure",
+    "primary_symptoms": [
+      "shortness of breath",
+      "fatigue",
+      "swelling"
+    ],
+    "secondary_symptoms": [
+      "cough",
+      "rapid heartbeat",
+      "weight gain"
+    ],
+    "differential_diagnosis": [
+      "pneumonia",
+      "COPD",
+      "kidney disease"
+    ],
+    "recommended_tests": [
+      "BNP",
+      "echocardiogram",
+      "chest x-ray"
+    ],
+    "treatment_plan": [
+      "ACE inhibitors",
+      "diuretics",
+      "beta blockers"
+    ],
+    "risk_factors": [
+      "coronary artery disease",
+      "hypertension",
+      "diabetes"
+    ],
+    "follow_up_plan": [
+      "regular monitoring",
+      "dietary restrictions"
+    ],
+    "severity": "high",
+    "urgency_level": "high"
+  },
+  "RESP001": {
+    "condition_id": "RESP001",
+    "condition_name": "Chronic Obstructive Pulmonary Disease",
+    "primary_symptoms": [
+      "shortness of breath",
+      "chronic cough",
+      "wheezing"
+    ],
+    "secondary_symptoms": [
+      "fatigue",
+      "chest tightness",
+      "weight loss"
+    ],
+    "differential_diagnosis": [
+      "asthma",
+      "bronchiectasis",
+      "heart failure"
+    ],
+    "recommended_tests": [
+      "spirometry",
+      "chest x-ray",
+      "ABG"
+    ],
+    "treatment_plan": [
+      "bronchodilators",
+      "inhaled steroids",
+      "pulmonary rehabilitation"
+    ],
+    "risk_factors": [
+      "smoking",
+      "air pollution",
+      "occupational exposure"
+    ],
+    "follow_up_plan": [
+      "pulmonary function tests",
+      "vaccination"
+    ],
+    "severity": "moderate",
+    "urgency_level": "medium"
+  },
+  "RESP002": {
+    "condition_id": "RESP002",
+    "condition_name": "Tuberculosis",
+    "primary_symptoms": [
+      "cough",
+      "fever",
+      "night sweats"
+    ],
+    "secondary_symptoms": [
+      "weight loss",
+      "fatigue",
+      "chest pain"
+    ],
+    "differential_diagnosis": [
+      "pneumonia",
+      "lung cancer",
+      "fungal infection"
+    ],
+    "recommended_tests": [
+      "sputum culture",
+      "chest x-ray",
+      "PPD test"
+    ],
+    "treatment_plan": [
+      "isoniazid",
+      "rifampin",
+      "pyrazinamide"
+    ],
+    "risk_factors": [
+      "immunocompromised",
+      "close contact",
+      "travel"
+    ],
+    "follow_up_plan": [
+      "contact tracing",
+      "regular monitoring"
+    ],
+    "severity": "high",
+    "urgency_level": "high"
+  },
+  "NEURO001": {
+    "condition_id": "NEURO001",
+    "condition_name": "Stroke",
+    "primary_symptoms": [
+      "sudden weakness",
+      "speech difficulty",
+      "vision problems"
+    ],
+    "secondary_symptoms": [
+      "headache",
+      "dizziness",
+      "confusion"
+    ],
+    "differential_diagnosis": [
+      "TIA",
+      "migraine",
+      "seizure"
+    ],
+    "recommended_tests": [
+      "CT scan",
+      "MRI",
+      "carotid ultrasound"
+    ],
+    "treatment_plan": [
+      "tPA if eligible",
+      "antiplatelets",
+      "rehabilitation"
+    ],
+    "risk_factors": [
+      "hypertension",
+      "atrial fibrillation",
+      "diabetes"
+    ],
+    "follow_up_plan": [
+      "stroke prevention",
+      "rehabilitation"
+    ],
+    "severity": "high",
+    "urgency_level": "high"
+  },
+  "NEURO002": {
+    "condition_id": "NEURO002",
+    "condition_name": "Epilepsy",
+    "primary_symptoms": [
+      "seizures",
+      "loss of consciousness",
+      "unusual behavior"
+    ],
+    "secondary_symptoms": [
+      "confusion",
+      "memory problems",
+      "anxiety"
+    ],
+    "differential_diagnosis": [
+      "syncope",
+      "psychogenic seizures",
+      "cardiac arrhythmia"
+    ],
+    "recommended_tests": [
+      "EEG",
+      "MRI",
+      "blood tests"
+    ],
+    "treatment_plan": [
+      "antiepileptic drugs",
+      "lifestyle modification",
+      "seizure diary"
+    ],
+    "risk_factors": [
+      "head injury",
+      "family history",
+      "brain infection"
+    ],
+    "follow_up_plan": [
+      "regular EEG",
+      "medication monitoring"
+    ],
+    "severity": "moderate",
+    "urgency_level": "medium"
+  }
+}

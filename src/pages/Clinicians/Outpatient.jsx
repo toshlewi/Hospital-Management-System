@@ -32,6 +32,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  FormHelperText,
   Tabs,
   Tab,
   TextareaAutosize,
@@ -76,7 +77,21 @@ import {
 } from '@mui/icons-material';
 import { patientAPI } from '../../services/api';
 import pharmacyService from '../../services/pharmacyService';
+import RightSideAIPanel from '../../components/ai/RightSideAIPanel';
 
+
+const COMMON_LAB_TESTS = [
+  "Full Blood Count",
+  "Malaria Test",
+  "Blood Sugar",
+  "Urinalysis",
+  "Liver Function Test",
+  "Renal Function Test",
+  "HIV Test",
+  "Typhoid Test",
+  "COVID-19 PCR",
+  "Blood Grouping"
+];
 
 const Outpatient = ({ onPatientSelect }) => {
   // State for patient management
@@ -210,6 +225,20 @@ const Outpatient = ({ onPatientSelect }) => {
     }
   };
 
+  // Fetch available drugs for prescription dropdown
+  const fetchAvailableDrugs = async () => {
+    try {
+      const drugs = await pharmacyService.getAllDrugs();
+      setAvailableDrugs(drugs);
+    } catch (err) {
+      setAvailableDrugs([]);
+    }
+  };
+  // Fetch drugs when prescription dialog opens
+  useEffect(() => {
+    if (prescriptionDialog) fetchAvailableDrugs();
+  }, [prescriptionDialog]);
+
   const showSnackbar = (message, severity = 'success') => {
     setSnackbar({ open: true, message, severity });
   };
@@ -220,6 +249,7 @@ const Outpatient = ({ onPatientSelect }) => {
 
   const handlePatientSelect = async (patient) => {
     setSelectedPatient(patient);
+    setPrescriptions([]); // Clear prescriptions when switching patients
     setPatientDialog(true);
     await loadPatientDetails(patient.patient_id);
     
@@ -305,7 +335,8 @@ const Outpatient = ({ onPatientSelect }) => {
       });
       setPrescriptionDialog(false);
       showSnackbar('Prescription created successfully');
-      await loadPatientDetails(selectedPatient.patient_id); // Always refresh after prescription
+      // Always reload patient details after prescription change
+      await loadPatientDetails(selectedPatient.patient_id);
     } catch (error) {
       console.error('Error creating prescription:', error);
       showSnackbar('Error creating prescription', 'error');
@@ -316,7 +347,7 @@ const Outpatient = ({ onPatientSelect }) => {
 
   // Imaging Order Functions
   const handleSubmitImagingOrder = async () => {
-    if (!imagingOrder.imaging_type.trim()) return;
+    if (!imagingOrder.imaging_type.trim() || !imagingOrder.body_part.trim() || !imagingOrder.clinical_notes.trim() || !imagingOrder.differential_diagnosis.trim()) return;
     setSubmittingImagingOrder(true);
     try {
       const newOrder = await patientAPI.addTestOrder(selectedPatient.patient_id, {
@@ -549,283 +580,356 @@ const Outpatient = ({ onPatientSelect }) => {
         <DialogContent sx={{ height: 'calc(90vh - 120px)', overflow: 'auto' }}>
           {patientDetails && (
             <Grid container spacing={3}>
-              {/* Left Column - Patient Info and Tabs */}
               <Grid item xs={12} md={8}>
-            <Box>
-              <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 2 }}>
-                <Tab label="Basic Info" />
-                <Tab label="Medical Notes" />
-                <Tab label="Lab Orders" />
-                <Tab label="Prescriptions" />
-                <Tab label="Imaging" />
+                <Box>
+                  <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 2 }}>
+                    <Tab label="Basic Info" />
+                    <Tab label="Medical Notes" />
+                    <Tab label="Lab Orders" />
+                    <Tab label="Prescriptions" />
+                    <Tab label="Imaging" />
                     <Tab label="Test Results" />
                     <Tab label="AI Diagnosis" />
-                <Tab label="Billing" />
-              </Tabs>
-
-              {/* Basic Info Tab */}
-              {activeTab === 0 && (
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
-                    <Card variant="outlined">
-                      <CardContent>
-                        <Typography variant="h6" gutterBottom>Personal Information</Typography>
-                        <List dense>
-                          <ListItem>
-                            <ListItemText 
-                              primary="Name" 
-                              secondary={`${patientDetails.first_name} ${patientDetails.last_name}`}
-                            />
-                          </ListItem>
-                          <ListItem>
-                            <ListItemText 
-                              primary="Date of Birth" 
-                              secondary={formatDate(patientDetails.date_of_birth)}
-                            />
-                          </ListItem>
-                          <ListItem>
-                            <ListItemText 
-                              primary="Gender" 
-                              secondary={patientDetails.gender}
-                            />
-                          </ListItem>
-                          <ListItem>
-                            <ListItemText 
-                              primary="Contact" 
-                              secondary={patientDetails.contact_number}
-                            />
-                          </ListItem>
-                          <ListItem>
-                            <ListItemText 
-                              primary="Email" 
-                              secondary={patientDetails.email}
-                            />
-                          </ListItem>
-                        </List>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Card variant="outlined">
-                      <CardContent>
-                        <Typography variant="h6" gutterBottom>Medical Information</Typography>
-                        <List dense>
-                          <ListItem>
-                            <ListItemText 
-                              primary="Blood Type" 
-                              secondary={patientDetails.blood_type || 'N/A'}
-                            />
-                          </ListItem>
-                          <ListItem>
-                            <ListItemText 
-                              primary="Emergency Contact" 
-                              secondary={patientDetails.emergency_contact || 'N/A'}
-                            />
-                          </ListItem>
-                          <ListItem>
-                            <ListItemText 
-                              primary="Insurance" 
-                              secondary={patientDetails.insurance_info || 'N/A'}
-                            />
-                          </ListItem>
-                        </List>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                </Grid>
-              )}
-
-              {/* Medical Notes Tab */}
-              {activeTab === 1 && (
-                <Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h6">Medical Notes</Typography>
-                    <Button
-                      variant="contained"
-                      startIcon={<AddIcon />}
-                          onClick={() => setMedicalNoteDialog(true)}
-                    >
-                      Add Note
-                    </Button>
-                  </Box>
-                  
-                  {medicalNotes.length > 0 ? (
-                    <List>
-                      {medicalNotes.map((note, index) => (
-                            <Card key={index} sx={{ mb: 2 }}>
+                    <Tab label="Billing" />
+                  </Tabs>
+                  {/* Tab content here */}
+                  {activeTab === 0 && (
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={6}>
+                        <Card variant="outlined">
                           <CardContent>
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                              <Typography variant="subtitle2" color="primary">
-                                    {note.note_text}
-                              </Typography>
-                                  <Chip 
-                                    label={note.created_at ? formatDate(note.created_at) : 'N/A'} 
-                                    size="small"
-                                  />
-                            </Box>
-                                {note.diagnosis && (
-                                  <Typography variant="body2" color="text.secondary">
-                                    Diagnosis: {note.diagnosis}
-                            </Typography>
-                                )}
-                                {note.advice && (
-                                  <Typography variant="body2" color="text.secondary">
-                                    Advice: {note.advice}
-                                  </Typography>
-                                )}
+                            <Typography variant="h6" gutterBottom>Personal Information</Typography>
+                            <List dense>
+                              <ListItem>
+                                <ListItemText 
+                                  primary="Name" 
+                                  secondary={`${patientDetails.first_name} ${patientDetails.last_name}`}
+                                />
+                              </ListItem>
+                              <ListItem>
+                                <ListItemText 
+                                  primary="Date of Birth" 
+                                  secondary={formatDate(patientDetails.date_of_birth)}
+                                />
+                              </ListItem>
+                              <ListItem>
+                                <ListItemText 
+                                  primary="Gender" 
+                                  secondary={patientDetails.gender}
+                                />
+                              </ListItem>
+                              <ListItem>
+                                <ListItemText 
+                                  primary="Contact" 
+                                  secondary={patientDetails.contact_number}
+                                />
+                              </ListItem>
+                              <ListItem>
+                                <ListItemText 
+                                  primary="Email" 
+                                  secondary={patientDetails.email}
+                                />
+                              </ListItem>
+                            </List>
                           </CardContent>
                         </Card>
-                      ))}
-                    </List>
-                  ) : (
-                    <Alert severity="info">No medical notes available</Alert>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Card variant="outlined">
+                          <CardContent>
+                            <Typography variant="h6" gutterBottom>Medical Information</Typography>
+                            <List dense>
+                              <ListItem>
+                                <ListItemText 
+                                  primary="Blood Type" 
+                                  secondary={patientDetails.blood_type || 'N/A'}
+                                />
+                              </ListItem>
+                              <ListItem>
+                                <ListItemText 
+                                  primary="Emergency Contact" 
+                                  secondary={patientDetails.emergency_contact || 'N/A'}
+                                />
+                              </ListItem>
+                              <ListItem>
+                                <ListItemText 
+                                  primary="Insurance" 
+                                  secondary={patientDetails.insurance_info || 'N/A'}
+                                />
+                              </ListItem>
+                            </List>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    </Grid>
                   )}
-                </Box>
-              )}
 
-              {/* Lab Orders Tab */}
-              {activeTab === 2 && (
-                <Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h6">Lab Orders</Typography>
-                    <Button
-                      variant="contained"
+                  {/* Medical Notes Tab */}
+                  {activeTab === 1 && (
+                    <Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="h6">Medical Notes</Typography>
+                        <Button
+                          variant="contained"
+                          startIcon={<AddIcon />}
+                          onClick={() => setMedicalNoteDialog(true)}
+                        >
+                          Add Note
+                        </Button>
+                      </Box>
+                      
+                      {medicalNotes.length > 0 ? (
+                        <List>
+                          {medicalNotes.map((note, index) => (
+                                <Card key={index} sx={{ mb: 2 }}>
+                              <CardContent>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                                  <Typography variant="subtitle2" color="primary">
+                                        {note.note_text}
+                                  </Typography>
+                                      <Chip 
+                                        label={note.created_at ? formatDate(note.created_at) : 'N/A'} 
+                                        size="small"
+                                      />
+                                </Box>
+                                    {note.diagnosis && (
+                                      <Typography variant="body2" color="text.secondary">
+                                        Diagnosis: {note.diagnosis}
+                                  </Typography>
+                                    )}
+                                    {note.advice && (
+                                      <Typography variant="body2" color="text.secondary">
+                                        Advice: {note.advice}
+                                      </Typography>
+                                    )}
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </List>
+                      ) : (
+                        <Alert severity="info">No medical notes available</Alert>
+                      )}
+                    </Box>
+                  )}
+
+                  {/* Lab Orders Tab */}
+                  {activeTab === 2 && (
+                    <Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="h6">Lab Orders</Typography>
+                        <Button
+                          variant="contained"
                           startIcon={<AddIcon />}
                           onClick={() => setLabOrderDialog(true)}
-                    >
+                        >
                           New Lab Order
-                    </Button>
-                  </Box>
-                  
-                  {labOrders.length > 0 ? (
-                    <List>
-                      {labOrders.map((order, index) => (
-                            <Card key={index} sx={{ mb: 2 }}>
-                          <CardContent>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                              <Typography variant="subtitle2" color="primary">
-                                {order.test_name}
-                              </Typography>
-                              <Chip 
-                                label={order.status} 
-                                color={order.status === 'completed' ? 'success' : 'warning'}
-                                size="small"
+                        </Button>
+                      </Box>
+                      
+                      {labOrders.length > 0 ? (
+                        <List>
+                          {labOrders.map((order) => (
+                            <ListItem key={order.id || order.order_id} alignItems="flex-start">
+                              <ListItemText
+                                primary={<>
+                                  <Typography variant="subtitle1" fontWeight="bold">{order.test_name}</Typography>
+                                  <Typography variant="body2" color="text.secondary">Ordered by: {order.requesting_physician} | Priority: {order.priority}</Typography>
+                                </>}
+                                secondary={<>
+                                  <Typography variant="body2" color="text.primary">Clinical Notes: {order.clinical_notes}</Typography>
+                                  <Typography variant="caption" color="text.secondary">Status: {order.status}</Typography>
+                                </>}
                               />
-                            </Box>
-                            <Typography variant="body2" color="text.secondary">
-                                  Ordered: {formatDate(order.ordered_at)}
-                            </Typography>
-                            {order.clinical_notes && (
-                              <Typography variant="body2" sx={{ mt: 1 }}>
-                                Notes: {order.clinical_notes}
-                              </Typography>
-                            )}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </List>
-                  ) : (
-                    <Alert severity="info">No lab orders available</Alert>
+                            </ListItem>
+                          ))}
+                        </List>
+                      ) : (
+                        <Alert severity="info">No lab orders available</Alert>
+                      )}
+                    </Box>
                   )}
-                </Box>
-              )}
 
-              {/* Prescriptions Tab */}
-              {activeTab === 3 && (
-                <Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h6">Prescriptions</Typography>
-                    <Button
-                      variant="contained"
+                  {/* Prescriptions Tab */}
+                  {activeTab === 3 && (
+                    <Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="h6">Prescriptions</Typography>
+                        <Button
+                          variant="contained"
                           startIcon={<AddIcon />}
                           onClick={() => setPrescriptionDialog(true)}
-                    >
-                      New Prescription
-                    </Button>
-                  </Box>
-                  
-                  {prescriptions.length > 0 ? (
-                    <List>
-                      {prescriptions.map((prescription, index) => (
+                        >
+                          New Prescription
+                        </Button>
+                      </Box>
+                      {/* List prescriptions for this patient only */}
+                      {prescriptions.length > 0 ? (
+                        <List>
+                          {prescriptions.map((prescription, index) => (
                             <Card key={index} sx={{ mb: 2 }}>
-                          <CardContent>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                              <Typography variant="subtitle2" color="primary">
-                                {prescription.medication_name}
-                              </Typography>
-                              <Chip 
-                                label={prescription.status} 
+                              <CardContent>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                  <Typography variant="subtitle2" color="primary">
+                                    {prescription.medications || prescription.medication_name}
+                                  </Typography>
+                                  <Chip 
+                                    label={prescription.status} 
                                     color={prescription.status === 'active' ? 'success' : 'warning'}
-                                size="small"
-                              />
-                            </Box>
+                                    size="small"
+                                  />
+                                </Box>
                                 <Typography variant="body2" color="text.secondary">
                                   Dosage: {prescription.dosage} | Frequency: {prescription.frequency}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
                                   Duration: {prescription.duration} | Quantity: {prescription.quantity}
-                            </Typography>
-                            {prescription.instructions && (
-                              <Typography variant="body2" sx={{ mt: 1 }}>
-                                Instructions: {prescription.instructions}
-                              </Typography>
-                            )}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </List>
-                  ) : (
-                    <Alert severity="info">No prescriptions available</Alert>
+                                </Typography>
+                                {prescription.instructions && (
+                                  <Typography variant="body2" sx={{ mt: 1 }}>
+                                    Instructions: {prescription.instructions}
+                                  </Typography>
+                                )}
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </List>
+                      ) : (
+                        <Alert severity="info">No prescriptions for this patient.</Alert>
+                      )}
+                      {/* Prescription Dialog */}
+                      <Dialog open={prescriptionDialog} onClose={() => setPrescriptionDialog(false)} maxWidth="md" fullWidth>
+                        <DialogTitle>Create Prescription</DialogTitle>
+                        <DialogContent>
+                          <Grid container spacing={2}>
+                            <Grid item xs={12}>
+                              <FormControl fullWidth required>
+                                <InputLabel>Medication Name</InputLabel>
+                                <Select
+                                  value={prescription.medication_name}
+                                  onChange={(e) => setPrescription({ ...prescription, medication_name: e.target.value })}
+                                  name="medication_name"
+                                  label="Medication Name"
+                                >
+                                  {availableDrugs.map((drug) => (
+                                    <MenuItem key={drug.drug_id} value={drug.name}>
+                                      {drug.name} - Stock: {drug.quantity}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                                <FormHelperText>Select from available medications in stock</FormHelperText>
+                              </FormControl>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                              <TextField
+                                name="dosage"
+                                label="Dosage"
+                                value={prescription.dosage}
+                                onChange={(e) => setPrescription({ ...prescription, dosage: e.target.value })}
+                                fullWidth
+                                required
+                              />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                              <TextField
+                                name="frequency"
+                                label="Frequency"
+                                value={prescription.frequency}
+                                onChange={(e) => setPrescription({ ...prescription, frequency: e.target.value })}
+                                fullWidth
+                                placeholder="e.g., Twice daily"
+                              />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                              <TextField
+                                name="duration"
+                                label="Duration"
+                                value={prescription.duration}
+                                onChange={(e) => setPrescription({ ...prescription, duration: e.target.value })}
+                                fullWidth
+                                placeholder="e.g., 7 days"
+                              />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                              <TextField
+                                name="quantity"
+                                label="Quantity"
+                                type="number"
+                                value={prescription.quantity}
+                                onChange={(e) => setPrescription({ ...prescription, quantity: parseInt(e.target.value) || 1 })}
+                                fullWidth
+                                required
+                              />
+                            </Grid>
+                            <Grid item xs={12}>
+                              <TextField
+                                name="instructions"
+                                label="Instructions"
+                                value={prescription.instructions}
+                                onChange={(e) => setPrescription({ ...prescription, instructions: e.target.value })}
+                                fullWidth
+                                multiline
+                                rows={3}
+                                placeholder="Special instructions for the patient"
+                              />
+                            </Grid>
+                          </Grid>
+                        </DialogContent>
+                        <DialogActions>
+                          <Button onClick={() => setPrescriptionDialog(false)}>Cancel</Button>
+                          <Button onClick={handleSubmitPrescription} variant="contained" disabled={submittingPrescription}>
+                            {submittingPrescription ? 'Creating...' : 'Create Prescription'}
+                          </Button>
+                        </DialogActions>
+                      </Dialog>
+                    </Box>
                   )}
-                </Box>
-              )}
 
-              {/* Imaging Tab */}
-              {activeTab === 4 && (
-                <Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h6">Imaging Orders</Typography>
-                    <Button
-                      variant="contained"
+                  {/* Imaging Tab */}
+                  {activeTab === 4 && (
+                    <Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="h6">Imaging Orders</Typography>
+                        <Button
+                          variant="contained"
                           startIcon={<AddIcon />}
                           onClick={() => setImagingOrderDialog(true)}
-                    >
+                        >
                           New Imaging Order
-                    </Button>
-                  </Box>
-                  
-                  {imagingOrders.length > 0 ? (
-                    <List>
-                      {imagingOrders.map((order, index) => (
-                            <Card key={index} sx={{ mb: 2 }}>
-                          <CardContent>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                              <Typography variant="subtitle2" color="primary">
-                                {order.imaging_type} - {order.body_part}
-                              </Typography>
-                              <Chip 
-                                label={order.status} 
-                                color={order.status === 'completed' ? 'success' : 'warning'}
-                                size="small"
-                              />
-                            </Box>
-                            <Typography variant="body2" color="text.secondary">
+                        </Button>
+                      </Box>
+                      
+                      {imagingOrders.length > 0 ? (
+                        <List>
+                          {imagingOrders.map((order, index) => (
+                                <Card key={index} sx={{ mb: 2 }}>
+                              <CardContent>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                  <Typography variant="subtitle2" color="primary">
+                                    {order.imaging_type} - {order.body_part}
+                                  </Typography>
+                                  <Chip 
+                                    label={order.status} 
+                                    color={order.status === 'completed' ? 'success' : 'warning'}
+                                    size="small"
+                                  />
+                                </Box>
+                                <Typography variant="body2" color="text.secondary">
                                   Ordered: {formatDate(order.ordered_at)}
-                            </Typography>
-                            {order.clinical_notes && (
-                              <Typography variant="body2" sx={{ mt: 1 }}>
-                                Notes: {order.clinical_notes}
-                              </Typography>
-                            )}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </List>
-                  ) : (
-                    <Alert severity="info">No imaging orders available</Alert>
+                                </Typography>
+                                {order.clinical_notes && (
+                                  <Typography variant="body2" sx={{ mt: 1 }}>
+                                    Notes: {order.clinical_notes}
+                                  </Typography>
+                                )}
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </List>
+                      ) : (
+                        <Alert severity="info">No imaging orders available</Alert>
+                      )}
+                    </Box>
                   )}
-                </Box>
-              )}
 
                   {/* Test Results Tab */}
                   {activeTab === 5 && (
@@ -1002,433 +1106,362 @@ const Outpatient = ({ onPatientSelect }) => {
 
 
 
-              {/* Billing Tab */}
+                  {/* Billing Tab */}
                   {activeTab === 7 && billingStatus && (
-                <Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h6">Billing Information</Typography>
-                    <Button
-                      variant="contained"
-                      startIcon={<PaymentIcon />}
-                      onClick={() => setBillingDialog(true)}
-                    >
-                      Create Bill
-                    </Button>
-                  </Box>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
-                      <Card variant="outlined">
-                        <CardContent>
-                          <Typography variant="subtitle1" gutterBottom>Payment Status</Typography>
-                          <Chip
-                            icon={getPaymentStatusIcon(billingStatus.has_paid_consultation)}
-                            label={billingStatus.has_paid_consultation ? 'Consultation Paid' : 'Consultation Pending'}
-                            color={getPaymentStatusColor(billingStatus.has_paid_consultation)}
-                            sx={{ mb: 2 }}
-                          />
-                          <Typography variant="body2">
-                            Total Bills: {billingStatus.total_bills}
-                          </Typography>
-                          <Typography variant="body2">
-                            Pending Amount: {formatCurrency(billingStatus.pending_amount)}
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <Card variant="outlined">
-                        <CardContent>
-                          <Typography variant="subtitle1" gutterBottom>Recent Bills</Typography>
-                          {billingStatus.recent_bills?.length > 0 ? (
-                            <List dense>
-                              {billingStatus.recent_bills.map((bill, index) => (
-                                <ListItem key={index}>
-                                  <ListItemText
-                                    primary={`${bill.bill_number} - ${formatCurrency(bill.total_amount)}`}
-                                    secondary={bill.status}
-                                  />
-                                  <Chip 
-                                    label={bill.status} 
-                                    color={bill.status === 'paid' ? 'success' : 'warning'}
-                                    size="small"
-                                  />
-                                </ListItem>
-                              ))}
-                            </List>
-                          ) : (
-                            <Typography variant="body2" color="text.secondary">
-                              No bills found
-                            </Typography>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  </Grid>
-                </Box>
-              )}
+                    <Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="h6">Billing Information</Typography>
+                        <Button
+                          variant="contained"
+                          startIcon={<PaymentIcon />}
+                          onClick={() => setBillingDialog(true)}
+                        >
+                          Create Bill
+                        </Button>
+                      </Box>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} md={6}>
+                          <Card variant="outlined">
+                            <CardContent>
+                              <Typography variant="subtitle1" gutterBottom>Payment Status</Typography>
+                              <Chip
+                                icon={getPaymentStatusIcon(billingStatus.has_paid_consultation)}
+                                label={billingStatus.has_paid_consultation ? 'Consultation Paid' : 'Consultation Pending'}
+                                color={getPaymentStatusColor(billingStatus.has_paid_consultation)}
+                                sx={{ mb: 2 }}
+                              />
+                              <Typography variant="body2">
+                                Total Bills: {billingStatus.total_bills}
+                              </Typography>
+                              <Typography variant="body2">
+                                Pending Amount: {formatCurrency(billingStatus.pending_amount)}
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                          <Card variant="outlined">
+                            <CardContent>
+                              <Typography variant="subtitle1" gutterBottom>Recent Bills</Typography>
+                              {billingStatus.recent_bills?.length > 0 ? (
+                                <List dense>
+                                  {billingStatus.recent_bills.map((bill, index) => (
+                                    <ListItem key={index}>
+                                      <ListItemText
+                                        primary={`${bill.bill_number} - ${formatCurrency(bill.total_amount)}`}
+                                        secondary={`Status: ${bill.status} | Date: ${formatDate(bill.created_at)}`}
+                                      />
+                                    </ListItem>
+                                  ))}
+                                </List>
+                              ) : (
+                                <Alert severity="info">No bills found</Alert>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      </Grid>
+                    </Box>
+                  )}
+
+                  {/* AI Diagnosis Tab */}
+                  {activeTab === 8 && (
+                    <Box>
+                      <Typography variant="h6" gutterBottom>
+                        AI Diagnosis Assistant
+                      </Typography>
+                      <RightSideAIPanel 
+                        patientId={selectedPatient?.patient_id}
+                        medicalNotes={medicalNotes}
+                        labResults={labOrders.filter(order => order.status === 'completed')}
+                        imagingResults={imagingOrders.filter(order => order.status === 'completed')}
+                      />
+                    </Box>
+                  )}
                 </Box>
               </Grid>
-
-
+              {/* Optionally, add a right column here */}
             </Grid>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setPatientDialog(false)}>Close</Button>
-        </DialogActions>
       </Dialog>
 
-      {/* Medical Note Dialog */}
-      <Dialog open={medicalNoteDialog} onClose={() => setMedicalNoteDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Add Medical Note</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Medical Note"
-                value={medicalNote}
-                onChange={(e) => setMedicalNote(e.target.value)}
-                placeholder="Enter patient symptoms, observations, or clinical notes..."
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Diagnosis (Optional)"
-                value={medicalNoteData.diagnosis || ''}
-                onChange={(e) => setMedicalNoteData({ ...medicalNoteData, diagnosis: e.target.value })}
-                placeholder="e.g., Common cold, Hypertension"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Advice (Optional)"
-                value={medicalNoteData.advice || ''}
-                onChange={(e) => setMedicalNoteData({ ...medicalNoteData, advice: e.target.value })}
-                placeholder="e.g., Rest, drink fluids, follow up in 1 week"
-              />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setMedicalNoteDialog(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleAddMedicalNote}
-            disabled={addingNote || !medicalNote.trim()}
-            startIcon={<SaveIcon />}
-          >
-            {addingNote ? 'Adding...' : 'Add Note'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Lab Order Dialog */}
-      <Dialog open={labOrderDialog} onClose={() => setLabOrderDialog(false)} maxWidth="sm" fullWidth>
+      {/* Dialogs and Snackbars should be outside the Container */}
+      {/* Dialogs */}
+      <Dialog open={labOrderDialog} onClose={() => setLabOrderDialog(false)} maxWidth="md" fullWidth>
         <DialogTitle>Order Lab Test</DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
+          <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField
-                fullWidth
+                name="test_name"
                 label="Test Name"
                 value={labOrder.test_name}
                 onChange={(e) => setLabOrder({ ...labOrder, test_name: e.target.value })}
+                fullWidth
                 required
               />
             </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Priority</InputLabel>
-                <Select
-                  value={labOrder.priority}
-                  onChange={(e) => setLabOrder({ ...labOrder, priority: e.target.value })}
-                >
-                  <MenuItem value="routine">Routine</MenuItem>
-                  <MenuItem value="urgent">Urgent</MenuItem>
-                  <MenuItem value="emergency">Emergency</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
             <Grid item xs={12}>
               <TextField
-                fullWidth
-                multiline
-                rows={3}
+                name="clinical_notes"
                 label="Clinical Notes"
                 value={labOrder.clinical_notes}
                 onChange={(e) => setLabOrder({ ...labOrder, clinical_notes: e.target.value })}
+                fullWidth
+                multiline
+                rows={3}
+                required
+                helperText="Please provide clinical context for this test"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                name="differential_diagnosis"
+                label="Differential Diagnosis"
+                value={labOrder.differential_diagnosis}
+                onChange={(e) => setLabOrder({ ...labOrder, differential_diagnosis: e.target.value })}
+                fullWidth
+                multiline
+                rows={2}
+                required
+                helperText="What conditions are you considering?"
               />
             </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setLabOrderDialog(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleSubmitLabOrder}
-            disabled={submittingLabOrder || !labOrder.test_name.trim()}
-            startIcon={<SendIcon />}
-          >
+          <Button onClick={handleSubmitLabOrder} variant="contained" disabled={submittingLabOrder}>
             {submittingLabOrder ? 'Submitting...' : 'Submit Order'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Prescription Dialog */}
-      <Dialog open={prescriptionDialog} onClose={() => setPrescriptionDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>New Prescription</DialogTitle>
+      <Dialog open={prescriptionDialog} onClose={() => setPrescriptionDialog(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Create Prescription</DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
+          <Grid container spacing={2}>
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Medication Name"
-                value={prescription.medication_name}
-                onChange={(e) => setPrescription({ ...prescription, medication_name: e.target.value })}
-                required
-              />
+              <FormControl fullWidth required>
+                <InputLabel>Medication Name</InputLabel>
+                <Select
+                  value={prescription.medication_name}
+                  onChange={(e) => setPrescription({ ...prescription, medication_name: e.target.value })}
+                  name="medication_name"
+                  label="Medication Name"
+                >
+                  {availableDrugs.map((drug) => (
+                    <MenuItem key={drug.drug_id} value={drug.name}>
+                      {drug.name} - Stock: {drug.quantity}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <FormHelperText>Select from available medications in stock</FormHelperText>
+              </FormControl>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6}>
               <TextField
-                fullWidth
+                name="dosage"
                 label="Dosage"
                 value={prescription.dosage}
                 onChange={(e) => setPrescription({ ...prescription, dosage: e.target.value })}
+                fullWidth
                 required
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6}>
               <TextField
-                fullWidth
+                name="frequency"
                 label="Frequency"
                 value={prescription.frequency}
                 onChange={(e) => setPrescription({ ...prescription, frequency: e.target.value })}
+                fullWidth
                 placeholder="e.g., Twice daily"
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6}>
               <TextField
-                fullWidth
+                name="duration"
                 label="Duration"
                 value={prescription.duration}
                 onChange={(e) => setPrescription({ ...prescription, duration: e.target.value })}
+                fullWidth
                 placeholder="e.g., 7 days"
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6}>
               <TextField
-                fullWidth
-                type="number"
+                name="quantity"
                 label="Quantity"
+                type="number"
                 value={prescription.quantity}
-                onChange={(e) => setPrescription({ ...prescription, quantity: parseInt(e.target.value) })}
+                onChange={(e) => setPrescription({ ...prescription, quantity: parseInt(e.target.value) || 1 })}
+                fullWidth
+                required
               />
             </Grid>
             <Grid item xs={12}>
               <TextField
-                fullWidth
-                multiline
-                rows={3}
+                name="instructions"
                 label="Instructions"
                 value={prescription.instructions}
                 onChange={(e) => setPrescription({ ...prescription, instructions: e.target.value })}
-                placeholder="Special instructions for the patient..."
+                fullWidth
+                multiline
+                rows={3}
+                placeholder="Special instructions for the patient"
               />
             </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setPrescriptionDialog(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleSubmitPrescription}
-            disabled={submittingPrescription || !prescription.medication_name.trim() || !prescription.dosage.trim()}
-            startIcon={<SendIcon />}
-          >
+          <Button onClick={handleSubmitPrescription} variant="contained" disabled={submittingPrescription}>
             {submittingPrescription ? 'Creating...' : 'Create Prescription'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Imaging Order Dialog */}
-      <Dialog open={imagingOrderDialog} onClose={() => setImagingOrderDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Order Imaging</DialogTitle>
+      <Dialog open={imagingOrderDialog} onClose={() => setImagingOrderDialog(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Order Imaging Study</DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
+          <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField
+                name="test_name"
+                label="Imaging Study"
+                value={imagingOrder.test_name}
+                onChange={(e) => setImagingOrder({ ...imagingOrder, test_name: e.target.value })}
                 fullWidth
-                label="Imaging Type"
-                value={imagingOrder.imaging_type}
-                onChange={(e) => setImagingOrder({ ...imagingOrder, imaging_type: e.target.value })}
-                placeholder="e.g., X-Ray, MRI, CT Scan, Ultrasound"
                 required
+                placeholder="e.g., Chest X-Ray, MRI Brain, CT Abdomen"
               />
             </Grid>
             <Grid item xs={12}>
               <TextField
-                fullWidth
+                name="body_part"
                 label="Body Part"
                 value={imagingOrder.body_part}
                 onChange={(e) => setImagingOrder({ ...imagingOrder, body_part: e.target.value })}
-                placeholder="e.g., Chest, Abdomen, Head"
+                fullWidth
+                required
+                placeholder="e.g., Chest, Brain, Abdomen"
+                helperText="Specify the body part to be imaged"
               />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Priority</InputLabel>
-                <Select
-                  value={imagingOrder.priority}
-                  onChange={(e) => setImagingOrder({ ...imagingOrder, priority: e.target.value })}
-                >
-                  <MenuItem value="routine">Routine</MenuItem>
-                  <MenuItem value="urgent">Urgent</MenuItem>
-                  <MenuItem value="emergency">Emergency</MenuItem>
-                </Select>
-              </FormControl>
             </Grid>
             <Grid item xs={12}>
               <TextField
-                fullWidth
-                multiline
-                rows={3}
+                name="clinical_notes"
                 label="Clinical Notes"
                 value={imagingOrder.clinical_notes}
                 onChange={(e) => setImagingOrder({ ...imagingOrder, clinical_notes: e.target.value })}
+                fullWidth
+                multiline
+                rows={3}
+                required
+                helperText="Provide clinical context and reason for imaging"
               />
             </Grid>
             <Grid item xs={12}>
               <TextField
-                fullWidth
-                multiline
-                rows={3}
+                name="differential_diagnosis"
                 label="Differential Diagnosis"
                 value={imagingOrder.differential_diagnosis}
                 onChange={(e) => setImagingOrder({ ...imagingOrder, differential_diagnosis: e.target.value })}
-                placeholder="List possible diagnoses to rule out..."
-                helperText="Enter suspected conditions or differential diagnoses to guide the imaging interpretation"
+                fullWidth
+                multiline
+                rows={2}
+                required
+                helperText="What conditions are you considering?"
               />
             </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setImagingOrderDialog(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleSubmitImagingOrder}
-            disabled={submittingImagingOrder || !imagingOrder.imaging_type.trim()}
-            startIcon={<SendIcon />}
-          >
+          <Button onClick={handleSubmitImagingOrder} variant="contained" disabled={submittingImagingOrder}>
             {submittingImagingOrder ? 'Submitting...' : 'Submit Order'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Billing Dialog */}
-      <Dialog open={billingDialog} onClose={() => setBillingDialog(false)} maxWidth="md" fullWidth>
+      <Dialog open={billingDialog} onClose={() => setBillingDialog(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Create Bill</DialogTitle>
         <DialogContent>
-          <Typography variant="h6" gutterBottom>Bill Items</Typography>
-          <List>
-            <ListItem>
-              <ListItemIcon>
-                <MedicalIcon />
-              </ListItemIcon>
-              <ListItemText
-                primary="Consultation Fee"
-                secondary="Outpatient consultation"
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                name="consultation_fee"
+                label="Consultation Fee"
+                type="number"
+                value={billingItems.find(item => item.description === 'Consultation Fee')?.amount || 0}
+                onChange={(e) => {
+                  const newItems = billingItems.map(item => {
+                    if (item.description === 'Consultation Fee') {
+                      return { ...item, amount: parseFloat(e.target.value) || 0 };
+                    }
+                    return item;
+                  });
+                  setBillingItems(newItems);
+                  setTotalAmount(newItems.reduce((sum, item) => sum + item.amount, 0));
+                }}
+                fullWidth
+                required
               />
-              <ListItemSecondaryAction>
-                <Typography variant="body2" color="primary">
-                  {formatCurrency(50)}
-                </Typography>
-              </ListItemSecondaryAction>
-            </ListItem>
-            {labOrders.length > 0 && (
-              <ListItem>
-                <ListItemIcon>
-                  <LabIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Lab Tests"
-                  secondary={`${labOrders.length} test(s) ordered`}
-                />
-                <ListItemSecondaryAction>
-                  <Typography variant="body2" color="primary">
-                    {formatCurrency(labOrders.length * 25)}
-                  </Typography>
-                </ListItemSecondaryAction>
-              </ListItem>
-            )}
-            {prescriptions.length > 0 && (
-              <ListItem>
-                <ListItemIcon>
-                  <MedicationIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Medications"
-                  secondary={`${prescriptions.length} prescription(s)`}
-                />
-                <ListItemSecondaryAction>
-                  <Typography variant="body2" color="primary">
-                    {formatCurrency(prescriptions.length * 30)}
-                  </Typography>
-                </ListItemSecondaryAction>
-              </ListItem>
-            )}
-            {imagingOrders.length > 0 && (
-              <ListItem>
-                <ListItemIcon>
-                  <ImagingIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Imaging"
-                  secondary={`${imagingOrders.length} imaging order(s)`}
-                />
-                <ListItemSecondaryAction>
-                  <Typography variant="body2" color="primary">
-                    {formatCurrency(imagingOrders.length * 100)}
-                  </Typography>
-                </ListItemSecondaryAction>
-              </ListItem>
-            )}
-          </List>
-          <Divider sx={{ my: 2 }} />
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6">Total Amount</Typography>
-            <Typography variant="h6" color="primary">
-              {formatCurrency(50 + (labOrders.length * 25) + (prescriptions.length * 30) + (imagingOrders.length * 100))}
-            </Typography>
-          </Box>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                name="additional_charges"
+                label="Additional Charges"
+                type="number"
+                value={billingItems.find(item => item.description === 'Additional Charges')?.amount || 0}
+                onChange={(e) => {
+                  const newItems = billingItems.map(item => {
+                    if (item.description === 'Additional Charges') {
+                      return { ...item, amount: parseFloat(e.target.value) || 0 };
+                    }
+                    return item;
+                  });
+                  setBillingItems(newItems);
+                  setTotalAmount(newItems.reduce((sum, item) => sum + item.amount, 0));
+                }}
+                fullWidth
+                placeholder="0"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                name="notes"
+                label="Notes"
+                value={billingItems.find(item => item.description === 'Notes')?.notes || ''}
+                onChange={(e) => {
+                  const newItems = billingItems.map(item => {
+                    if (item.description === 'Notes') {
+                      return { ...item, notes: e.target.value };
+                    }
+                    return item;
+                  });
+                  setBillingItems(newItems);
+                }}
+                fullWidth
+                multiline
+                rows={2}
+                placeholder="Additional billing notes"
+              />
+            </Grid>
+          </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setBillingDialog(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleCreateBill}
-            startIcon={<PaymentIcon />}
-          >
+          <Button onClick={handleCreateBill} variant="contained" disabled={false}>
             Create Bill
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert 
-          onClose={() => setSnackbar({ ...snackbar, open: false })} 
-          severity={snackbar.severity}
-        >
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>

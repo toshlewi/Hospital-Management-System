@@ -332,13 +332,13 @@ const RightSideAIPanel = ({
               </Grid>
             )}
 
-            {/* Conditions */}
+            {/* Differential Diagnosis */}
             {analysisResult.conditions && analysisResult.conditions.length > 0 && (
               <Grid item xs={12}>
                 <Card variant="outlined" sx={{ boxShadow: 1, borderRadius: 2 }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom sx={{ color: 'warning.main', fontWeight: 'bold' }}>
-                      Potential Conditions
+                      Differential Diagnosis
                     </Typography>
                     <List dense>
                       {analysisResult.conditions.map((condition, index) => (
@@ -358,8 +358,54 @@ const RightSideAIPanel = ({
               </Grid>
             )}
 
-            {/* Recommendations */}
-            {analysisResult.recommendations && analysisResult.recommendations.length > 0 && (
+            {/* Recommended Tests */}
+            {(analysisResult.tests && analysisResult.tests.length > 0) && (
+              <Grid item xs={12}>
+                <Card variant="outlined" sx={{ boxShadow: 1, borderRadius: 2 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom sx={{ color: 'info.main', fontWeight: 'bold' }}>
+                      Recommended Tests
+                    </Typography>
+                    <List dense>
+                      {analysisResult.tests.map((test, index) => (
+                        <ListItem key={index}>
+                          <ListItemIcon>
+                            <Science color="info" />
+                          </ListItemIcon>
+                          <ListItemText primary={test} />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </CardContent>
+                </Card>
+              </Grid>
+            )}
+
+            {/* Treatment Plan */}
+            {(analysisResult.treatment_plan && analysisResult.treatment_plan.length > 0) && (
+              <Grid item xs={12}>
+                <Card variant="outlined" sx={{ boxShadow: 1, borderRadius: 2 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom sx={{ color: 'success.main', fontWeight: 'bold' }}>
+                      Treatment Plan
+                    </Typography>
+                    <List dense>
+                      {analysisResult.treatment_plan.map((plan, index) => (
+                        <ListItem key={index}>
+                          <ListItemIcon>
+                            <CheckCircle color="success" />
+                          </ListItemIcon>
+                          <ListItemText primary={plan} />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </CardContent>
+                </Card>
+              </Grid>
+            )}
+
+            {/* Recommendations (fallback for older data) */}
+            {(!analysisResult.treatment_plan || analysisResult.treatment_plan.length === 0) && analysisResult.recommendations && analysisResult.recommendations.length > 0 && (
               <Grid item xs={12}>
                 <Card variant="outlined" sx={{ boxShadow: 1, borderRadius: 2 }}>
                   <CardContent>

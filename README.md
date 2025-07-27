@@ -55,64 +55,10 @@ A comprehensive, modern web-based hospital management system built with React, N
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Node.js 16+ 
-- Python 3.8+
-- PostgreSQL (or Supabase account)
-- Git
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd Hospital-Management-System-1
-   ```
-
-2. **Install Frontend Dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Setup Backend**
-   ```bash
-   cd backend
-   npm install
-   ```
-
-4. **Setup Python AI Service**
-   ```bash
-   cd python-ai-project
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
-
-5. **Configure Environment Variables**
-   ```bash
-   cp env.example .env
-   # Edit .env with your database credentials
-   ```
-
-6. **Start All Services**
-
-   **Terminal 1 - Backend Server:**
-   ```bash
-   cd backend
-   node server.js
-   ```
-
-   **Terminal 2 - AI Service:**
-   ```bash
-   cd python-ai-project
-   source venv/bin/activate
-   python -m uvicorn src.api.fastapi_app:app --host 0.0.0.0 --port 8000 --reload
-   ```
-
-   **Terminal 3 - Frontend:**
-   ```bash
-   npm start
-   ```
+1. Clone the repository
+2. Install dependencies for frontend, backend, and AI service
+3. Set up environment variables using `env.example`
+4. Start backend, AI, and frontend services in separate terminals
 
 ## 📁 Project Structure
 
@@ -144,10 +90,9 @@ Hospital-Management-System-1/
 
 ## 🔧 Configuration
 
-### Environment Variables
 Create a `.env` file in the root directory:
 
-```env
+```
 # Database Configuration
 DB_HOST=your-db-host
 DB_PORT=5432
@@ -262,10 +207,8 @@ npm run start:prod
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-
 ## 🆘 Support
 
-For support and questions:
 - Create an issue in the repository
 - Contact the me:
 - phone:0711527211
