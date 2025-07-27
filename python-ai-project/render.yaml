@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: hospital-ai-service
+    env: python
+    plan: free
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn enhanced_medical_api:app --host 0.0.0.0 --port 8000
+    healthCheckPath: /
+    envVars:
+      - key: PUBMED_API_KEY
+        sync: false
+      - key: FDA_API_KEY
+        sync: false
+      - key: PORT
+        value: 8000 

@@ -1,4 +1,5 @@
 services:
+  # Backend Service (Node.js)
   - type: web
     name: hospital-backend
     env: node
@@ -6,8 +7,8 @@ services:
     branch: main
     rootDir: backend
     buildCommand: npm install
-    startCommand: node server.js
-    healthCheckPath: /
+    startCommand: npm start
+    healthCheckPath: /health
     envVars:
       - key: SUPABASE_URL
         sync: false
@@ -24,6 +25,7 @@ services:
       - key: AI_SERVICE_URL
         value: https://hospital-ai-service.onrender.com
 
+  # Frontend Service (React)
   - type: web
     name: hospital-frontend
     env: node
@@ -31,12 +33,17 @@ services:
     branch: main
     rootDir: .
     buildCommand: npm install && npm run build
-    startCommand: npx serve -s build
+    startCommand: npx serve -s build -l 3000
     healthCheckPath: /
     envVars:
       - key: REACT_APP_API_URL
-        value: https://hospital-backend-771y.onrender.com/api
+        value: https://hospital-backend.onrender.com
+      - key: REACT_APP_AI_API_URL
+        value: https://hospital-ai-service.onrender.com
+      - key: PORT
+        value: 3000
 
+  # AI Service (Python FastAPI)
   - type: web
     name: hospital-ai-service
     env: python
@@ -44,12 +51,14 @@ services:
     branch: main
     rootDir: python-ai-project
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn src.api.fastapi_app:app --host 0.0.0.0 --port 8000
-    healthCheckPath: /health
+    startCommand: uvicorn enhanced_medical_api:app --host 0.0.0.0 --port 8000
+    healthCheckPath: /
     envVars:
-      - key: AI_SERVICE_SECRET
+      - key: PUBMED_API_KEY
+        sync: false
+      - key: FDA_API_KEY
         sync: false
       - key: PORT
         value: 8000
-      - key: NODE_ENV
-        value: production 
+      - key: PYTHONPATH
+        value: /opt/render/project/src/python-ai-project 
