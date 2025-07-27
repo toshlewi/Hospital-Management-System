@@ -51,7 +51,7 @@ services:
     branch: main
     rootDir: python-ai-project
     buildCommand: chmod +x build.sh && ./build.sh
-    startCommand: chmod +x start_with_auto_training.sh && ./start_with_auto_training.sh
+    startCommand: uvicorn enhanced_medical_api:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /
     envVars:
       - key: PUBMED_API_KEY

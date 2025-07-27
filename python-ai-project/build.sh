@@ -5,7 +5,11 @@ echo "🚀 Starting build process..."
 
 # Install system dependencies first
 echo "📦 Installing system dependencies..."
-apt-get update -qq && apt-get install -y -qq gcc g++ curl
+apt-get update -qq && apt-get install -y -qq gcc g++ curl python3-dev
+
+# Upgrade pip and install setuptools first
+echo "📦 Upgrading pip and installing setuptools..."
+pip install --upgrade pip setuptools wheel
 
 # Install Python dependencies using Render-specific requirements
 echo "📦 Installing Python dependencies..."
@@ -44,10 +48,13 @@ except Exception as e:
 echo "📁 Creating necessary directories..."
 mkdir -p data/models
 mkdir -p data/medical_knowledge
+mkdir -p data/auto_updates
+mkdir -p logs
 
 # Set permissions
 echo "🔐 Setting permissions..."
 chmod +x start_enhanced_api.sh
+chmod +x start_with_auto_training.sh
 
 # Verify installation
 echo "🔍 Verifying installation..."
@@ -57,6 +64,7 @@ import uvicorn
 import pandas
 import numpy
 import sklearn
+import schedule
 print('✅ All core dependencies installed successfully')
 "
 
