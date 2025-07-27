@@ -43,15 +43,15 @@ services:
       - key: PORT
         value: 3000
 
-  # AI Service (Python FastAPI)
+  # AI Service (Python FastAPI) - Full Enhanced Version
   - type: web
     name: hospital-ai-service
     env: python
     plan: free
     branch: main
     rootDir: python-ai-project
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn enhanced_medical_api:app --host 0.0.0.0 --port 8000
+    buildCommand: chmod +x build.sh && ./build.sh
+    startCommand: uvicorn enhanced_medical_api:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /
     envVars:
       - key: PUBMED_API_KEY
@@ -59,6 +59,4 @@ services:
       - key: FDA_API_KEY
         sync: false
       - key: PORT
-        value: 8000
-      - key: PYTHONPATH
-        value: /opt/render/project/src/python-ai-project 
+        value: 8000 
