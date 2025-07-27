@@ -181,9 +181,75 @@ class EnhancedDiagnosisAI:
             logger.error(f"Error loading drug interactions: {e}")
     
     async def _load_medical_research(self):
-        """Load medical research data (simplified to avoid API issues)"""
+        """Load medical research data from PubMed API"""
         try:
-            # Use static research data instead of PubMed API calls
+            # Use real PubMed API with the provided key
+            pubmed_api_key = "27feebcf45a02d89cf3d56590f31507de309"
+            
+            async with aiohttp.ClientSession() as session:
+                # Search for recent diabetes research
+                diabetes_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
+                diabetes_params = {
+                    'db': 'pubmed',
+                    'term': 'diabetes management treatment',
+                    'retmax': 5,
+                    'retmode': 'json',
+                    'api_key': pubmed_api_key,
+                    'sort': 'date'
+                }
+                
+                async with session.get(diabetes_url, params=diabetes_params) as response:
+                    if response.status == 200:
+                        diabetes_data = await response.json()
+                        diabetes_ids = diabetes_data.get('esearchresult', {}).get('idlist', [])
+                        
+                        # Get article details
+                        if diabetes_ids:
+                            fetch_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi"
+                            fetch_params = {
+                                'db': 'pubmed',
+                                'id': ','.join(diabetes_ids),
+                                'retmode': 'json',
+                                'api_key': pubmed_api_key
+                            }
+                            
+                            async with session.get(fetch_url, params=fetch_params) as fetch_response:
+                                if fetch_response.status == 200:
+                                    fetch_data = await fetch_response.json()
+                                    diabetes_articles = list(fetch_data.get('result', {}).values())[1:]
+                                    
+                                    research_data = {
+                                        "research_diabetes_management": {
+                                            "recent_findings": "Continuous glucose monitoring improves outcomes",
+                                            "recommendations": ["HbA1c monitoring", "lifestyle modification"],
+                                            "treatment_advances": ["GLP-1 agonists", "SGLT2 inhibitors"],
+                                            "pubmed_articles": diabetes_articles
+                                        },
+                                        "research_cardiovascular_disease_diagnosis": {
+                                            "recent_findings": "AI-assisted diagnosis shows 95% accuracy",
+                                            "recommendations": ["ECG", "troponin", "echocardiogram"],
+                                            "treatment_advances": ["new anticoagulants", "stent technology"]
+                                        },
+                                        "research_cancer_screening": {
+                                            "recent_findings": "Early detection improves survival rates",
+                                            "recommendations": ["regular screening", "genetic testing"],
+                                            "treatment_advances": ["immunotherapy", "targeted therapy"]
+                                        }
+                                    }
+                                    
+                                    for key, data in research_data.items():
+                                        self.medical_knowledge_base[key] = data
+                                        self._set_cache(key, data)
+                                    
+                                    logger.info(f"Loaded {len(diabetes_articles)} diabetes research articles from PubMed")
+                                else:
+                                    logger.warning(f"Failed to fetch diabetes articles: {fetch_response.status}")
+                    else:
+                        logger.warning(f"Failed to search diabetes research: {response.status}")
+                        
+        except Exception as e:
+            logger.error(f"Error loading medical research: {e}")
+            # Fallback to static data
             research_data = {
                 "research_cardiovascular_disease_diagnosis": {
                     "recent_findings": "AI-assisted diagnosis shows 95% accuracy",
@@ -205,9 +271,6 @@ class EnhancedDiagnosisAI:
             for key, data in research_data.items():
                 self.medical_knowledge_base[key] = data
                 self._set_cache(key, data)
-                            
-        except Exception as e:
-            logger.error(f"Error loading medical research: {e}")
     
     async def analyze_clinician_notes(self, notes: str, patient_id: int) -> Dict[str, Any]:
         """Enhanced analysis of clinician notes with multiple data sources and structured knowledge base"""
@@ -518,25 +581,55 @@ class EnhancedDiagnosisAI:
             return {"error": str(e)}
     
     async def analyze_drug_interactions(self, medications: List[str]) -> Dict[str, Any]:
-        """Analyze potential drug interactions using enhanced API system"""
+        """Analyze potential drug interactions using FDA API"""
         try:
-            # Use the enhanced drug interaction API if available
-            if hasattr(self, 'drug_interaction_api'):
-                return await self.drug_interaction_api.analyze_medication_list(medications)
+            # Use FDA API with the provided key
+            fda_api_key = "ppTi25A8MrDcqskZCWeL0DbvJGhEf34yhEMIGkbq"
             
-            # Fallback to original method
             interactions = []
+            drug_info = {}
             
+            async with aiohttp.ClientSession() as session:
+                for medication in medications:
+                    try:
+                        # Search for drug information in FDA database
+                        search_url = "https://api.fda.gov/drug/label.json"
+                        search_params = {
+                            'search': f'openfda.generic_name:"{medication}"',
+                            'limit': 1
+                        }
+                        
+                        async with session.get(search_url, params=search_params) as response:
+                            if response.status == 200:
+                                data = await response.json()
+                                results = data.get('results', [])
+                                if results:
+                                    drug_data = results[0]
+                                    drug_info[medication] = {
+                                        "generic_name": drug_data.get('openfda', {}).get('generic_name', []),
+                                        "brand_name": drug_data.get('openfda', {}).get('brand_name', []),
+                                        "drug_class": drug_data.get('openfda', {}).get('pharm_class_cs', []),
+                                        "interactions": drug_data.get('drug_interactions', []),
+                                        "warnings": drug_data.get('warnings', []),
+                                        "precautions": drug_data.get('precautions', [])
+                                    }
+                    except Exception as e:
+                        logger.warning(f"Failed to get FDA data for {medication}: {e}")
+            
+            # Check for interactions between medications
             for i, med1 in enumerate(medications):
                 for med2 in medications[i+1:]:
-                    # Check for known interactions
                     interaction = await self._check_drug_interaction(med1, med2)
                     if interaction:
                         interactions.append(interaction)
             
             return {
+                "medications": medications,
+                "drug_info": drug_info,
                 "interactions": interactions,
-                "risk_level": "high" if any(i["severity"] == "severe" for i in interactions) else "low"
+                "risk_level": "high" if any(i.get("severity") == "severe" for i in interactions) else "low",
+                "source": "FDA API",
+                "timestamp": datetime.now().isoformat()
             }
             
         except Exception as e:
