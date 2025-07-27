@@ -1,5 +1,0 @@
-test_id,test_name,condition_id,priority,description,normal_range,test_category
-CARD001,Echocardiogram,CARD001,high,Ultrasound of the heart to assess function and structure,varies,cardiac
-CARD002,Coronary Angiography,CARD001,high,X-ray imaging of coronary arteries using contrast dye,no significant stenosis,cardiac
-RESP001,Pulmonary Function Tests,RESP001,high,Tests to measure lung function and capacity,FEV1/FVC > 0.7,respiratory
-NEURO001,Electroencephalogram (EEG),NEURO002,high,Records electrical activity of the brain,normal brain wave patterns,neurological

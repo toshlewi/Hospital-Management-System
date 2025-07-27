@@ -1,4 +1,0 @@
-drug_id,name,generic_name,class,indications,side_effects,interactions,source
-aspirin,Aspirin,Acetylsalicylic acid,NSAID,"['pain relief', 'fever reduction', 'blood thinning']","['stomach upset', 'bleeding', 'allergic reactions']","['warfarin', 'ibuprofen', 'alcohol']",drug_database
-metformin,Metformin,Metformin hydrochloride,Biguanide,['type 2 diabetes'],"['nausea', 'diarrhea', 'lactic acidosis']","['alcohol', 'furosemide', 'digoxin']",drug_database
-lisinopril,Lisinopril,Lisinopril,ACE inhibitor,"['hypertension', 'heart failure']","['dry cough', 'dizziness', 'hyperkalemia']","['potassium supplements', 'lithium', 'NSAIDs']",drug_database

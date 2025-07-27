@@ -1,3 +1,0 @@
-guideline_id,condition,guideline,recommendations,target,monitoring,source
-hypertension_management,Hypertension,JNC 8 Guidelines,"['Lifestyle modifications for all patients', 'Pharmacological treatment for BP ≥140/90 mmHg', 'First-line medications: thiazide diuretics, CCBs, ACE inhibitors, ARBs']",<140/90 mmHg,Regular BP monitoring,medical_guidelines
-diabetes_management,Diabetes Mellitus,ADA Standards of Care,"['HbA1c target <7%', 'Regular blood glucose monitoring', 'Lifestyle modifications', 'Medication management']",<7%,Regular HbA1c testing,medical_guidelines

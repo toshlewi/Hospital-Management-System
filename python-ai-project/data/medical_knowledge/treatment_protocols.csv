@@ -1,7 +1,0 @@
-protocol_id,condition,protocol,steps,medications,priority,source
-cardiac_arrest,Cardiac Arrest,ACLS Protocol,"['Check responsiveness and breathing', 'Call emergency services', 'Begin chest compressions', 'Provide rescue breaths', 'Use AED if available']","['epinephrine', 'amiodarone', 'lidocaine']",immediate,treatment_protocols
-severe_bleeding,Severe Bleeding,Hemorrhage Control,"['Apply direct pressure', 'Elevate the injured area', 'Apply pressure bandage', 'Use tourniquet if necessary']",['tranexamic acid'],immediate,treatment_protocols
-asthma_attack,Asthma Attack,Asthma Management,"['Assess severity', 'Administer inhaled bronchodilator', 'Provide oxygen', 'Monitor response', 'Consider corticosteroids']","['salbutamol', 'prednisolone']",urgent,treatment_protocols
-stroke,Stroke,Stroke Protocol,"['Rapid assessment', 'CT scan', 'Thrombolysis if eligible', 'Monitor vitals', 'Initiate rehabilitation']","['alteplase', 'aspirin']",urgent,treatment_protocols
-sepsis,Sepsis,Sepsis Management,"['Early recognition', 'Blood cultures', 'Administer broad-spectrum antibiotics', 'Fluid resuscitation', 'Monitor lactate']","['ceftriaxone', 'vancomycin']",urgent,treatment_protocols
-diabetic_ketoacidosis,Diabetic Ketoacidosis,DKA Protocol,"['IV fluids', 'Insulin therapy', 'Monitor electrolytes', 'Correct potassium', 'Frequent glucose checks']","['insulin', 'potassium chloride']",urgent,treatment_protocols

@@ -1,170 +1,31 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
   TextField,
   Button,
-  Chip,
-  Alert,
-  CircularProgress,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
+  Paper,
+  IconButton,
+  Divider,
   List,
   ListItem,
   ListItemText,
-  ListItemIcon,
-  Divider,
-  Grid,
-  Paper,
-  IconButton,
-  Tooltip,
-  Badge,
-  LinearProgress,
-  Tabs,
-  Tab,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Switch,
-  FormControlLabel,
-  Slider,
-  Collapse,
-  Fade,
-  Zoom,
-  Slide,
-  ResizeHandle
+  Chip,
+  Alert,
+  CircularProgress,
+  Collapse
 } from '@mui/material';
 import {
-  AutoFixHigh,
+  Send,
+  Close,
+  ExpandMore,
+  ExpandLess,
   Science,
+  Medication,
   Warning,
   CheckCircle,
-  Info,
-  ExpandMore,
-  Refresh,
-  History,
-  TrendingUp,
-  LocalHospital,
-  Medication,
-  Timeline,
-  Send,
-  Clear,
-  Visibility,
-  Edit,
-  Save,
-  Cancel,
-  Close,
-  SmartToy,
-  Psychology,
-  Biotech,
-  Image,
-  LocalPharmacy,
-  PhotoCamera,
-  Bloodtype,
-  MonitorHeart,
-  Vaccines,
-  Emergency,
-  Security,
-  Speed,
-  Assessment,
-  Analytics,
-  DataUsage,
-  CloudSync,
-  Update,
-  Download,
-  Upload,
-  FilterList,
-  Sort,
-  Search,
-  Add,
-  Remove,
-  PlayArrow,
-  Pause,
-  Stop,
-  RestartAlt,
-  Settings,
-  Help,
-  Feedback,
-  BugReport,
-  Code,
-  Build,
-  ScienceOutlined,
-  HealthAndSafety,
-  Coronavirus,
-  Favorite,
-  FavoriteBorder,
-  ThumbUp,
-  ThumbDown,
-  Star,
-  StarBorder,
-  StarHalf,
-  DragIndicator,
-  UnfoldMore,
-  UnfoldLess,
-  Minimize,
-  Maximize,
-  Fullscreen,
-  FullscreenExit,
-  ZoomIn,
-  ZoomOut,
-  FitScreen,
-  ViewModule,
-  ViewList,
-  ViewComfy,
-  ViewHeadline,
-  ViewStream,
-  ViewWeek,
-  ViewDay,
-  ViewAgenda,
-  ViewCarousel,
-  ViewQuilt,
-  ViewSidebar,
-  ViewTimeline,
-  ViewInAr,
-  ViewComfyAlt,
-  ViewCompact,
-  ViewCompactAlt,
-  ViewCozy,
-  ViewKanban,
-  ViewListAlt,
-  ViewModuleAlt,
-  ViewQuiltAlt,
-  ViewSidebarAlt,
-  ViewStreamAlt,
-  ViewTimelineAlt,
-  ViewWeekAlt,
-  ViewDayAlt,
-  ViewAgendaAlt,
-  ViewCarouselAlt,
-  ViewInArAlt,
-  ViewComfyAlt2,
-  ViewCompactAlt2,
-  ViewCozyAlt,
-  ViewKanbanAlt,
-  ViewListAlt2,
-  ViewModuleAlt2,
-  ViewQuiltAlt2,
-  ViewSidebarAlt2,
-  ViewStreamAlt2,
-  ViewTimelineAlt2,
-  ViewWeekAlt2,
-  ViewDayAlt2,
-  ViewAgendaAlt2,
-  ViewCarouselAlt2,
-  ViewInArAlt2
+  Error
 } from '@mui/icons-material';
-import { useDebounce } from 'use-debounce';
-import { aiAPI } from '../../services/api';
 
 const RightSideAIPanel = ({ 
   patientId, 
@@ -177,924 +38,410 @@ const RightSideAIPanel = ({
   width = 400,
   onWidthChange
 }) => {
-  // State management
-  const [activeTab, setActiveTab] = useState(0);
+  const [notes, setNotes] = useState('');
+  const [analysisResults, setAnalysisResults] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResults, setAnalysisResults] = useState({
-    diagnosis: null,
-    labTests: null,
-    drugInteractions: null,
-    symptoms: null,
-    treatment: null,
-    imaging: null
-  });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [autoAnalysis, setAutoAnalysis] = useState(true);
-  const [realTimeUpdates, setRealTimeUpdates] = useState(true);
+  const [patientHistory, setPatientHistory] = useState([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [patientHistory, setPatientHistory] = useState(null);
-  const [notes, setNotes] = useState('');
-  const [debouncedNotes] = useDebounce(notes, 1000);
-
-  // Refs
-  const panelRef = useRef(null);
+  const [showRawData, setShowRawData] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
   const resizeRef = useRef(null);
-  const isResizing = useRef(false);
 
-  // Tab configuration
-  const tabs = [
-    { label: 'Diagnosis', icon: <Psychology />, key: 'diagnosis' },
-    { label: 'Lab Tests', icon: <Science />, key: 'labTests' },
-    { label: 'Drug Interactions', icon: <Medication />, key: 'drugInteractions' },
-    { label: 'Symptoms', icon: <HealthAndSafety />, key: 'symptoms' },
-    { label: 'Treatment', icon: <LocalHospital />, key: 'treatment' },
-    { label: 'Imaging', icon: <Image />, key: 'imaging' }
-  ];
-
-  // Initialize component
+  // Load patient history on component mount
   useEffect(() => {
     if (patientId) {
       loadPatientHistory();
     }
   }, [patientId]);
 
-  // Real-time analysis triggers
-  useEffect(() => {
-    if (realTimeUpdates && debouncedNotes && debouncedNotes.trim().length > 10) {
-      analyzeComprehensive();
-    }
-  }, [debouncedNotes, realTimeUpdates]);
-
-  // Auto-analysis on patient data change
-  useEffect(() => {
-    if (autoAnalysis && (patientData || currentData)) {
-      analyzeComprehensive();
-    }
-  }, [patientData, currentData, autoAnalysis]);
-
-  // Load patient history
   const loadPatientHistory = async () => {
     try {
-      // Load patient history from API
-      const history = await aiAPI.getPatientHistory(patientId);
-      setPatientHistory(history);
+      // This would be replaced with actual API call
+      setPatientHistory([]);
     } catch (error) {
       console.error('Error loading patient history:', error);
     }
   };
 
-  // Comprehensive analysis
   const analyzeComprehensive = async () => {
     setIsAnalyzing(true);
     setError('');
 
     try {
-      const results = await Promise.allSettled([
-        analyzeDiagnosis(),
-        analyzeLabTests(),
-        analyzeDrugInteractions(),
-        analyzeSymptoms(),
-        analyzeTreatment(),
-        analyzeImaging()
-      ]);
-
-      const newResults = {};
-      results.forEach((result, index) => {
-        const key = tabs[index].key;
-        if (result.status === 'fulfilled') {
-          newResults[key] = result.value;
-        } else {
-          console.error(`Error in ${key} analysis:`, result.reason);
-          newResults[key] = { error: result.reason.message };
-        }
+      console.log('Starting comprehensive analysis...');
+      console.log('Notes:', notes);
+      console.log('Patient ID:', patientId);
+      
+      // Call the new Medical AI comprehensive analysis API
+      const apiUrl = 'http://localhost:8000/api/v1/comprehensive-analysis';
+      const payload = {
+        symptoms: notes || JSON.stringify({ patientData, currentData, patientHistory }),
+        patient_id: patientId || 1,
+        patient_data: patientData
+      };
+      
+      console.log('API URL:', apiUrl);
+      console.log('Payload:', payload);
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
       });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('API Response:', result);
+        
+        setAnalysisResults(result);
+        setSuccess('Analysis completed successfully');
+        setTimeout(() => setSuccess(''), 3000);
 
-      setAnalysisResults(newResults);
-      setSuccess('Comprehensive analysis completed');
-      setTimeout(() => setSuccess(''), 3000);
-
-      if (onAnalysisUpdate) {
-        onAnalysisUpdate(newResults);
+        if (onAnalysisUpdate) {
+          onAnalysisUpdate(result);
+        }
+      } else {
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        setError(`Analysis failed: ${response.status} - ${errorText}`);
       }
 
     } catch (error) {
-      console.error('Comprehensive analysis error:', error);
-      setError('Failed to complete comprehensive analysis');
+      console.error('Analysis error:', error);
+      setError(`Failed to complete analysis: ${error.message}. Please check if the Medical AI API is running on http://localhost:8000`);
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  // Individual analysis functions
-  const analyzeDiagnosis = async () => {
-    try {
-      const result = await aiAPI.diagnose({
-        note_text: notes || JSON.stringify({ patientData, currentData, patientHistory }),
-        patient_id: patientId || 1,
-        timestamp: new Date().toISOString()
-      });
-      return result;
-    } catch (error) {
-      throw new Error(`Diagnosis analysis failed: ${error.message}`);
+  const handleNotesChange = (e) => {
+    setNotes(e.target.value);
+  };
+
+  const handleSend = () => {
+    if (notes.trim()) {
+      analyzeComprehensive();
     }
   };
 
-  const analyzeLabTests = async () => {
-    try {
-      const result = await aiAPI.analyzeLabResults({
-        patient_id: patientId || 1,
-        lab_results: currentData?.labResults || [],
-        notes: notes
-      });
-      return result;
-    } catch (error) {
-      throw new Error(`Lab analysis failed: ${error.message}`);
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
     }
   };
 
-  const analyzeDrugInteractions = async () => {
-    try {
-      // Get medications from multiple sources
-      let medications = currentData?.medications || [];
-      
-      // If no medications in currentData, try to get from patient prescriptions
-      if (medications.length === 0 && patientData?.prescriptions) {
-        medications = patientData.prescriptions
-          .map(p => p.medication_name || p.medications)
-          .filter(Boolean);
-      }
-      
-      // If still no medications, use some common drugs for testing
-      if (medications.length === 0) {
-        medications = ['Paracetamol', 'Ibuprofen', 'Amoxicillin'];
-      }
-      
-      console.log('Analyzing drug interactions for medications:', medications);
-      
-      const result = await aiAPI.analyzeDrugInteractions({
-        patient_id: patientId || 1,
-        medications: medications
-      });
-      
-      console.log('Drug interaction analysis result:', result);
-      return result;
-    } catch (error) {
-      throw new Error(`Drug interaction analysis failed: ${error.message}`);
-    }
-  };
-
-  const analyzeSymptoms = async () => {
-    try {
-      const result = await aiAPI.analyzeSymptoms({
-        patient_id: patientId || 1,
-        symptoms: currentData?.symptoms || [],
-        notes: notes
-      });
-      return result;
-    } catch (error) {
-      throw new Error(`Symptom analysis failed: ${error.message}`);
-    }
-  };
-
-  const analyzeTreatment = async () => {
-    try {
-      const result = await aiAPI.analyzeTreatment({
-        patient_id: patientId || 1,
-        diagnosis: analysisResults.diagnosis,
-        symptoms: currentData?.symptoms || [],
-        lab_results: currentData?.labResults || []
-      });
-      return result;
-    } catch (error) {
-      throw new Error(`Treatment analysis failed: ${error.message}`);
-    }
-  };
-
-  const analyzeImaging = async () => {
-    try {
-      const result = await aiAPI.analyzeImaging({
-        patient_id: patientId || 1,
-        imaging_results: currentData?.imagingResults || []
-      });
-      return result;
-    } catch (error) {
-      throw new Error(`Imaging analysis failed: ${error.message}`);
-    }
-  };
-
-  // Resize functionality
-  const handleMouseDown = (e) => {
-    isResizing.current = true;
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isResizing.current) return;
-    
-    const newWidth = window.innerWidth - e.clientX;
-    if (newWidth > 300 && newWidth < 800) {
-      onWidthChange?.(newWidth);
-    }
-  };
-
-  const handleMouseUp = () => {
-    isResizing.current = false;
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
-  };
-
-  // Utility functions
-  const getUrgencyColor = (level) => {
-    switch (level?.toLowerCase()) {
-      case 'critical': return 'error';
-      case 'high': return 'warning';
-      case 'medium': return 'info';
-      default: return 'success';
-    }
-  };
-
-  const getConfidenceColor = (score) => {
-    if (score >= 0.8) return 'success';
-    if (score >= 0.6) return 'warning';
-    return 'error';
-  };
-
-  const clearAllAnalysis = () => {
-    setAnalysisResults({
-      diagnosis: null,
-      labTests: null,
-      drugInteractions: null,
-      symptoms: null,
-      treatment: null,
-      imaging: null
-    });
-    setNotes('');
+  const clearAnalysis = () => {
+    setAnalysisResults(null);
     setError('');
     setSuccess('');
   };
 
-  // Render functions for each tab
-  const renderDiagnosisTab = () => (
-    <Box>
-      <Card sx={{ mb: 2 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            <Psychology sx={{ mr: 1, verticalAlign: 'middle' }} />
-            AI Diagnosis Analysis
-          </Typography>
-          
-          {analysisResults.diagnosis ? (
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <Alert severity="info" sx={{ mb: 2 }}>
-                  <Typography variant="body2">
-                    <strong>Primary Diagnosis:</strong> {analysisResults.diagnosis.primary_diagnosis || 'Not determined'}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Confidence:</strong> {Math.round((analysisResults.diagnosis.confidence || 0) * 100)}%
-                  </Typography>
-                </Alert>
-              </Grid>
+  const handleMouseDown = (e) => {
+    setIsResizing(true);
+    resizeRef.current = e.clientX;
+  };
 
-              {analysisResults.diagnosis.differential_diagnosis && Array.isArray(analysisResults.diagnosis.differential_diagnosis) && (
-                <Grid item xs={12}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Differential Diagnosis
-                  </Typography>
-                  <List dense>
-                    {analysisResults.diagnosis.differential_diagnosis.map((diagnosis, index) => (
-                      <ListItem key={index}>
-                        <ListItemIcon>
-                          <Science color="primary" />
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={Object.keys(diagnosis)[0]}
-                          secondary={`${Object.values(diagnosis)[0]}% probability`}
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
-                </Grid>
-              )}
-
-              {analysisResults.diagnosis.recommended_tests && Array.isArray(analysisResults.diagnosis.recommended_tests) && (
-                <Grid item xs={12}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Recommended Tests
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {analysisResults.diagnosis.recommended_tests.map((test, index) => (
-                      <Chip key={index} label={test} variant="outlined" color="info" />
-                    ))}
-                  </Box>
-                </Grid>
-              )}
-            </Grid>
-          ) : (
-            <Typography color="text.secondary">
-              No diagnosis analysis available. Run analysis to see results.
-            </Typography>
-          )}
-        </CardContent>
-      </Card>
-    </Box>
-  );
-
-  const renderLabTestsTab = () => (
-    <Box>
-      <Card sx={{ mb: 2 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            <Science sx={{ mr: 1, verticalAlign: 'middle' }} />
-            Lab Test Analysis
-          </Typography>
-          
-          {analysisResults.labTests ? (
-            <Grid container spacing={2}>
-              {analysisResults.labTests.abnormal_values && Array.isArray(analysisResults.labTests.abnormal_values) && (
-                <Grid item xs={12}>
-                  <Alert severity="warning" sx={{ mb: 2 }}>
-                    <Typography variant="subtitle2" gutterBottom>
-                      Abnormal Values Detected
-                    </Typography>
-                    <List dense>
-                      {analysisResults.labTests.abnormal_values.map((test, index) => (
-                        <ListItem key={index}>
-                          <ListItemIcon>
-                            <Warning color="warning" />
-                          </ListItemIcon>
-                          <ListItemText
-                            primary={test.test}
-                            secondary={`Value: ${test.value} (Normal: ${test.reference_range.min}-${test.reference_range.max})`}
-                          />
-                        </ListItem>
-                      ))}
-                    </List>
-                  </Alert>
-                </Grid>
-              )}
-
-              {analysisResults.labTests.trends && Array.isArray(analysisResults.labTests.trends) && (
-                <Grid item xs={12}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Trends Analysis
-                  </Typography>
-                  <List dense>
-                    {analysisResults.labTests.trends.map((trend, index) => (
-                      <ListItem key={index}>
-                        <ListItemIcon>
-                          <TrendingUp color="info" />
-                        </ListItemIcon>
-                        <ListItemText primary={trend} />
-                      </ListItem>
-                    ))}
-                  </List>
-                </Grid>
-              )}
-            </Grid>
-          ) : (
-            <Typography color="text.secondary">
-              No lab test analysis available. Add lab results to see analysis.
-            </Typography>
-          )}
-        </CardContent>
-      </Card>
-    </Box>
-  );
-
-  const renderDrugInteractionsTab = () => (
-    <Box>
-      <Card sx={{ mb: 2 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            <Medication sx={{ mr: 1, verticalAlign: 'middle' }} />
-            Drug Interaction Analysis
-          </Typography>
-          
-          {analysisResults.drugInteractions ? (
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <Alert 
-                  severity={analysisResults.drugInteractions.risk_level === 'high' ? 'error' : 
-                           analysisResults.drugInteractions.risk_level === 'moderate' ? 'warning' : 'success'}
-                  sx={{ mb: 2 }}
-                >
-                  <Typography variant="subtitle2" gutterBottom>
-                    Risk Level: {analysisResults.drugInteractions.risk_level?.toUpperCase()}
-                  </Typography>
-                  <Typography variant="body2">
-                    Total Interactions: {analysisResults.drugInteractions.total_interactions || 0}
-                  </Typography>
-                </Alert>
-              </Grid>
-
-              {analysisResults.drugInteractions.warnings && Array.isArray(analysisResults.drugInteractions.warnings) && (
-                <Grid item xs={12}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    ⚠️ Warnings
-                  </Typography>
-                  <List dense>
-                    {analysisResults.drugInteractions.warnings.map((warning, index) => (
-                      <ListItem key={index}>
-                        <ListItemIcon>
-                          <Warning color="error" />
-                        </ListItemIcon>
-                        <ListItemText primary={warning} />
-                      </ListItem>
-                    ))}
-                  </List>
-                </Grid>
-              )}
-
-              {analysisResults.drugInteractions.recommendations && Array.isArray(analysisResults.drugInteractions.recommendations) && (
-                <Grid item xs={12}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    💡 Recommendations
-                  </Typography>
-                  <List dense>
-                    {analysisResults.drugInteractions.recommendations.map((rec, index) => (
-                      <ListItem key={index}>
-                        <ListItemIcon>
-                          <CheckCircle color="success" />
-                        </ListItemIcon>
-                        <ListItemText primary={rec} />
-                      </ListItem>
-                    ))}
-                  </List>
-                </Grid>
-              )}
-
-              {analysisResults.drugInteractions.interactions && Array.isArray(analysisResults.drugInteractions.interactions) && (
-                <Grid item xs={12}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    🔍 Detailed Interactions
-                  </Typography>
-                  <TableContainer component={Paper} variant="outlined">
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Drug 1</TableCell>
-                          <TableCell>Drug 2</TableCell>
-                          <TableCell>Severity</TableCell>
-                          <TableCell>Description</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {analysisResults.drugInteractions.interactions.map((interaction, index) => (
-                          <TableRow key={index}>
-                            <TableCell>{interaction.drug1}</TableCell>
-                            <TableCell>{interaction.drug2}</TableCell>
-                            <TableCell>
-                              <Chip 
-                                label={interaction.severity} 
-                                color={interaction.severity === 'severe' ? 'error' : 'warning'}
-                                size="small"
-                              />
-                            </TableCell>
-                            <TableCell>{interaction.description}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Grid>
-              )}
-            </Grid>
-          ) : (
-            <Box>
-              <Typography color="text.secondary" gutterBottom>
-                No drug interaction analysis available.
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                The system will analyze interactions when medications are available from:
-              </Typography>
-              <List dense>
-                <ListItem>
-                  <ListItemIcon>
-                    <Info color="info" />
-                  </ListItemIcon>
-                  <ListItemText primary="Current patient prescriptions" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <Info color="info" />
-                  </ListItemIcon>
-                  <ListItemText primary="Active medications list" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <Info color="info" />
-                  </ListItemIcon>
-                  <ListItemText primary="Sample medications (for testing)" />
-                </ListItem>
-              </List>
-            </Box>
-          )}
-        </CardContent>
-      </Card>
-    </Box>
-  );
-
-  const renderSymptomsTab = () => (
-    <Box>
-      <Card sx={{ mb: 2 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            <HealthAndSafety sx={{ mr: 1, verticalAlign: 'middle' }} />
-            Symptom Analysis
-          </Typography>
-          
-          {analysisResults.symptoms && Array.isArray(analysisResults.symptoms) && analysisResults.symptoms.length > 0 ? (
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Detected Symptoms
-                </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                  {analysisResults.symptoms.map((symptom, index) => (
-                    <Chip 
-                      key={index} 
-                      label={symptom} 
-                      variant="outlined" 
-                      color="primary"
-                      icon={<HealthAndSafety />}
-                    />
-                  ))}
-                </Box>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Symptom Severity Analysis
-                </Typography>
-                <List dense>
-                  {analysisResults.symptoms.map((symptom, index) => (
-                    <ListItem key={index}>
-                      <ListItemIcon>
-                        <HealthAndSafety color="primary" />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary={symptom}
-                        secondary={`Severity: ${Math.random() > 0.5 ? 'High' : 'Medium'}`}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </Grid>
-            </Grid>
-          ) : (
-            <Typography color="text.secondary">
-              No symptom analysis available. Add symptoms to see analysis.
-            </Typography>
-          )}
-        </CardContent>
-      </Card>
-    </Box>
-  );
-
-  const renderTreatmentTab = () => (
-    <Box>
-      <Card sx={{ mb: 2 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            <LocalHospital sx={{ mr: 1, verticalAlign: 'middle' }} />
-            Treatment Plan Analysis
-          </Typography>
-          
-          {analysisResults.treatment && Array.isArray(analysisResults.treatment) ? (
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Recommended Treatments
-                </Typography>
-                <List dense>
-                  {analysisResults.treatment.map((treatment, index) => (
-                    <ListItem key={index}>
-                      <ListItemIcon>
-                        <CheckCircle color="success" />
-                      </ListItemIcon>
-                      <ListItemText primary={treatment} />
-                    </ListItem>
-                  ))}
-                </List>
-              </Grid>
-            </Grid>
-          ) : (
-            <Typography color="text.secondary">
-              No treatment analysis available. Run diagnosis analysis first.
-            </Typography>
-          )}
-        </CardContent>
-      </Card>
-    </Box>
-  );
-
-  const renderImagingTab = () => (
-    <Box>
-      <Card sx={{ mb: 2 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            <Image sx={{ mr: 1, verticalAlign: 'middle' }} />
-            Imaging Analysis
-          </Typography>
-          
-          {analysisResults.imaging && analysisResults.imaging.findings && Array.isArray(analysisResults.imaging.findings) ? (
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Imaging Findings
-                </Typography>
-                <List dense>
-                  {analysisResults.imaging.findings.map((finding, index) => (
-                    <ListItem key={index}>
-                      <ListItemIcon>
-                        <Image color="info" />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary={finding.type}
-                        secondary={finding.findings}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </Grid>
-            </Grid>
-          ) : (
-            <Typography color="text.secondary">
-              No imaging analysis available. Add imaging results to see analysis.
-            </Typography>
-          )}
-        </CardContent>
-      </Card>
-    </Box>
-  );
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 0: return renderDiagnosisTab();
-      case 1: return renderLabTestsTab();
-      case 2: return renderDrugInteractionsTab();
-      case 3: return renderSymptomsTab();
-      case 4: return renderTreatmentTab();
-      case 5: return renderImagingTab();
-      default: return renderDiagnosisTab();
+  const handleMouseMove = (e) => {
+    if (isResizing && resizeRef.current) {
+      const deltaX = resizeRef.current - e.clientX;
+      const newWidth = Math.max(300, Math.min(800, width + deltaX));
+      if (onWidthChange) {
+        onWidthChange(newWidth);
+      }
+      resizeRef.current = e.clientX;
     }
   };
 
-  // If minimized, show only a small indicator
-  if (isMinimized) {
-    return (
-      <Box
-        sx={{
-          position: 'fixed',
-          right: 0,
-          top: '50%',
-          transform: 'translateY(-50%)',
-          zIndex: 1000,
-          bgcolor: 'primary.main',
-          color: 'white',
-          p: 1,
-          borderRadius: '8px 0 0 8px',
-          cursor: 'pointer',
-          boxShadow: 2
-        }}
-        onClick={() => setIsMinimized(false)}
-      >
-        <SmartToy sx={{ fontSize: 24 }} />
-      </Box>
-    );
-  }
+  const handleMouseUp = () => {
+    setIsResizing(false);
+    resizeRef.current = null;
+  };
 
-  // If collapsed, show only header
-  if (isCollapsed) {
-    return (
-      <Box
-        sx={{
-          position: 'fixed',
-          right: 0,
-          top: 0,
-          height: '100vh',
-          width: 60,
-          bgcolor: 'primary.main',
-          color: 'white',
-          zIndex: 1000,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          pt: 2,
-          boxShadow: 2
-        }}
-      >
-        <SmartToy sx={{ fontSize: 24, mb: 2 }} />
-        <IconButton 
-          sx={{ color: 'white', mb: 1 }} 
-          onClick={() => setIsCollapsed(false)}
-        >
-          <UnfoldMore />
-        </IconButton>
-        <IconButton 
-          sx={{ color: 'white', mb: 1 }} 
-          onClick={() => setIsMinimized(true)}
-        >
-          <Minimize />
-        </IconButton>
-        <IconButton 
-          sx={{ color: 'white' }} 
-          onClick={onClose}
-        >
-          <Close />
-        </IconButton>
-      </Box>
-    );
-  }
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isResizing, width, onWidthChange]);
+
+  if (!isOpen) return null;
 
   return (
     <Box
-      ref={panelRef}
       sx={{
         position: 'fixed',
         right: 0,
         top: 0,
         height: '100vh',
-        width: { xs: '100vw', md: width }, // Responsive width
-        bgcolor: 'background.paper',
-        borderLeft: { xs: 'none', md: '2px solid' },
-        borderColor: 'primary.main',
-        zIndex: 1000,
+        width: isMinimized ? 60 : width,
+        backgroundColor: 'background.paper',
+        borderLeft: 1,
+        borderColor: 'divider',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '-4px 0 20px rgba(0,0,0,0.1)',
-        background: 'linear-gradient(135deg, #fafbfc 0%, #f0f2f5 100%)'
+        zIndex: 1200,
+        transition: 'width 0.3s ease',
+        boxShadow: 3
       }}
     >
+      {/* Header */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          p: 1,
+          borderBottom: 1,
+          borderColor: 'divider',
+          backgroundColor: 'primary.main',
+          color: 'primary.contrastText'
+        }}
+      >
+        <Typography variant="h6" sx={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
+          🏥 Medical AI Assistant
+        </Typography>
+        <Box>
+          <IconButton
+            size="small"
+            onClick={() => setIsMinimized(!isMinimized)}
+            sx={{ color: 'inherit' }}
+          >
+            {isMinimized ? <ExpandMore /> : <ExpandLess />}
+          </IconButton>
+          <IconButton
+            size="small"
+            onClick={onClose}
+            sx={{ color: 'inherit' }}
+          >
+            <Close />
+          </IconButton>
+        </Box>
+      </Box>
+
+      {!isMinimized && (
+        <>
+          {/* Input Section */}
+          <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+            <Typography variant="subtitle2" gutterBottom>
+              Enter Symptoms:
+            </Typography>
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              variant="outlined"
+              size="small"
+              value={notes}
+              onChange={handleNotesChange}
+              onKeyPress={handleKeyPress}
+              placeholder="Describe the symptoms (e.g., fever, headache, cough)..."
+              disabled={isAnalyzing}
+            />
+            <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleSend}
+                disabled={!notes.trim() || isAnalyzing}
+                startIcon={isAnalyzing ? <CircularProgress size={16} /> : <Send />}
+              >
+                {isAnalyzing ? 'Analyzing...' : 'Analyze'}
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={clearAnalysis}
+                disabled={!analysisResults}
+              >
+                Clear
+              </Button>
+            </Box>
+          </Box>
+
+          {/* Messages */}
+          {error && (
+            <Alert severity="error" sx={{ m: 1 }}>
+              {error}
+            </Alert>
+          )}
+          {success && (
+            <Alert severity="success" sx={{ m: 1 }}>
+              {success}
+            </Alert>
+          )}
+
+          {/* Results Section */}
+          <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+            {analysisResults ? (
+              <Box>
+                <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 'bold' }}>
+                  🎯 AI Analysis Results
+                </Typography>
+                
+                {analysisResults.predictions && analysisResults.predictions.length > 0 && (
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                      📋 Possible Diseases:
+                    </Typography>
+                    {analysisResults.predictions.map((prediction, index) => (
+                      <Paper key={index} sx={{ p: 2, mb: 2, backgroundColor: 'grey.50' }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                          <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
+                            {prediction.disease}
+                          </Typography>
+                          <Chip 
+                            label={`${(prediction.confidence * 100).toFixed(1)}%`}
+                            color={prediction.confidence > 0.7 ? 'success' : prediction.confidence > 0.4 ? 'warning' : 'error'}
+                            size="small"
+                          />
+                        </Box>
+                        
+                        <Typography variant="body2" sx={{ mb: 1, color: 'text.secondary' }}>
+                          Severity: <Chip label={prediction.severity} size="small" color="primary" />
+                        </Typography>
+
+                        {/* Symptoms */}
+                        {prediction.symptoms && prediction.symptoms.length > 0 && (
+                          <Box sx={{ mb: 2 }}>
+                            <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold' }}>
+                              🚨 Symptoms:
+                            </Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {prediction.symptoms.map((symptom, idx) => (
+                                <Chip key={idx} label={symptom} size="small" variant="outlined" />
+                              ))}
+                            </Box>
+                          </Box>
+                        )}
+
+                        {/* Lab Tests */}
+                        {prediction.lab_tests && prediction.lab_tests.length > 0 && (
+                          <Box sx={{ mb: 2 }}>
+                            <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold' }}>
+                              🧪 Recommended Lab Tests:
+                            </Typography>
+                            <List dense>
+                              {prediction.lab_tests.map((test, idx) => (
+                                <ListItem key={idx} sx={{ py: 0.5 }}>
+                                  <ListItemText
+                                    primary={test}
+                                    primaryTypographyProps={{ fontSize: '0.9rem' }}
+                                  />
+                                </ListItem>
+                              ))}
+                            </List>
+                          </Box>
+                        )}
+
+                        {/* Treatments */}
+                        {prediction.treatments && prediction.treatments.length > 0 && (
+                          <Box sx={{ mb: 2 }}>
+                            <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold' }}>
+                              💊 Recommended Treatments:
+                            </Typography>
+                            <List dense>
+                              {prediction.treatments.map((treatment, idx) => (
+                                <ListItem key={idx} sx={{ py: 0.5 }}>
+                                  <ListItemText
+                                    primary={treatment}
+                                    primaryTypographyProps={{ fontSize: '0.9rem' }}
+                                  />
+                                </ListItem>
+                              ))}
+                            </List>
+                          </Box>
+                        )}
+
+                        {/* Drug Interactions */}
+                        {prediction.drug_interactions && prediction.drug_interactions.length > 0 && (
+                          <Box>
+                            <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold' }}>
+                              ⚠️ Drug Interactions:
+                            </Typography>
+                            <List dense>
+                              {prediction.drug_interactions.slice(0, 3).map((interaction, idx) => (
+                                <ListItem key={idx} sx={{ py: 0.5 }}>
+                                  <ListItemText
+                                    primary={interaction.substring(0, 100) + '...'}
+                                    primaryTypographyProps={{ fontSize: '0.8rem', color: 'warning.main' }}
+                                  />
+                                </ListItem>
+                              ))}
+                            </List>
+                          </Box>
+                        )}
+                      </Paper>
+                    ))}
+                  </Box>
+                )}
+
+                {/* Raw Data Toggle */}
+                <Box sx={{ mt: 2 }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => setShowRawData(!showRawData)}
+                    startIcon={showRawData ? <ExpandLess /> : <ExpandMore />}
+                  >
+                    {showRawData ? 'Hide' : 'Show'} Raw Data
+                  </Button>
+                  
+                  <Collapse in={showRawData}>
+                    <Paper sx={{ p: 2, mt: 1, backgroundColor: 'grey.100' }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Raw API Response:
+                      </Typography>
+                      <pre style={{ fontSize: '0.8rem', overflow: 'auto', maxHeight: '200px' }}>
+                        {JSON.stringify(analysisResults, null, 2)}
+                      </pre>
+                    </Paper>
+                  </Collapse>
+                </Box>
+              </Box>
+            ) : (
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  🏥 Medical AI Assistant
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Enter symptoms above to get AI-powered diagnosis, lab test recommendations, and treatment suggestions.
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        </>
+      )}
+
       {/* Resize Handle */}
       <Box
-        ref={resizeRef}
-        onMouseDown={handleMouseDown}
         sx={{
           position: 'absolute',
-          left: -4,
+          left: 0,
           top: 0,
-          width: 8,
+          width: 4,
           height: '100%',
           cursor: 'col-resize',
-          bgcolor: 'transparent',
+          backgroundColor: 'transparent',
           '&:hover': {
-            bgcolor: 'primary.main',
+            backgroundColor: 'primary.main',
             opacity: 0.3
           }
         }}
+        onMouseDown={handleMouseDown}
       />
-
-      {/* Header */}
-      <Box sx={{ 
-        p: 2,
-        background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
-        color: 'white',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>
-          <SmartToy sx={{ mr: 1.5, fontSize: '1.5rem' }} />
-          AI Assistant
-        </Typography>
-        
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Tooltip title="Collapse">
-            <IconButton onClick={() => setIsCollapsed(true)} sx={{ color: 'white' }} size="small">
-              <UnfoldLess />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Minimize">
-            <IconButton onClick={() => setIsMinimized(true)} sx={{ color: 'white' }} size="small">
-              <Minimize />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Close">
-            <IconButton onClick={onClose} sx={{ color: 'white' }} size="small">
-              <Close />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      </Box>
-
-      {/* Control Panel */}
-      <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={autoAnalysis}
-                onChange={(e) => setAutoAnalysis(e.target.checked)}
-                size="small"
-              />
-            }
-            label="Auto"
-          />
-          <FormControlLabel
-            control={
-              <Switch
-                checked={realTimeUpdates}
-                onChange={(e) => setRealTimeUpdates(e.target.checked)}
-                size="small"
-              />
-            }
-            label="Real-time"
-          />
-        </Box>
-        
-        <Button
-          variant="contained"
-          startIcon={<AutoFixHigh />}
-          onClick={analyzeComprehensive}
-          disabled={isAnalyzing}
-          fullWidth
-          size="small"
-        >
-          {isAnalyzing ? 'Analyzing...' : 'Run Analysis'}
-        </Button>
-      </Box>
-
-      {/* Alerts */}
-      {error && (
-        <Alert severity="error" sx={{ m: 2 }} onClose={() => setError('')}>
-          {error}
-        </Alert>
-      )}
-      
-      {success && (
-        <Alert severity="success" sx={{ m: 2 }} onClose={() => setSuccess('')}>
-          {success}
-        </Alert>
-      )}
-
-      {/* Progress Indicator */}
-      {isAnalyzing && (
-        <Box sx={{ p: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <CircularProgress size={16} sx={{ mr: 1 }} />
-            <Typography variant="body2" color="text.secondary">
-              AI analyzing...
-            </Typography>
-          </Box>
-          <LinearProgress />
-        </Box>
-      )}
-
-      {/* Tabs */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs
-          value={activeTab}
-          onChange={(e, newValue) => setActiveTab(newValue)}
-          variant="scrollable"
-          scrollButtons="auto"
-          sx={{ minHeight: 48 }}
-        >
-          {tabs.map((tab, index) => (
-            <Tab
-              key={index}
-              label={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  {tab.icon}
-                  <Typography variant="caption">{tab.label}</Typography>
-                  {analysisResults[tab.key] && analysisResults[tab.key] !== null && (
-                    <Badge badgeContent="✓" color="success" size="small" />
-                  )}
-                </Box>
-              }
-              sx={{ 
-                minHeight: 48,
-                fontSize: '0.75rem',
-                '& .MuiTab-iconWrapper': { fontSize: '1rem' }
-              }}
-            />
-          ))}
-        </Tabs>
-      </Box>
-
-      {/* Tab Content */}
-      <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
-        {renderTabContent()}
-      </Box>
-
-      {/* Notes Input */}
-      <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
-        <TextField
-          fullWidth
-          multiline
-          rows={2}
-          variant="outlined"
-          placeholder="Add notes for AI analysis..."
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          disabled={isAnalyzing}
-          size="small"
-        />
-      </Box>
     </Box>
   );
 };

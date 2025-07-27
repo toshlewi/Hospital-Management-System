@@ -1,3 +1,0 @@
-test_id,test_name,components,normal_ranges,clinical_significance,source
-cbc,Complete Blood Count,"['WBC', 'RBC', 'Hemoglobin', 'Hematocrit', 'Platelets']","{'WBC': '4,000-11,000/μL', 'RBC': '4.5-5.5 million/μL', 'Hemoglobin': '12-16 g/dL', 'Hematocrit': '36-46%', 'Platelets': '150,000-450,000/μL'}","Screening for anemia, infection, blood disorders",lab_reference
-cmp,Comprehensive Metabolic Panel,"['Glucose', 'BUN', 'Creatinine', 'Sodium', 'Potassium', 'Chloride', 'CO2', 'Calcium']","{'Glucose': '70-100 mg/dL', 'BUN': '7-20 mg/dL', 'Creatinine': '0.6-1.2 mg/dL', 'Sodium': '135-145 mEq/L', 'Potassium': '3.5-5.0 mEq/L'}","Assessment of kidney function, electrolyte balance, liver function",lab_reference

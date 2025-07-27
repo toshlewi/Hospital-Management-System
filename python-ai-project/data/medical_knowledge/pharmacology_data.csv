@@ -1,3 +1,0 @@
-drug_id,drug_name,class,mechanism,interactions,monitoring,therapeutic_range,source
-warfarin,Warfarin,Anticoagulant,Vitamin K antagonist,"['aspirin', 'NSAIDs', 'antibiotics', 'vitamin K']",INR,2.0-3.0,pharmacology_database
-digoxin,Digoxin,Cardiac glycoside,Inhibits Na+/K+ ATPase,"['diuretics', 'amiodarone', 'verapamil']",Digoxin level,0.8-2.0 ng/mL,pharmacology_database

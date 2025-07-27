@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  # Backend Service (Node.js)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - database
+    networks:
+      - hospital-network
+
+  # Frontend Service (React)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:3001
+      - REACT_APP_AI_API_URL=http://localhost:8000
+    volumes:
+      - ./src:/app/src
+      - /app/node_modules
+    depends_on:
+      - backend
+      - ai-service
+    networks:
+      - hospital-network
+
+  # AI Service (Python FastAPI)
+  ai-service:
+    build:
+      context: ./python-ai-project
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+    volumes:
+      - ./python-ai-project:/app
+      - ai-data:/app/data
+      - ai-models:/app/models
+    networks:
+      - hospital-network
+
+  # Database (PostgreSQL)
+  database:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=hospital_management
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - hospital-network
+
+  # Redis (for caching)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - hospital-network
+
+volumes:
+  postgres_data:
+  ai-data:
+  ai-models:
+
+networks:
+  hospital-network:
+    driver: bridge 
