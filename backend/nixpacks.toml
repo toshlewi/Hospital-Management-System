@@ -1,8 +1,0 @@
-[phases.setup]
-nixPkgs = ["nodejs", "npm"]
-
-[phases.install]
-cmds = ["npm install --no-audit --no-fund --prefer-offline"]
-
-[start]
-cmd = "node --max-old-space-size=512 --expose-gc server.js" 

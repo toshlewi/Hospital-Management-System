@@ -11,17 +11,17 @@ This guide shows you how to set up all necessary environment variables for your 
 Set these in your Railway backend service dashboard:
 
 ```env
-# Database Configuration (Supabase)
-SUPABASE_URL=https://your-project-id.supabase.co
-SUPABASE_ANON_KEY=your-anon-key-here
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+# Database Configuration (Supabase) - YOUR ACTUAL CREDENTIALS
+SUPABASE_URL=https://cmcaobehivmrgyugwbxz.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtY2FvYmVoaXZtcmd5dWd3Ynh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3MzIzNTYsImV4cCI6MjA2NzMwODM1Nn0.wxPWpDeCbPMXTCyo__mHhmrLrX8396IPtZ3S9xQn8UM
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtY2FvYmVoaXZtcmd5dWd3Ynh6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MTczMjM1NiwiZXhwIjoyMDY3MzA4MzU2fQ.WqBgdHz5v5PQ4OK4afNT1zuxyGz3BX-J55qklRF49dM
 
 # Application Configuration
 NODE_ENV=production
 PORT=3001
 
 # Security
-JWT_SECRET=your-super-secret-jwt-key-here-change-this-in-production
+JWT_SECRET=HPnFyDVK+z82DeWxLPTGBDvfCDBUdjsrIrQQeJU9HI+dCy2y+QX+0TBo2AKtV479KnfhbgniDBujDUeNeLxtKA==
 
 # CORS
 FRONTEND_URL=https://hospital-frontend-production-xxxx.up.railway.app
@@ -77,16 +77,12 @@ After deploying each service, update the URLs:
 - Replace `hospital-ai-production-xxxx` with your actual AI service URL
 - Replace `hospital-frontend-production-xxxx` with your actual frontend URL
 
-## 🔧 **Supabase Setup**
+## 🔧 **Your Supabase Configuration**
 
-### **Get Supabase Credentials:**
-1. Go to https://supabase.com
-2. Create a new project or use existing one
-3. Go to Settings > API
-4. Copy the following:
-   - Project URL (SUPABASE_URL)
-   - anon/public key (SUPABASE_ANON_KEY)
-   - service_role key (SUPABASE_SERVICE_ROLE_KEY)
+Your Supabase project is already set up with:
+- **Project URL:** `https://cmcaobehivmrgyugwbxz.supabase.co`
+- **Anon Key:** `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtY2FvYmVoaXZtcmd5dWd3Ynh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3MzIzNTYsImV4cCI6MjA2NzMwODM1Nn0.wxPWpDeCbPMXTCyo__mHhmrLrX8396IPtZ3S9xQn8UM`
+- **Service Role Key:** `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtY2FvYmVoaXZtcmd5dWd3Ynh6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MTczMjM1NiwiZXhwIjoyMDY3MzA4MzU2fQ.WqBgdHz5v5PQ4OK4afNT1zuxyGz3BX-J55qklRF49dM`
 
 ## 🔍 **Verification Checklist**
 
