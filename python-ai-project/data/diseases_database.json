@@ -1,11 +1,186 @@
 {
+  "Lung Cancer": {
+    "symptoms": ["persistent cough", "chest pain", "shortness of breath", "coughing up blood", "weight loss", "fatigue"],
+    "treatments": ["surgery", "chemotherapy", "radiation therapy", "targeted therapy", "immunotherapy"],
+    "lab_tests": ["Chest X-ray", "CT Scan", "Bronchoscopy", "Biopsy", "PET Scan"],
+    "expected_lab_results": {
+      "Chest X-ray": "Mass or nodule visible",
+      "CT Scan": "Detailed imaging of lung mass",
+      "Biopsy": "Malignant cells present",
+      "PET Scan": "Increased metabolic activity"
+    }
+  },
+  "Breast Cancer": {
+    "symptoms": ["breast lump", "breast pain", "nipple discharge", "skin changes", "swollen lymph nodes"],
+    "treatments": ["surgery", "chemotherapy", "radiation therapy", "hormone therapy", "targeted therapy"],
+    "lab_tests": ["Mammogram", "Breast Ultrasound", "Biopsy", "Estrogen/Progesterone Receptor Test"],
+    "expected_lab_results": {
+      "Mammogram": "Mass or calcifications",
+      "Biopsy": "Malignant cells present",
+      "Receptor Test": "May be positive for hormone receptors"
+    }
+  },
+  "Colon Cancer": {
+    "symptoms": ["rectal bleeding", "abdominal pain", "change in bowel habits", "weight loss", "fatigue"],
+    "treatments": ["surgery", "chemotherapy", "radiation therapy", "targeted therapy"],
+    "lab_tests": ["Colonoscopy", "Biopsy", "CEA Tumor Marker", "CT Scan"],
+    "expected_lab_results": {
+      "Colonoscopy": "Polyp or mass visible",
+      "Biopsy": "Malignant cells present",
+      "CEA": "Elevated in advanced disease"
+    }
+  },
+  "Prostate Cancer": {
+    "symptoms": ["frequent urination", "weak urine stream", "blood in urine", "bone pain", "erectile dysfunction"],
+    "treatments": ["surgery", "radiation therapy", "hormone therapy", "chemotherapy"],
+    "lab_tests": ["PSA Test", "Digital Rectal Exam", "Biopsy", "Bone Scan"],
+    "expected_lab_results": {
+      "PSA": "Elevated (>4 ng/mL)",
+      "Biopsy": "Malignant cells present",
+      "Bone Scan": "May show metastases"
+    }
+  },
+  "Acute Kidney Injury": {
+    "symptoms": ["decreased urine output", "swelling", "fatigue", "confusion", "nausea", "chest pain"],
+    "treatments": ["fluid management", "dialysis if severe", "treat underlying cause", "medication adjustment"],
+    "lab_tests": ["Serum Creatinine", "Blood Urea Nitrogen (BUN)", "Urinalysis", "Electrolytes"],
+    "expected_lab_results": {
+      "Serum Creatinine": "Rapidly increasing",
+      "BUN": "Elevated",
+      "Urinalysis": "May show proteinuria, hematuria",
+      "Electrolytes": "May show hyperkalemia, acidosis"
+    }
+  },
+  "Chronic Kidney Disease": {
+    "symptoms": ["fatigue", "swelling", "decreased urine output", "nausea", "itching", "muscle cramps"],
+    "treatments": ["ACE inhibitors", "dialysis", "diet modification", "blood pressure control"],
+    "lab_tests": ["Serum Creatinine", "eGFR", "Urinalysis", "Electrolytes"],
+    "expected_lab_results": {
+      "Serum Creatinine": "> 1.2 mg/dL (elevated)",
+      "eGFR": "< 60 mL/min/1.73m²",
+      "Urinalysis": "Proteinuria, hematuria",
+      "Electrolytes": "May show abnormalities"
+    }
+  },
+  "Kidney Stones": {
+    "symptoms": ["severe flank pain", "nausea", "vomiting", "blood in urine", "frequent urination"],
+    "treatments": ["pain management", "hydration", "lithotripsy", "surgery if needed"],
+    "lab_tests": ["Urinalysis", "CT Scan", "Kidney Ultrasound", "24-hour Urine Collection"],
+    "expected_lab_results": {
+      "Urinalysis": "Hematuria, crystals",
+      "CT Scan": "Stone visible in urinary tract",
+      "24-hour Urine": "May show metabolic abnormalities"
+    }
+  },
+  "Brain Tumor": {
+    "symptoms": ["headache", "nausea", "vomiting", "seizures", "vision changes", "personality changes"],
+    "treatments": ["surgery", "radiation therapy", "chemotherapy", "steroids"],
+    "lab_tests": ["Brain MRI", "CT Scan", "Biopsy", "Neurological Exam"],
+    "expected_lab_results": {
+      "Brain MRI": "Mass lesion visible",
+      "CT Scan": "Brain mass or edema",
+      "Biopsy": "Malignant or benign tumor cells"
+    }
+  },
+  "Meningitis": {
+    "symptoms": ["severe headache", "fever", "stiff neck", "nausea", "vomiting", "confusion"],
+    "treatments": ["antibiotics", "antivirals", "steroids", "supportive care"],
+    "lab_tests": ["Lumbar Puncture", "Blood Culture", "CT Scan", "Cerebrospinal Fluid Analysis"],
+    "expected_lab_results": {
+      "Lumbar Puncture": "Elevated white cells, protein",
+      "Blood Culture": "May be positive for bacteria",
+      "CSF Analysis": "Elevated protein, low glucose"
+    }
+  },
+  "Encephalitis": {
+    "symptoms": ["fever", "headache", "confusion", "seizures", "personality changes", "weakness"],
+    "treatments": ["antivirals", "steroids", "supportive care", "seizure management"],
+    "lab_tests": ["Brain MRI", "Lumbar Puncture", "EEG", "Viral PCR"],
+    "expected_lab_results": {
+      "Brain MRI": "Inflammation visible",
+      "Lumbar Puncture": "Elevated white cells",
+      "EEG": "Abnormal brain activity"
+    }
+  },
+  "Heart Attack (Myocardial Infarction)": {
+    "symptoms": ["chest pain", "shortness of breath", "nausea", "sweating", "pain radiating to arm"],
+    "treatments": ["aspirin", "nitroglycerin", "angioplasty", "stent placement", "thrombolytics"],
+    "lab_tests": ["Electrocardiogram (ECG)", "Troponin", "Creatine Kinase (CK-MB)", "Chest X-ray"],
+    "expected_lab_results": {
+      "ECG": "ST elevation, Q waves",
+      "Troponin": "> 0.04 ng/mL (elevated)",
+      "CK-MB": "Elevated",
+      "Chest X-ray": "May show pulmonary edema"
+    }
+  },
+  "Heart Failure": {
+    "symptoms": ["shortness of breath", "fatigue", "swelling in legs", "cough", "rapid heartbeat"],
+    "treatments": ["ACE inhibitors", "beta-blockers", "diuretics", "lifestyle modification"],
+    "lab_tests": ["BNP", "Echocardiogram", "Chest X-ray", "Electrocardiogram (ECG)"],
+    "expected_lab_results": {
+      "BNP": "> 100 pg/mL (elevated)",
+      "Echocardiogram": "Reduced ejection fraction",
+      "Chest X-ray": "Cardiomegaly, pulmonary congestion"
+    }
+  },
+  "Pulmonary Embolism": {
+    "symptoms": ["sudden shortness of breath", "chest pain", "cough", "rapid heartbeat", "anxiety"],
+    "treatments": ["anticoagulants", "thrombolytics", "inferior vena cava filter"],
+    "lab_tests": ["D-dimer", "CT Pulmonary Angiogram", "Ventilation-Perfusion Scan", "Echocardiogram"],
+    "expected_lab_results": {
+      "D-dimer": "> 500 ng/mL (elevated)",
+      "CT Pulmonary Angiogram": "Blood clot visible",
+      "Echocardiogram": "Right heart strain"
+    }
+  },
+  "Pneumonia": {
+    "symptoms": ["cough", "fever", "shortness of breath", "chest pain", "fatigue", "sputum production"],
+    "treatments": ["antibiotics", "rest", "fluids", "oxygen therapy"],
+    "lab_tests": ["Chest X-ray", "Sputum Culture", "Complete Blood Count (CBC)", "Blood Culture"],
+    "expected_lab_results": {
+      "Chest X-ray": "Infiltrates visible",
+      "Sputum Culture": "May identify pathogen",
+      "CBC": "Leukocytosis",
+      "Blood Culture": "May be positive"
+    }
+  },
+  "Tuberculosis": {
+    "symptoms": ["persistent cough", "weight loss", "night sweats", "fever", "coughing up blood"],
+    "treatments": ["antitubercular therapy", "multidrug regimen", "supportive care"],
+    "lab_tests": ["Sputum AFB Stain", "Chest X-ray", "Tuberculin Skin Test", "Interferon Gamma Release Assay"],
+    "expected_lab_results": {
+      "Sputum AFB": "Acid-fast bacilli visible",
+      "Chest X-ray": "Cavitary lesions, infiltrates",
+      "TST": "> 10 mm induration"
+    }
+  },
+  "Asthma": {
+    "symptoms": ["wheezing", "shortness of breath", "chest tightness", "cough", "rapid breathing"],
+    "treatments": ["inhaled bronchodilators", "inhaled corticosteroids", "avoid triggers"],
+    "lab_tests": ["Spirometry", "Peak Flow", "Chest X-ray", "Allergy Testing"],
+    "expected_lab_results": {
+      "Spirometry": "Reduced FEV1/FVC ratio",
+      "Peak Flow": "Reduced during attack",
+      "Chest X-ray": "Usually normal or hyperinflation"
+    }
+  },
+  "Chronic Obstructive Pulmonary Disease (COPD)": {
+    "symptoms": ["chronic cough", "shortness of breath", "wheezing", "fatigue", "sputum production"],
+    "treatments": ["bronchodilators", "inhaled corticosteroids", "pulmonary rehabilitation", "oxygen therapy"],
+    "lab_tests": ["Spirometry", "Chest X-ray", "Arterial Blood Gas", "Alpha-1 Antitrypsin"],
+    "expected_lab_results": {
+      "Spirometry": "Reduced FEV1/FVC ratio (not reversible)",
+      "Chest X-ray": "Hyperinflation, flattened diaphragm",
+      "ABG": "May show hypoxemia, hypercapnia"
+    }
+  },
   "Gastroenteritis": {
     "symptoms": ["vomiting", "diarrhea", "nausea", "abdominal cramps", "fever", "dehydration"],
     "treatments": ["oral rehydration therapy", "rest", "bland diet", "antiemetics if needed"],
     "lab_tests": ["Stool Culture", "Complete Blood Count (CBC)", "Electrolytes"],
     "expected_lab_results": {
       "Stool Culture": "May identify bacterial pathogens",
-      "Complete Blood Count (CBC)": "May show leukocytosis",
+      "CBC": "May show leukocytosis",
       "Electrolytes": "May show dehydration-related abnormalities"
     }
   },
@@ -16,282 +191,267 @@
     "expected_lab_results": {
       "Stool Culture": "May identify foodborne pathogens",
       "Blood Culture": "May be positive in severe cases",
-      "Complete Blood Count (CBC)": "May show leukocytosis"
-    }
-  },
-  "Viral Gastroenteritis": {
-    "symptoms": ["vomiting", "diarrhea", "nausea", "abdominal cramps", "low-grade fever"],
-    "treatments": ["oral rehydration therapy", "rest", "bland diet", "symptomatic relief"],
-    "lab_tests": ["Stool Antigen Test", "Complete Blood Count (CBC)", "Electrolytes"],
-    "expected_lab_results": {
-      "Stool Antigen Test": "May be positive for rotavirus/norovirus",
-      "Complete Blood Count (CBC)": "Usually normal or mild leukocytosis",
-      "Electrolytes": "May show dehydration if severe"
-    }
-  },
-  "Bacterial Gastroenteritis": {
-    "symptoms": ["vomiting", "diarrhea", "abdominal cramps", "fever", "bloody stools"],
-    "treatments": ["antibiotics", "oral rehydration", "rest", "diet modification"],
-    "lab_tests": ["Stool Culture", "Stool Microscopy", "Complete Blood Count (CBC)"],
-    "expected_lab_results": {
-      "Stool Culture": "Positive for pathogenic bacteria",
-      "Stool Microscopy": "May show white blood cells, red blood cells",
-      "Complete Blood Count (CBC)": "Leukocytosis"
-    }
-  },
-  "Traveler's Diarrhea": {
-    "symptoms": ["diarrhea", "abdominal cramps", "nausea", "vomiting", "fever"],
-    "treatments": ["oral rehydration", "antidiarrheal medications", "antibiotics if severe"],
-    "lab_tests": ["Stool Culture", "Stool Antigen Test", "Complete Blood Count (CBC)"],
-    "expected_lab_results": {
-      "Stool Culture": "May identify E. coli, Salmonella, Shigella",
-      "Stool Antigen Test": "May be positive for specific pathogens",
-      "Complete Blood Count (CBC)": "May show mild leukocytosis"
-    }
-  },
-  "Irritable Bowel Syndrome": {
-    "symptoms": ["abdominal pain", "diarrhea", "constipation", "bloating", "nausea"],
-    "treatments": ["diet modification", "stress management", "medications for symptoms"],
-    "lab_tests": ["Complete Blood Count (CBC)", "Stool Studies", "Colonoscopy"],
-    "expected_lab_results": {
-      "Complete Blood Count (CBC)": "Normal",
-      "Stool Studies": "Normal",
-      "Colonoscopy": "Normal or mild inflammation"
-    }
-  },
-  "Inflammatory Bowel Disease": {
-    "symptoms": ["diarrhea", "abdominal pain", "weight loss", "fatigue", "rectal bleeding"],
-    "treatments": ["anti-inflammatory medications", "immunosuppressants", "surgery if needed"],
-    "lab_tests": ["Complete Blood Count (CBC)", "C-reactive Protein", "Colonoscopy", "Stool Calprotectin"],
-    "expected_lab_results": {
-      "Complete Blood Count (CBC)": "Anemia, leukocytosis",
-      "C-reactive Protein": "Elevated",
-      "Stool Calprotectin": "Elevated"
+      "CBC": "May show leukocytosis"
     }
   },
   "Appendicitis": {
-    "symptoms": ["abdominal pain", "nausea", "vomiting", "loss of appetite", "fever"],
+    "symptoms": ["abdominal pain", "nausea", "vomiting", "loss of appetite", "fever", "right lower quadrant tenderness"],
     "treatments": ["surgical removal of appendix", "antibiotics", "pain management"],
     "lab_tests": ["Complete Blood Count (CBC)", "C-reactive Protein", "Abdominal CT Scan"],
     "expected_lab_results": {
-      "Complete Blood Count (CBC)": "Leukocytosis",
-      "C-reactive Protein": "Elevated",
-      "Abdominal CT Scan": "Enlarged appendix with inflammation"
+      "CBC": "Leukocytosis",
+      "CRP": "Elevated",
+      "CT Scan": "Enlarged appendix with inflammation"
     }
   },
   "Peptic Ulcer Disease": {
-    "symptoms": ["abdominal pain", "nausea", "vomiting", "bloating", "loss of appetite"],
+    "symptoms": ["abdominal pain", "nausea", "vomiting", "bloating", "loss of appetite", "heartburn"],
     "treatments": ["proton pump inhibitors", "antibiotics for H. pylori", "lifestyle modification"],
     "lab_tests": ["H. pylori Test", "Upper Endoscopy", "Complete Blood Count (CBC)"],
     "expected_lab_results": {
       "H. pylori Test": "May be positive",
       "Upper Endoscopy": "Ulcer visible in stomach/duodenum",
-      "Complete Blood Count (CBC)": "May show anemia if bleeding"
-    }
-  },
-  "Cholecystitis": {
-    "symptoms": ["abdominal pain", "nausea", "vomiting", "fever", "right upper quadrant tenderness"],
-    "treatments": ["surgery (cholecystectomy)", "antibiotics", "pain management"],
-    "lab_tests": ["Complete Blood Count (CBC)", "Liver Function Tests", "Abdominal Ultrasound"],
-    "expected_lab_results": {
-      "Complete Blood Count (CBC)": "Leukocytosis",
-      "Liver Function Tests": "May show elevated bilirubin",
-      "Abdominal Ultrasound": "Gallbladder wall thickening, stones"
+      "CBC": "May show anemia if bleeding"
     }
   },
   "Diabetes Mellitus": {
-    "symptoms": ["increased thirst", "frequent urination", "hunger", "fatigue", "blurred vision"],
+    "symptoms": ["increased thirst", "frequent urination", "hunger", "fatigue", "blurred vision", "slow-healing wounds"],
     "treatments": ["insulin", "oral hypoglycemics", "diet modification", "exercise"],
     "lab_tests": ["Fasting Blood Glucose", "HbA1c", "Oral Glucose Tolerance Test"],
     "expected_lab_results": {
-      "Fasting Blood Glucose": ">= 126 mg/dL (diagnostic for diabetes)",
-      "HbA1c": ">= 6.5% (diagnostic for diabetes)",
-      "Oral Glucose Tolerance Test": ">= 200 mg/dL at 2 hours (diagnostic for diabetes)"
+      "Fasting Blood Glucose": ">= 126 mg/dL (diagnostic)",
+      "HbA1c": ">= 6.5% (diagnostic)",
+      "OGTT": ">= 200 mg/dL at 2 hours (diagnostic)"
     }
   },
   "Hypertension": {
-    "symptoms": ["headache", "dizziness", "blurred vision", "chest pain", "nosebleeds"],
+    "symptoms": ["headache", "dizziness", "blurred vision", "chest pain", "nosebleeds", "shortness of breath"],
     "treatments": ["lifestyle modification", "antihypertensive medications"],
     "lab_tests": ["Blood Pressure Measurement", "Serum Creatinine", "Urinalysis", "Electrolytes"],
     "expected_lab_results": {
-      "Blood Pressure Measurement": ">= 140/90 mmHg (diagnostic for hypertension)",
+      "Blood Pressure": ">= 140/90 mmHg (diagnostic)",
       "Serum Creatinine": "May be elevated if kidney involvement",
-      "Urinalysis": "Proteinuria or hematuria may indicate secondary causes",
-      "Electrolytes": "May show abnormalities if secondary hypertension"
-    }
-  },
-  "Malaria": {
-    "symptoms": ["fever", "chills", "sweating", "headache", "nausea", "vomiting"],
-    "treatments": ["antimalarial medications"],
-    "lab_tests": ["Malaria Rapid Diagnostic Test (RDT)", "Blood Smear", "Complete Blood Count (CBC)"],
-    "expected_lab_results": {
-      "Malaria Rapid Diagnostic Test (RDT)": "Positive for Plasmodium antigen",
-      "Blood Smear": "Plasmodium parasites seen",
-      "Complete Blood Count (CBC)": "Anemia, thrombocytopenia"
-    }
-  },
-  "HIV/AIDS": {
-    "symptoms": ["weight loss", "chronic diarrhea", "fever", "night sweats", "recurrent infections"],
-    "treatments": ["antiretroviral therapy (ART)", "prophylaxis for opportunistic infections"],
-    "lab_tests": ["HIV Antibody Test", "CD4 Count", "HIV Viral Load"],
-    "expected_lab_results": {
-      "HIV Antibody Test": "Positive (diagnostic for HIV)",
-      "CD4 Count": "< 200 cells/μL (AIDS)",
-      "HIV Viral Load": "> 10,000 copies/mL (high viral replication)"
-    }
-  },
-  "Tuberculosis": {
-    "symptoms": ["persistent cough", "weight loss", "night sweats", "fever", "hemoptysis"],
-    "treatments": ["antitubercular therapy"],
-    "lab_tests": ["Sputum Acid-Fast Bacilli (AFB) Stain", "Chest X-ray", "Tuberculin Skin Test (TST)"],
-    "expected_lab_results": {
-      "Sputum Acid-Fast Bacilli (AFB) Stain": "Positive for AFB",
-      "Chest X-ray": "Cavitary lesions, infiltrates",
-      "Tuberculin Skin Test (TST)": ">= 10 mm induration (positive)"
-    }
-  },
-  "Pneumonia": {
-    "symptoms": ["cough", "fever", "shortness of breath", "chest pain", "fatigue"],
-    "treatments": ["antibiotics", "rest", "fluids", "oxygen therapy (if severe)"],
-    "lab_tests": ["Chest X-ray", "Sputum Culture", "Complete Blood Count (CBC)"],
-    "expected_lab_results": {
-      "Chest X-ray": "Lobar or patchy infiltrates",
-      "Sputum Culture": "Pathogenic bacteria identified",
-      "Complete Blood Count (CBC)": "Leukocytosis"
-    }
-  },
-  "Asthma": {
-    "symptoms": ["wheezing", "shortness of breath", "chest tightness", "cough"],
-    "treatments": ["inhaled bronchodilators", "inhaled corticosteroids", "avoid triggers"],
-    "lab_tests": ["Spirometry", "Peak Expiratory Flow Rate (PEFR)"],
-    "expected_lab_results": {
-      "Spirometry": "Reduced FEV1/FVC ratio, reversible with bronchodilator",
-      "Peak Expiratory Flow Rate (PEFR)": "Reduced during attack, improves after treatment"
-    }
-  },
-  "Epilepsy": {
-    "symptoms": ["recurrent seizures", "loss of consciousness", "confusion", "muscle twitching"],
-    "treatments": ["antiepileptic drugs", "lifestyle modification"],
-    "lab_tests": ["Electroencephalogram (EEG)", "Brain MRI"],
-    "expected_lab_results": {
-      "Electroencephalogram (EEG)": "Epileptiform discharges",
-      "Brain MRI": "May show structural lesions"
-    }
-  },
-  "Chronic Kidney Disease": {
-    "symptoms": ["fatigue", "swelling", "decreased urine output", "nausea"],
-    "treatments": ["ACE inhibitors", "dialysis", "diet modification"],
-    "lab_tests": ["Serum Creatinine", "Blood Urea Nitrogen (BUN)", "Urinalysis", "Estimated Glomerular Filtration Rate (eGFR)"],
-    "expected_lab_results": {
-      "Serum Creatinine": "> 1.2 mg/dL (elevated)",
-      "Blood Urea Nitrogen (BUN)": "> 20 mg/dL (elevated)",
-      "Urinalysis": "Proteinuria, hematuria",
-      "Estimated Glomerular Filtration Rate (eGFR)": "< 60 mL/min/1.73m² (CKD)"
-    }
-  },
-  "Chronic Liver Disease": {
-    "symptoms": ["jaundice", "abdominal swelling", "fatigue", "easy bruising"],
-    "treatments": ["liver-protective drugs", "diet modification", "treat underlying cause"],
-    "lab_tests": ["Alanine Aminotransferase (ALT)", "Aspartate Aminotransferase (AST)", "Bilirubin", "Albumin"],
-    "expected_lab_results": {
-      "ALT/AST": "> 40 IU/L (elevated)",
-      "Bilirubin": "> 1.2 mg/dL (elevated)",
-      "Albumin": "< 3.5 g/dL (low)"
-    }
-  },
-  "Rheumatoid Arthritis": {
-    "symptoms": ["joint pain", "morning stiffness", "swelling", "fatigue", "weight loss"],
-    "treatments": ["DMARDs", "NSAIDs", "physical therapy"],
-    "lab_tests": ["Rheumatoid Factor (RF)", "Anti-CCP Antibody", "Erythrocyte Sedimentation Rate (ESR)", "C-Reactive Protein (CRP)"],
-    "expected_lab_results": {
-      "Rheumatoid Factor (RF)": "Positive in most cases",
-      "Anti-CCP Antibody": "Positive (high specificity)",
-      "ESR/CRP": "Elevated (inflammation)"
-    }
-  },
-  "Depression": {
-    "symptoms": ["persistent sadness", "loss of interest", "fatigue", "sleep disturbance"],
-    "treatments": ["SSRIs", "psychotherapy"],
-    "lab_tests": ["Patient Health Questionnaire (PHQ-9)", "Thyroid Function Tests"],
-    "expected_lab_results": {
-      "PHQ-9": ">= 10 (moderate to severe depression)",
-      "Thyroid Function Tests": "May show hypothyroidism as a secondary cause"
-    }
-  },
-  "Anxiety Disorder": {
-    "symptoms": ["excessive worry", "restlessness", "fatigue", "irritability"],
-    "treatments": ["SSRIs", "cognitive behavioral therapy"],
-    "lab_tests": ["Generalized Anxiety Disorder 7-item (GAD-7)", "Thyroid Function Tests"],
-    "expected_lab_results": {
-      "GAD-7": ">= 10 (moderate to severe anxiety)",
-      "Thyroid Function Tests": "May show hyperthyroidism as a secondary cause"
+      "Urinalysis": "Proteinuria or hematuria may indicate secondary causes"
     }
   },
   "Stroke": {
-    "symptoms": ["sudden weakness", "facial droop", "speech difficulty", "vision loss"],
-    "treatments": ["thrombolysis", "antiplatelet therapy", "rehabilitation"],
-    "lab_tests": ["CT Scan", "MRI Brain", "Blood Glucose"],
+    "symptoms": ["sudden weakness", "facial droop", "speech difficulty", "vision loss", "severe headache", "confusion"],
+    "treatments": ["thrombolysis", "antiplatelet therapy", "rehabilitation", "risk factor management"],
+    "lab_tests": ["CT Scan", "MRI Brain", "Blood Glucose", "Coagulation Studies"],
     "expected_lab_results": {
       "CT Scan": "Ischemic or hemorrhagic lesion",
       "MRI Brain": "Acute infarct or bleed",
       "Blood Glucose": "Rule out hypoglycemia as a mimic"
     }
   },
-  "Coronary Artery Disease": {
-    "symptoms": ["chest pain", "shortness of breath", "fatigue", "palpitations"],
-    "treatments": ["aspirin", "beta-blockers", "statins", "angioplasty"],
-    "lab_tests": ["Electrocardiogram (ECG)", "Troponin", "Lipid Profile"],
+  "Epilepsy": {
+    "symptoms": ["recurrent seizures", "loss of consciousness", "confusion", "muscle twitching", "staring spells"],
+    "treatments": ["antiepileptic drugs", "lifestyle modification", "surgery if refractory"],
+    "lab_tests": ["Electroencephalogram (EEG)", "Brain MRI", "Blood Tests"],
     "expected_lab_results": {
-      "ECG": "ST changes, Q waves",
-      "Troponin": "> 0.04 ng/mL (elevated in MI)",
-      "Lipid Profile": "Elevated LDL, low HDL"
-    }
-  },
-  "Cancer": {
-    "symptoms": ["unintentional weight loss", "fatigue", "pain", "lump or mass"],
-    "treatments": ["surgery", "chemotherapy", "radiation therapy"],
-    "lab_tests": ["Biopsy", "Complete Blood Count (CBC)", "Tumor Markers"],
-    "expected_lab_results": {
-      "Biopsy": "Malignant cells present",
-      "CBC": "Anemia, leukopenia, or thrombocytopenia",
-      "Tumor Markers": "Elevated (e.g., CEA, CA-125, PSA, etc.)"
+      "EEG": "Epileptiform discharges",
+      "Brain MRI": "May show structural lesions",
+      "Blood Tests": "May show metabolic abnormalities"
     }
   },
   "Alzheimer's Disease": {
-    "symptoms": ["memory loss", "confusion", "difficulty with language", "disorientation"],
-    "treatments": ["cholinesterase inhibitors", "supportive care"],
-    "lab_tests": ["Mini-Mental State Examination (MMSE)", "Brain MRI"],
+    "symptoms": ["memory loss", "confusion", "difficulty with language", "disorientation", "personality changes"],
+    "treatments": ["cholinesterase inhibitors", "supportive care", "behavioral therapy"],
+    "lab_tests": ["Mini-Mental State Examination (MMSE)", "Brain MRI", "Blood Tests"],
     "expected_lab_results": {
       "MMSE": "< 24/30 (cognitive impairment)",
-      "Brain MRI": "Cortical atrophy, especially temporal/parietal lobes"
+      "Brain MRI": "Cortical atrophy, especially temporal/parietal lobes",
+      "Blood Tests": "Rule out other causes of dementia"
     }
   },
   "Parkinson's Disease": {
-    "symptoms": ["tremor", "rigidity", "bradykinesia", "postural instability"],
-    "treatments": ["levodopa", "dopamine agonists", "physical therapy"],
-    "lab_tests": ["Clinical Diagnosis", "DaTscan (SPECT)"],
+    "symptoms": ["tremor", "rigidity", "bradykinesia", "postural instability", "shuffling gait"],
+    "treatments": ["levodopa", "dopamine agonists", "physical therapy", "deep brain stimulation"],
+    "lab_tests": ["Clinical Diagnosis", "DaTscan (SPECT)", "Blood Tests"],
     "expected_lab_results": {
       "Clinical Diagnosis": "Based on clinical features (no definitive lab test)",
-      "DaTscan (SPECT)": "Reduced dopamine transporter uptake in basal ganglia"
+      "DaTscan": "Reduced dopamine transporter uptake in basal ganglia",
+      "Blood Tests": "Rule out other causes of parkinsonism"
     }
   },
   "Multiple Sclerosis": {
-    "symptoms": ["visual disturbances", "muscle weakness", "numbness", "fatigue"],
+    "symptoms": ["visual disturbances", "muscle weakness", "numbness", "fatigue", "balance problems"],
     "treatments": ["immunomodulatory drugs", "corticosteroids", "physical therapy"],
-    "lab_tests": ["MRI Brain/Spine", "Cerebrospinal Fluid (CSF) Analysis"],
+    "lab_tests": ["MRI Brain/Spine", "Cerebrospinal Fluid Analysis", "Evoked Potentials"],
     "expected_lab_results": {
       "MRI Brain/Spine": "Multiple demyelinating lesions",
-      "CSF Analysis": "Oligoclonal bands present"
+      "CSF Analysis": "Oligoclonal bands present",
+      "Evoked Potentials": "Delayed conduction"
+    }
+  },
+  "Liver Cancer": {
+    "symptoms": ["abdominal pain", "weight loss", "jaundice", "fatigue", "abdominal swelling", "nausea"],
+    "treatments": ["surgery", "chemotherapy", "radiation therapy", "liver transplant"],
+    "lab_tests": ["Alpha-fetoprotein (AFP)", "Liver Function Tests", "CT Scan", "Biopsy"],
+    "expected_lab_results": {
+      "AFP": "Elevated in hepatocellular carcinoma",
+      "Liver Function Tests": "Elevated ALT, AST, bilirubin",
+      "CT Scan": "Liver mass visible",
+      "Biopsy": "Malignant cells present"
+    }
+  },
+  "Pancreatic Cancer": {
+    "symptoms": ["abdominal pain", "weight loss", "jaundice", "nausea", "vomiting", "back pain"],
+    "treatments": ["surgery", "chemotherapy", "radiation therapy", "palliative care"],
+    "lab_tests": ["CA 19-9", "CT Scan", "Endoscopic Ultrasound", "Biopsy"],
+    "expected_lab_results": {
+      "CA 19-9": "Elevated in pancreatic cancer",
+      "CT Scan": "Pancreatic mass visible",
+      "EUS": "Detailed imaging of pancreas",
+      "Biopsy": "Malignant cells present"
+    }
+  },
+  "Ovarian Cancer": {
+    "symptoms": ["abdominal bloating", "pelvic pain", "frequent urination", "weight loss", "fatigue"],
+    "treatments": ["surgery", "chemotherapy", "radiation therapy", "targeted therapy"],
+    "lab_tests": ["CA-125", "Transvaginal Ultrasound", "CT Scan", "Biopsy"],
+    "expected_lab_results": {
+      "CA-125": "Elevated in ovarian cancer",
+      "Transvaginal Ultrasound": "Ovarian mass visible",
+      "CT Scan": "Abdominal/pelvic mass",
+      "Biopsy": "Malignant cells present"
+    }
+  },
+  "Leukemia": {
+    "symptoms": ["fatigue", "frequent infections", "easy bruising", "bleeding", "fever", "weight loss"],
+    "treatments": ["chemotherapy", "radiation therapy", "bone marrow transplant", "targeted therapy"],
+    "lab_tests": ["Complete Blood Count (CBC)", "Bone Marrow Biopsy", "Flow Cytometry", "Cytogenetics"],
+    "expected_lab_results": {
+      "CBC": "Abnormal white blood cell count",
+      "Bone Marrow": "Leukemic cells present",
+      "Flow Cytometry": "Abnormal cell markers",
+      "Cytogenetics": "Chromosomal abnormalities"
+    }
+  },
+  "Lymphoma": {
+    "symptoms": ["swollen lymph nodes", "fatigue", "fever", "night sweats", "weight loss", "itching"],
+    "treatments": ["chemotherapy", "radiation therapy", "immunotherapy", "stem cell transplant"],
+    "lab_tests": ["Lymph Node Biopsy", "Complete Blood Count (CBC)", "CT Scan", "PET Scan"],
+    "expected_lab_results": {
+      "Lymph Node Biopsy": "Lymphoma cells present",
+      "CBC": "May show anemia, leukopenia",
+      "CT Scan": "Enlarged lymph nodes",
+      "PET Scan": "Increased metabolic activity"
+    }
+  },
+  "Melanoma": {
+    "symptoms": ["changing mole", "new skin growth", "asymmetrical lesion", "irregular borders", "color changes"],
+    "treatments": ["surgery", "immunotherapy", "targeted therapy", "chemotherapy"],
+    "lab_tests": ["Skin Biopsy", "Sentinel Lymph Node Biopsy", "CT Scan", "PET Scan"],
+    "expected_lab_results": {
+      "Skin Biopsy": "Malignant melanocytes present",
+      "Sentinel Node": "May show metastasis",
+      "CT Scan": "May show distant metastases",
+      "PET Scan": "Increased metabolic activity"
+    }
+  },
+  "Sepsis": {
+    "symptoms": ["fever", "chills", "rapid heartbeat", "rapid breathing", "confusion", "low blood pressure"],
+    "treatments": ["antibiotics", "fluids", "vasopressors", "supportive care"],
+    "lab_tests": ["Blood Culture", "Complete Blood Count (CBC)", "Lactate", "Blood Gases"],
+    "expected_lab_results": {
+      "Blood Culture": "May be positive for bacteria",
+      "CBC": "Leukocytosis or leukopenia",
+      "Lactate": "Elevated (>2 mmol/L)",
+      "Blood Gases": "Metabolic acidosis"
+    }
+  },
+  "Malaria": {
+    "symptoms": ["fever", "chills", "sweating", "headache", "nausea", "vomiting", "muscle pain"],
+    "treatments": ["antimalarial medications", "supportive care", "blood transfusion if severe"],
+    "lab_tests": ["Malaria Rapid Diagnostic Test", "Blood Smear", "Complete Blood Count (CBC)"],
+    "expected_lab_results": {
+      "Malaria RDT": "Positive for Plasmodium antigen",
+      "Blood Smear": "Plasmodium parasites visible",
+      "CBC": "Anemia, thrombocytopenia"
+    }
+  },
+  "HIV/AIDS": {
+    "symptoms": ["weight loss", "chronic diarrhea", "fever", "night sweats", "recurrent infections", "fatigue"],
+    "treatments": ["antiretroviral therapy", "prophylaxis for opportunistic infections"],
+    "lab_tests": ["HIV Antibody Test", "CD4 Count", "HIV Viral Load"],
+    "expected_lab_results": {
+      "HIV Antibody Test": "Positive (diagnostic)",
+      "CD4 Count": "< 200 cells/μL (AIDS)",
+      "HIV Viral Load": "> 10,000 copies/mL (high replication)"
+    }
+  },
+  "Rheumatoid Arthritis": {
+    "symptoms": ["joint pain", "morning stiffness", "swelling", "fatigue", "weight loss", "fever"],
+    "treatments": ["DMARDs", "NSAIDs", "corticosteroids", "physical therapy"],
+    "lab_tests": ["Rheumatoid Factor", "Anti-CCP Antibody", "ESR", "CRP"],
+    "expected_lab_results": {
+      "Rheumatoid Factor": "Positive in most cases",
+      "Anti-CCP": "Positive (high specificity)",
+      "ESR/CRP": "Elevated (inflammation)"
     }
   },
   "Systemic Lupus Erythematosus": {
-    "symptoms": ["malar rash", "joint pain", "fatigue", "photosensitivity"],
+    "symptoms": ["malar rash", "joint pain", "fatigue", "photosensitivity", "fever", "hair loss"],
     "treatments": ["hydroxychloroquine", "corticosteroids", "immunosuppressants"],
-    "lab_tests": ["Antinuclear Antibody (ANA)", "Anti-dsDNA Antibody", "Complement Levels (C3, C4)"],
+    "lab_tests": ["ANA", "Anti-dsDNA", "Complement Levels", "Complete Blood Count"],
     "expected_lab_results": {
       "ANA": "Positive in >95% of cases",
       "Anti-dsDNA": "Positive (specific for SLE)",
-      "Complement Levels": "Low during active disease"
+      "Complement": "Low during active disease",
+      "CBC": "May show cytopenias"
+    }
+  },
+  "Depression": {
+    "symptoms": ["persistent sadness", "loss of interest", "fatigue", "sleep disturbance", "appetite changes"],
+    "treatments": ["SSRIs", "psychotherapy", "lifestyle modification"],
+    "lab_tests": ["PHQ-9", "Thyroid Function Tests", "Vitamin D"],
+    "expected_lab_results": {
+      "PHQ-9": ">= 10 (moderate to severe depression)",
+      "Thyroid Tests": "Rule out hypothyroidism",
+      "Vitamin D": "May be low"
+    }
+  },
+  "Anxiety Disorder": {
+    "symptoms": ["excessive worry", "restlessness", "fatigue", "irritability", "sleep problems"],
+    "treatments": ["SSRIs", "cognitive behavioral therapy", "lifestyle modification"],
+    "lab_tests": ["GAD-7", "Thyroid Function Tests", "Cortisol"],
+    "expected_lab_results": {
+      "GAD-7": ">= 10 (moderate to severe anxiety)",
+      "Thyroid Tests": "Rule out hyperthyroidism",
+      "Cortisol": "May be elevated"
+    }
+  },
+  "Migraine": {
+    "symptoms": ["severe headache", "nausea", "vomiting", "sensitivity to light", "sensitivity to sound"],
+    "treatments": ["triptans", "NSAIDs", "preventive medications", "lifestyle modification"],
+    "lab_tests": ["Clinical Diagnosis", "Brain MRI", "Blood Tests"],
+    "expected_lab_results": {
+      "Clinical Diagnosis": "Based on symptoms (no specific lab test)",
+      "Brain MRI": "Usually normal (rule out other causes)",
+      "Blood Tests": "Rule out secondary causes"
+    }
+  },
+  "Hypothyroidism": {
+    "symptoms": ["fatigue", "weight gain", "cold intolerance", "constipation", "dry skin", "hair loss"],
+    "treatments": ["levothyroxine", "lifestyle modification"],
+    "lab_tests": ["TSH", "Free T4", "Free T3", "Thyroid Antibodies"],
+    "expected_lab_results": {
+      "TSH": "Elevated (>4.5 mIU/L)",
+      "Free T4": "Low (<0.8 ng/dL)",
+      "Free T3": "May be low",
+      "Antibodies": "May be positive for autoimmune thyroiditis"
+    }
+  },
+  "Hyperthyroidism": {
+    "symptoms": ["weight loss", "rapid heartbeat", "anxiety", "tremors", "heat intolerance", "insomnia"],
+    "treatments": ["antithyroid medications", "radioactive iodine", "surgery"],
+    "lab_tests": ["TSH", "Free T4", "Free T3", "Thyroid Antibodies"],
+    "expected_lab_results": {
+      "TSH": "Suppressed (<0.4 mIU/L)",
+      "Free T4": "Elevated (>1.8 ng/dL)",
+      "Free T3": "May be elevated",
+      "Antibodies": "May be positive for Graves' disease"
     }
   }
 }
