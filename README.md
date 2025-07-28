@@ -1,360 +1,292 @@
-# 🏥 Hospital Management System
+# 🏥 Hospital Management System with AI
 
-A comprehensive, modern web-based hospital management system built with React, Node.js, and Python AI services. Features patient management, AI-powered medical diagnosis, real-time analysis, and integrated medical modules.
+A comprehensive hospital management system with AI-powered features for patient care, diagnosis, and medical decision support.
 
 ## 🌐 Live Demo
 
-**🚀 [Access the Live System](https://hospital-frontend-5na8.onrender.com)**
+**🚀 [Access the Live System](https://hospital-frontend-production.up.railway.app)**
 
 Experience the full Hospital Management System with AI-powered features, patient management, and medical modules in action!
 
 ## ✨ Features
 
-### 🧠 AI-Powered Medical Assistant
-- **Real-time Diagnosis Analysis**: AI analyzes clinician notes for symptoms and urgency
-- **Multi-source AI Integration**: Combines diagnosis, lab results, and imaging data
-- **Smart Recommendations**: Provides medical insights and treatment suggestions
-- **Universal AI Panel**: Accessible across all medical modules with 108+ diseases trained
-- **Lab Test Recommendations**: Automated lab test suggestions based on symptoms
-- **Drug Interaction Warnings**: AI-powered medication safety checks
-- **Treatment Planning**: Evidence-based treatment recommendations
+### 🏥 Core Hospital Management
+- **Patient Management**: Complete patient records, medical history, and demographics
+- **Appointment Scheduling**: Calendar-based appointment booking and management
+- **Pharmacy Management**: Drug inventory, prescription dispensing, and stock tracking
+- **Laboratory Management**: Test orders, results tracking, and sample management
+- **Imaging Department**: Radiology orders, image storage, and report generation
+- **Billing & Payments**: Automated billing, payment tracking, and financial reports
 
-### 👥 Patient Management
-- **Comprehensive Patient Records**: Complete medical history and demographics
-- **Real-time Patient Data**: Live updates and status tracking
-- **Patient Search & Filtering**: Advanced search capabilities
-- **Medical History Tracking**: Complete treatment and prescription history
-- **Patient Registration**: Streamlined patient onboarding process
+### 🤖 AI-Powered Features
+- **Medical Diagnosis**: AI-powered symptom analysis and differential diagnosis
+- **Lab Test Recommendations**: Intelligent test suggestions based on symptoms
+- **Drug Interaction Analysis**: Real-time drug interaction checking
+- **Treatment Planning**: AI-assisted treatment recommendations
+- **Patient History Analysis**: Comprehensive patient data analysis
+- **Auto-Training**: Daily updates from PubMed, FDA, and WHO APIs
 
-### 🏥 Medical Modules
-- **Outpatient Management**: Appointment scheduling and patient consultations
-- **Pharmacy System**: Prescription management and medication tracking with AI assistance
-- **Laboratory Services**: Lab results management and analysis with AI recommendations
-- **Imaging Department**: DICOM viewer and medical imaging with AI analysis
-- **Inpatient Care**: Hospital admission and ward management
-- **Cashier Module**: Billing and payment processing
-
-### 📊 Dashboard & Analytics
-- **Real-time Dashboard**: Live system metrics and patient statistics
-- **Medical Analytics**: Treatment outcomes and performance metrics
-- **Responsive Design**: Works seamlessly on all devices
-- **Modern UI/UX**: Clean, intuitive interface with Material-UI components
+### 📊 Advanced Analytics
+- **Real-time Dashboards**: Live hospital metrics and KPIs
+- **Patient Analytics**: Treatment outcomes and patient flow analysis
+- **Financial Reports**: Revenue tracking and cost analysis
+- **Operational Insights**: Resource utilization and efficiency metrics
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **React 18** - Modern UI framework with hooks
-- **Material-UI (MUI)** - Professional component library
-- **Redux Toolkit** - State management
-- **React Router** - Navigation and routing
-- **Cornerstone.js** - DICOM medical imaging viewer
-- **Axios** - HTTP client for API communication
+- **React 18** with hooks and functional components
+- **Material-UI (MUI)** for modern, responsive design
+- **Redux Toolkit** for state management
+- **React Router** for navigation
+- **Recharts** for data visualization
 
 ### Backend
-- **Node.js** - Server runtime environment
-- **Express.js** - Web application framework
-- **Supabase** - Cloud database and authentication
-- **PostgreSQL** - Primary database
-- **JWT** - Secure authentication tokens
+- **Node.js** with Express.js
+- **Supabase** for PostgreSQL database
+- **JWT** for authentication
+- **Memory-optimized** for AI service communication
 
-### AI Services
-- **Python FastAPI** - High-performance AI service framework
-- **Uvicorn** - ASGI server for Python
-- **Pydantic** - Data validation and serialization
-- **Medical AI Models** - Advanced diagnosis and analysis
-- **PubMed & FDA APIs** - Real-time medical data integration
-- **LOINC Database** - Standardized medical terminology
+### AI Service
+- **Python FastAPI** for high-performance API
+- **Machine Learning**: scikit-learn, pandas, numpy
+- **Natural Language Processing**: NLTK, TextBlob
+- **Auto-Training**: Schedule-based daily updates
+- **External APIs**: PubMed, FDA, WHO integration
+
+### Deployment
+- **Railway** for reliable, scalable hosting
+- **Global CDN** for fast worldwide access
+- **Auto-scaling** based on demand
+- **SSL certificates** and custom domains
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ and npm
-- Python 3.11+
+- Node.js 16+ and npm
+- Python 3.13+
 - Git
+- Railway account (free tier available)
 
 ### Local Development Setup
 
 1. **Clone the repository**
-   ```bash
-   git clone https://github.com/toshlewi/Hospital-Management-System.git
-   cd Hospital-Management-System-1
-   ```
-
-2. **Install Frontend Dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Install Backend Dependencies**
-   ```bash
-   cd backend
-   npm install
-   cd ..
-   ```
-
-4. **Setup Python AI Service**
-   ```bash
-   cd python-ai-project
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   cd ..
-   ```
-
-5. **Configure Environment Variables**
-   ```bash
-   cp env.example .env
-   # Edit .env with your configuration
-   ```
-
-6. **Start Services**
-   ```bash
-   # Terminal 1: Backend
-   cd backend && npm start
-   
-   # Terminal 2: AI Service
-   cd python-ai-project && source venv/bin/activate && uvicorn enhanced_medical_api:app --host 0.0.0.0 --port 8000 --reload
-   
-   # Terminal 3: Frontend
-   npm start
-   ```
-
-7. **Access the Application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:3001
-   - AI Service: http://localhost:8000
-
-## 📁 Project Structure
-
+```bash
+git clone https://github.com/toshlewi/Hospital-Management-System.git
+cd Hospital-Management-System
 ```
-Hospital-Management-System-1/
-├── src/                    # React frontend
-│   ├── components/         # Reusable components
-│   │   ├── ai/            # AI assistant components
-│   │   ├── layout/        # Layout components
-│   │   └── patient/       # Patient-related components
-│   ├── pages/             # Page components
-│   │   ├── Clinicians/    # Medical staff pages
-│   │   ├── Pharmacy/      # Pharmacy management
-│   │   ├── Lab/           # Laboratory services
-│   │   └── Imaging/       # Medical imaging
-│   ├── services/          # API services
-│   └── store/             # Redux store
-├── backend/               # Node.js backend
-│   ├── controllers/       # API controllers
-│   ├── routes/           # API routes
-│   ├── services/         # Business logic
-│   └── config/           # Configuration
-├── python-ai-project/    # Python AI service
-│   ├── enhanced_medical_api.py  # Main AI API
-│   ├── advanced_medical_ai.py   # AI core logic
-│   ├── requirements.txt         # Python dependencies
-│   └── data/             # Medical knowledge base
-├── docker-compose.yml    # Docker configuration
-├── k8s-deployment.yaml   # Kubernetes deployment
-├── render.yaml           # Render deployment config
-└── DEPLOYMENT.md         # Deployment guide
+
+2. **Install dependencies**
+```bash
+# Install all dependencies
+npm run install-all
 ```
+
+3. **Set up environment variables**
+```bash
+# Copy environment template
+cp env.example .env
+
+# Add your configuration
+# - Supabase credentials
+# - API keys for PubMed and FDA
+# - JWT secret
+```
+
+4. **Start development servers**
+```bash
+# Start all services (frontend, backend, AI)
+npm run dev
+```
+
+5. **Access the application**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:3001
+- AI Service: http://localhost:8000
+
+## 🚀 Railway Deployment
+
+### Deploy to Railway (Recommended)
+
+1. **Sign up for Railway**
+   - Visit https://railway.app
+   - Sign up with GitHub account
+   - Get 500 free hours per month
+
+2. **Deploy AI Service**
+```bash
+cd python-ai-project
+railway init
+railway up
+```
+
+3. **Deploy Backend**
+```bash
+cd backend
+railway init
+railway up
+```
+
+4. **Deploy Frontend**
+```bash
+cd ..
+railway init
+railway up
+```
+
+5. **Set Environment Variables**
+   - Configure all required environment variables in Railway dashboard
+   - See `RAILWAY_DEPLOYMENT.md` for detailed instructions
+
+### Why Railway?
+- **Full Python 3.13 support** with all package compilation
+- **500 free hours/month** - more generous than alternatives
+- **Better build environment** for complex AI dependencies
+- **Auto-scaling** and global CDN
+- **Perfect for ML workloads**
+
+## 📚 API Documentation
+
+### Core Endpoints
+- `GET /api/patients` - Get all patients
+- `POST /api/patients` - Create new patient
+- `GET /api/patients/:id` - Get patient details
+- `PUT /api/patients/:id` - Update patient
+
+### AI Endpoints
+- `POST /api/ai/diagnose` - AI-powered diagnosis
+- `POST /api/ai/analyze-comprehensive` - Comprehensive analysis
+- `POST /api/ai/analyze-drug-interactions` - Drug interaction analysis
+- `POST /api/ai/analyze-lab-results` - Lab results analysis
+
+### Pharmacy Endpoints
+- `GET /api/pharmacy/stock` - Get pharmacy inventory
+- `POST /api/pharmacy/drugs` - Add new drug
+- `PUT /api/pharmacy/dispense/:id` - Dispense prescription
+
+### Laboratory Endpoints
+- `GET /api/lab/tests` - Get test orders
+- `POST /api/lab/orders` - Create test order
+- `PUT /api/lab/results/:id` - Update test results
+
+## 🤖 AI Features
+
+### Medical Diagnosis
+- **Symptom Analysis**: AI analyzes patient symptoms
+- **Differential Diagnosis**: Multiple possible conditions
+- **Confidence Scoring**: AI confidence in diagnosis
+- **Treatment Recommendations**: Suggested treatments
+
+### Lab Test Recommendations
+- **Intelligent Suggestions**: Based on symptoms and history
+- **Test Prioritization**: Most important tests first
+- **Cost Considerations**: Affordable test options
+- **Result Interpretation**: AI helps interpret results
+
+### Drug Interactions
+- **Real-time Checking**: Instant interaction analysis
+- **FDA Database**: Latest drug information
+- **Patient-specific**: Considers patient history
+- **Safety Alerts**: Warnings for dangerous combinations
+
+### Auto-Training System
+- **Daily Updates**: Fetches latest medical data
+- **Multiple Sources**: PubMed, FDA, WHO APIs
+- **Continuous Learning**: Improves accuracy over time
+- **Model Persistence**: Saves trained models
+
+## 📊 Database Schema
+
+### Core Tables
+- `patients` - Patient information and demographics
+- `appointments` - Appointment scheduling
+- `prescriptions` - Medication prescriptions
+- `lab_orders` - Laboratory test orders
+- `imaging_orders` - Radiology orders
+- `bills` - Billing and payments
+
+### AI Tables
+- `ai_models` - Trained AI models
+- `medical_knowledge` - Medical data and training
+- `auto_updates` - Update history and logs
 
 ## 🔧 Configuration
 
 ### Environment Variables
-
-Create a `.env` file in the root directory:
-
-```env
-# Database Configuration
+```bash
+# Database
 SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+SUPABASE_ANON_KEY=your_supabase_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-# JWT Configuration
-JWT_SECRET=your_jwt_secret_key
+# Authentication
+JWT_SECRET=your_jwt_secret
 
-# AI Service Configuration
+# AI Service
+AI_SERVICE_URL=https://your-ai-service.railway.app
 PUBMED_API_KEY=your_pubmed_api_key
 FDA_API_KEY=your_fda_api_key
 
-# Server Configuration
-PORT=3001
-NODE_ENV=development
+# Frontend
+REACT_APP_API_URL=https://your-backend.railway.app/api
+REACT_APP_AI_SERVICE_URL=https://your-ai-service.railway.app
 ```
 
-## 🧪 API Endpoints
+## 🧪 Testing
 
-### Backend API (Port 3001)
-- `GET /api/patients` - Get all patients
-- `GET /api/patients/:id` - Get patient details
-- `POST /api/patients` - Create new patient
-- `GET /api/patients/:id/prescriptions` - Get patient prescriptions
-- `POST /api/prescriptions` - Create prescription
-- `GET /api/patients/:id/test-orders` - Get patient lab orders
-- `POST /api/test-orders` - Create lab order
-
-### AI Service API (Port 8000)
-- `GET /` - Service status and health check
-- `POST /api/v1/diagnose` - Single diagnosis analysis
-- `POST /api/v1/comprehensive-analysis` - Full medical analysis
-- `POST /api/v1/start-training` - Start AI model training
-- `GET /api/v1/training-status` - Check training progress
-- `GET /api/v1/diseases` - List available diseases
-- `GET /api/v1/statistics` - System statistics
-
-## 🤖 AI Features
-
-### Advanced Medical AI System
-The AI system provides comprehensive medical analysis with:
-
-- **108+ Diseases Trained**: Extensive medical knowledge base
-- **41.18% Model Accuracy**: Continuously improving AI performance
-- **Real-time Analysis**: Instant symptom analysis and diagnosis
-- **Multi-source Data**: Integration with PubMed, FDA, and medical databases
-
-### Real-time Diagnosis Analysis
-The AI system analyzes clinician notes in real-time to:
-- Extract symptoms and medical conditions
-- Assess urgency levels and severity
-- Provide medical recommendations
-- Generate lab test suggestions
-- Identify potential drug interactions
-- Categorize medical conditions
-- Generate confidence scores
-
-### AI-Powered Features
-- **Symptom Analysis**: Intelligent symptom interpretation
-- **Lab Test Recommendations**: Automated test suggestions
-- **Treatment Planning**: Evidence-based treatment recommendations
-- **Drug Safety**: Medication interaction warnings
-- **Medical Knowledge**: Real-time medical data integration
-
-## 🔒 Security Features
-
-- **JWT Authentication**: Secure user authentication
-- **Role-based Access**: Different access levels for medical staff
-- **Data Encryption**: Secure data transmission
-- **Input Validation**: Comprehensive input sanitization
-- **CORS Protection**: Cross-origin resource sharing security
-- **Environment Variables**: Secure configuration management
-
-## 📱 User Interface
-
-### Modern Design
-- **Responsive Layout**: Works on desktop, tablet, and mobile
-- **Material Design**: Clean, professional interface
-- **Dark/Light Themes**: Customizable appearance
-- **Accessibility**: WCAG compliant design
-
-### Key Components
-- **AI Assistant Panel**: Universal AI access across all modules
-- **Patient Dashboard**: Comprehensive patient overview
-- **Medical Modules**: Specialized interfaces for each department
-- **Real-time Updates**: Live data synchronization
-- **Interactive Charts**: Visual data representation
-
-## 🚀 Deployment
-
-### Render Deployment (Recommended)
-The system is configured for easy deployment on Render:
-
-1. **Connect Repository**: Link your GitHub repository to Render
-2. **Set Environment Variables**: Configure all required environment variables
-3. **Deploy**: Render will automatically deploy all three services
-
-### Docker Deployment
+### Run Tests
 ```bash
-# Build and run with Docker Compose
-docker-compose up -d
+# Frontend tests
+npm test
+
+# Backend tests
+cd backend && npm test
+
+# AI service tests
+cd python-ai-project && python -m pytest
 ```
 
-### Kubernetes Deployment
-```bash
-# Deploy to Kubernetes cluster
-kubectl apply -f k8s-deployment.yaml
-```
+## 📈 Performance
 
-## 📊 System Statistics
+### Optimization Features
+- **Memory Management**: Optimized for AI workloads
+- **Caching**: Intelligent data caching
+- **Lazy Loading**: Components load on demand
+- **Code Splitting**: Optimized bundle sizes
+- **CDN**: Global content delivery
 
-### AI Performance
-- **Diseases Trained**: 108+
-- **Model Accuracy**: 41.18%
-- **Training Data**: 85+ examples
-- **API Response Time**: < 2 seconds
-- **Uptime**: 99.9%
-
-### Features Available
-- **Patient Management**: Complete patient lifecycle
-- **AI Diagnosis**: Real-time medical analysis
-- **Pharmacy System**: Medication management
-- **Laboratory**: Lab test management
-- **Imaging**: Medical image analysis
-- **Billing**: Payment processing
+### Monitoring
+- **Real-time Logs**: Railway dashboard monitoring
+- **Health Checks**: Automatic service monitoring
+- **Performance Metrics**: Response time tracking
+- **Error Tracking**: Comprehensive error logging
 
 ## 🤝 Contributing
 
-We welcome contributions to improve the Hospital Management System!
-
-1. **Fork the repository**
-2. **Create a feature branch** (`git checkout -b feature/amazing-feature`)
-3. **Commit your changes** (`git commit -m 'Add amazing feature'`)
-4. **Push to the branch** (`git push origin feature/amazing-feature`)
-5. **Open a Pull Request**
-
-### Development Guidelines
-- Follow the existing code style
-- Add tests for new features
-- Update documentation
-- Ensure all tests pass
-
-## 🆘 Support
-
-### Getting Help
-- **Live Demo**: [https://hospital-frontend-5na8.onrender.com](https://hospital-frontend-5na8.onrender.com)
-- **Documentation**: Check the `/docs` folder
-- **Issues**: Create an issue in the repository
-
-### Contact Information
-- **Phone**: +254 711 527 211
-- **Email**: adelewigitz@gmail.com
-- **GitHub**: [https://github.com/toshlewi](https://github.com/toshlewi)
-
-## 🔄 Version History
-
-- **v3.0.0** - Enhanced AI Integration & Render Deployment
-  - Added comprehensive AI panel with 108+ diseases
-  - Improved lab test recommendations
-  - Enhanced drug interaction warnings
-  - Fixed scrolling and UI issues
-  - Added Render deployment configuration
-
-- **v2.0.0** - AI Integration & Enhanced Features
-  - Integrated Python AI service
-  - Added real-time diagnosis analysis
-  - Enhanced patient management
-  - Improved UI/UX design
-
-- **v1.5.0** - Multi-module Support
-  - Added pharmacy, lab, and imaging modules
-  - Enhanced patient management
-  - Improved dashboard analytics
-
-- **v1.0.0** - Initial Release
-  - Basic patient management
-  - Core medical modules
-  - Foundation architecture
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🙏 Acknowledgments
+## 🆘 Support
 
-- **Material-UI** for the beautiful component library
-- **FastAPI** for the high-performance AI service framework
-- **Supabase** for the reliable cloud database
-- **Medical AI Community** for the knowledge base and training data
+### Documentation
+- [Railway Deployment Guide](RAILWAY_DEPLOYMENT.md)
+- [API Documentation](API_DOCUMENTATION.md)
+- [AI System Guide](AI_SYSTEM_GUIDE.md)
 
----
+### Issues
+- Report bugs via GitHub Issues
+- Request features through GitHub Discussions
+- Get help in GitHub Discussions
 
-**🏥 Built with ❤️ for modern healthcare management**
+## 🏥 About
 
-**🌐 [Access Live System](https://hospital-frontend-5na8.onrender.com)**
+This Hospital Management System is designed to provide comprehensive healthcare management with AI-powered decision support. It combines traditional hospital management features with cutting-edge AI capabilities to improve patient care and operational efficiency.
+
+**Built with ❤️ for better healthcare**

@@ -1,11 +1,11 @@
 # 🚀 Railway Deployment Guide - Full AI System
 
-## 🎯 **Why Railway is Better for This Project**
+## 🎯 **Railway - Perfect for Your AI System**
 
-### **✅ Advantages over Render:**
+### **✅ Why Railway is Better:**
 - **Full Python 3.13 support** with all package compilation
-- **Better build environment** for complex dependencies
 - **500 free hours** per month
+- **Better build environment** for complex dependencies
 - **Auto-scaling** capabilities
 - **Global CDN** for better performance
 - **Custom domains** supported
@@ -28,13 +28,7 @@
 # Get 500 free hours per month
 ```
 
-### **2. Install Railway CLI (Optional)**
-```bash
-npm install -g @railway/cli
-railway login
-```
-
-### **3. Deploy AI Service**
+### **2. Deploy AI Service (Most Important)**
 ```bash
 # Navigate to AI service directory
 cd python-ai-project
@@ -44,7 +38,7 @@ railway init
 railway up
 ```
 
-### **4. Set Environment Variables**
+### **3. Set AI Service Environment Variables**
 ```bash
 # In Railway dashboard or CLI
 railway variables set PUBMED_API_KEY=27feebcf45a02d89cf3d56590f31507de309
@@ -52,7 +46,7 @@ railway variables set FDA_API_KEY=ppTi25A8MrDcqskZCWeL0DbvJGhEf34yhEMIGkbq
 railway variables set PORT=8000
 ```
 
-### **5. Deploy Backend Service**
+### **4. Deploy Backend Service**
 ```bash
 # Navigate to backend directory
 cd backend
@@ -62,7 +56,7 @@ railway init
 railway up
 ```
 
-### **6. Set Backend Environment Variables**
+### **5. Set Backend Environment Variables**
 ```bash
 railway variables set PORT=3001
 railway variables set NODE_ENV=production
@@ -72,27 +66,25 @@ railway variables set SUPABASE_ANON_KEY=your_supabase_key
 railway variables set JWT_SECRET=your_jwt_secret
 ```
 
-### **7. Deploy Frontend**
+### **6. Deploy Frontend**
 ```bash
 # Navigate to project root
 cd ..
 
-# Build and deploy
-npm install
-npm run build
+# Deploy to Railway
 railway init
 railway up
 ```
 
-### **8. Set Frontend Environment Variables**
+### **7. Set Frontend Environment Variables**
 ```bash
 railway variables set REACT_APP_API_URL=https://your-backend.railway.app/api
 railway variables set REACT_APP_AI_SERVICE_URL=https://your-ai-service.railway.app
 ```
 
-## 🔧 **Configuration Files**
+## 🔧 **Railway Configuration Files**
 
-### **railway.json** (AI Service)
+### **python-ai-project/railway.json** (AI Service)
 ```json
 {
   "$schema": "https://railway.app/railway.schema.json",
@@ -100,7 +92,7 @@ railway variables set REACT_APP_AI_SERVICE_URL=https://your-ai-service.railway.a
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "uvicorn enhanced_medical_api:app --host 0.0.0.0 --port $PORT",
+    "startCommand": "uvicorn enhanced_medical_api:app --host 0.0.0.0 --port $PORT --workers 1",
     "healthcheckPath": "/",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
@@ -109,9 +101,43 @@ railway variables set REACT_APP_AI_SERVICE_URL=https://your-ai-service.railway.a
 }
 ```
 
-### **requirements.txt** (Full Dependencies)
+### **backend/railway.json** (Backend Service)
+```json
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "node --max-old-space-size=512 --expose-gc server.js",
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 300,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  }
+}
 ```
-# Full AI System Dependencies - All Features Enabled
+
+### **railway.json** (Frontend Service)
+```json
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "npx serve -s build -l $PORT",
+    "healthcheckPath": "/",
+    "healthcheckTimeout": 300,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  }
+}
+```
+
+### **python-ai-project/requirements.txt** (Full Dependencies)
+```
+# Full AI System Dependencies - Railway Optimized
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 aiohttp==3.9.1
@@ -179,6 +205,62 @@ After deployment, you'll get URLs like:
 - **Health checks** and monitoring
 - **Rollback capabilities**
 
+## 🎯 **Deployment Order**
+
+### **1. AI Service First** (Most Complex)
+```bash
+cd python-ai-project
+railway init
+railway up
+# Set environment variables
+```
+
+### **2. Backend Service**
+```bash
+cd backend
+railway init
+railway up
+# Set environment variables with AI service URL
+```
+
+### **3. Frontend Service**
+```bash
+cd ..
+railway init
+railway up
+# Set environment variables with backend and AI URLs
+```
+
+## 🔧 **Troubleshooting**
+
+### **Common Issues:**
+- **Build fails**: Check Railway logs for specific errors
+- **Environment variables**: Ensure all required variables are set
+- **Service communication**: Verify URLs are correct
+- **Memory issues**: Railway handles this automatically
+
+### **Railway CLI Commands:**
+```bash
+# View logs
+railway logs
+
+# Check status
+railway status
+
+# Redeploy
+railway up
+
+# View variables
+railway variables
+```
+
+## 💰 **Cost**
+
+### **Railway Free Tier:**
+- **500 hours/month** free
+- **Perfect for development** and testing
+- **Upgrade when needed** for production
+
 ## 🎯 **Next Steps**
 
 1. **Sign up for Railway** at https://railway.app
@@ -189,16 +271,4 @@ After deployment, you'll get URLs like:
 6. **Test all functionality**
 7. **Set up custom domains** (optional)
 
-## 💰 **Cost Comparison**
-
-### **Railway Free Tier:**
-- **500 hours/month** free
-- **Perfect for development** and testing
-- **Upgrade when needed** for production
-
-### **Render Free Tier:**
-- **Limited Python support** (compilation issues)
-- **Restricted dependencies**
-- **Less reliable** for complex AI systems
-
-**Railway is the better choice for your full AI system!** 🚀 
+**Your full AI system will work perfectly on Railway!** 🚀 
