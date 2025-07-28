@@ -1,4 +1,4 @@
-# Dockerfile for Hospital Management System Backend
+# Dockerfile for Hospital Management System Frontend
 # Forces npm install instead of npm ci
 
 FROM node:18-alpine
@@ -15,8 +15,14 @@ RUN npm install --no-audit --no-fund --prefer-offline
 # Copy source code
 COPY . .
 
-# Expose port
-EXPOSE 3001
+# Build the React app
+RUN npm run build
 
-# Start the backend server
-CMD ["node", "--max-old-space-size=512", "--expose-gc", "server.js"] 
+# Install serve to run the app
+RUN npm install -g serve
+
+# Expose port
+EXPOSE 3000
+
+# Start the app
+CMD ["serve", "-s", "build", "-l", "3000"] 
