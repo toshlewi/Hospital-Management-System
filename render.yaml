@@ -50,7 +50,7 @@ services:
     plan: free
     branch: main
     rootDir: python-ai-project
-    buildCommand: chmod +x build.sh && ./build.sh
+    buildCommand: pip install -r requirements-render.txt
     startCommand: uvicorn enhanced_medical_api:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /
     envVars:

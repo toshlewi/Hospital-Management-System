@@ -3,13 +3,9 @@
 # Build script for Render deployment
 echo "🚀 Starting build process..."
 
-# Install system dependencies first
-echo "📦 Installing system dependencies..."
-apt-get update -qq && apt-get install -y -qq gcc g++ curl python3-dev
-
-# Upgrade pip and install setuptools first
-echo "📦 Upgrading pip and installing setuptools..."
-pip install --upgrade pip setuptools wheel
+# Upgrade pip to latest version
+echo "📦 Upgrading pip..."
+pip install --upgrade pip
 
 # Install Python dependencies using Render-specific requirements
 echo "📦 Installing Python dependencies..."

@@ -1,14 +1,10 @@
-# Core build dependencies
-setuptools>=65.0.0
-wheel>=0.38.0
-
-# Core FastAPI dependencies
+# Core FastAPI dependencies - compatible versions
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 aiohttp==3.9.1
 
-# Data processing - using pre-compiled versions for Render
-pandas==1.5.3
+# Data processing - using compatible versions for Python 3.13
+pandas==2.0.3
 numpy==1.24.3
 scikit-learn==1.3.0
 
@@ -32,5 +28,5 @@ pydantic==2.5.0
 # Scheduling and automation
 schedule==1.2.0
 
-# Additional dependencies for better compatibility
+# Additional dependencies
 gunicorn==21.2.0 
