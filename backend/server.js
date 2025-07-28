@@ -43,9 +43,11 @@ const allowedOrigins = [
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
   'http://127.0.0.1:5000',
-  'https://hospital-frontend-5na8.onrender.com', // deployed frontend
-  'https://hospital-backend-771y.onrender.com', // deployed backend (for service-to-service calls)
-  'https://hospital-ai-service.onrender.com',    // deployed AI service (if backend calls AI directly)
+  'https://hospital-frontend-5na8.onrender.com', // old deployed frontend
+  'https://hospital-frontend-shye.onrender.com', // new deployed frontend
+  'https://hospital-backend-771y.onrender.com', // old deployed backend
+  'https://hospital-backend-g0oi.onrender.com', // new deployed backend
+  'https://hospital-ai-service.onrender.com',    // deployed AI service
   'https://hospital-frontend-production-b896.up.railway.app', // Railway frontend (if still using)
   'https://hospital-backend-production-0e2e.up.railway.app'   // Railway backend (if still using)
 ];

@@ -3,7 +3,7 @@ import axios from 'axios';
 // Use Render backend URL in production, fallback to proxy for local development
 const API_BASE_URL = process.env.REACT_APP_API_URL || 
   (process.env.NODE_ENV === 'production' 
-    ? 'https://hospital-backend-771y.onrender.com/api' 
+    ? 'https://hospital-backend-g0oi.onrender.com/api' 
     : '/api');
 
 const api = axios.create({
