@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { aiAPI } from '../../services/api';
 import {
   Box,
   Typography,
@@ -86,8 +87,6 @@ const RightSideAIPanel = ({
       console.log('Notes:', notes);
       console.log('Patient ID:', patientId);
       
-      // Call the backend API which will route to the AI service
-      const apiUrl = '/api/ai/analyze-comprehensive';
       const payload = {
         patient_id: patientId || 1,
         notes: notes || JSON.stringify({ patientData, currentData, patientHistory }),
@@ -97,35 +96,17 @@ const RightSideAIPanel = ({
         imaging_results: currentData?.imaging_results || []
       };
       
-      console.log('API URL:', apiUrl);
       console.log('Payload:', payload);
       
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      });
+      const result = await aiAPI.analyzeComprehensive(payload);
+      console.log('API Response:', result);
       
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-      
-      if (response.ok) {
-        const result = await response.json();
-        console.log('API Response:', result);
-        
-        setAnalysisResults(result);
-        setSuccess('Analysis completed successfully');
-        setTimeout(() => setSuccess(''), 3000);
+      setAnalysisResults(result);
+      setSuccess('Analysis completed successfully');
+      setTimeout(() => setSuccess(''), 3000);
 
-        if (onAnalysisUpdate) {
-          onAnalysisUpdate(result);
-        }
-      } else {
-        const errorText = await response.text();
-        console.error('API Error Response:', errorText);
-        setError(`Analysis failed: ${response.status} - ${errorText}`);
+      if (onAnalysisUpdate) {
+        onAnalysisUpdate(result);
       }
 
     } catch (error) {
@@ -500,4 +481,4 @@ const RightSideAIPanel = ({
   );
 };
 
-export default RightSideAIPanel; // Force redeploy - Mon Jul 28 07:45:19 PM EAT 2025
+export default RightSideAIPanel;
