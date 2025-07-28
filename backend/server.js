@@ -64,6 +64,19 @@ app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Hospital Management System API.' });
 });
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'healthy',
+    message: 'Hospital Management System Backend is running',
+    timestamp: new Date().toISOString(),
+    services: {
+      database: 'connected',
+      ai_service: process.env.AI_SERVICE_URL || 'http://localhost:8000'
+    }
+  });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);

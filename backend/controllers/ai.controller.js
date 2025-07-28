@@ -63,55 +63,36 @@ exports.diagnose = async (req, res) => {
     const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
     
     try {
-        const { note_text, test_results, doctor_notes, patient_id } = req.body;
-        const text = note_text || '';
-        let response, result;
-
-        if (isGeneralQuestion(text)) {
-            // Route to clinical-support for general questions
-            const payload = { clinical_question: text };
-            response = await fetch(`${AI_SERVICE_URL}/api/v1/clinical-support/query`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (!response.ok) {
-                return res.status(response.status).json({ 
-                    error: 'AI service error', 
-                    status: response.status,
-                    message: 'Clinical support service unavailable'
-                });
+        const { note_text, test_results, doctor_notes, patient_id, symptoms } = req.body;
+        const text = note_text || symptoms || '';
+        
+        // Use the new enhanced medical API endpoint
+        const payload = {
+            symptoms: text,
+            patient_id: patient_id || 1,
+            patient_data: {
+                notes: doctor_notes || '',
+                test_results: test_results || []
             }
-            result = await response.json();
-            const enhancedResult = formatEnhancedResponse(result);
-            res.json({ ...enhancedResult, routed: 'clinical-support' });
-        } else {
-            // Compose payload for AI service (diagnosis)
-            const payload = {
-                patient_id: patient_id || 1,
-                notes: text,
-                timestamp: new Date().toISOString(),
-                enhanced_response: true // Request enhanced response format
-            };
-            
-            response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnosis/analyze-notes`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+        };
+        
+        const response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnose`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        if (!response.ok) {
+            return res.status(response.status).json({ 
+                error: 'AI service error', 
+                status: response.status,
+                message: 'Diagnosis service unavailable'
             });
-            
-            if (!response.ok) {
-                return res.status(response.status).json({ 
-                    error: 'AI service error', 
-                    status: response.status,
-                    message: 'Diagnosis service unavailable'
-                });
-            }
-            
-            result = await response.json();
-            const enhancedResult = formatEnhancedResponse(result);
-            res.json({ ...enhancedResult, routed: 'diagnosis' });
         }
+        
+        const result = await response.json();
+        const enhancedResult = formatEnhancedResponse(result);
+        res.json({ ...enhancedResult, routed: 'diagnosis' });
     } catch (error) {
         console.error('AI Controller Error:', error);
         res.status(500).json({ 
@@ -130,13 +111,16 @@ exports.analyzeLabResults = async (req, res) => {
     try {
         const { patient_id, lab_results, notes } = req.body;
         
+        // Use comprehensive analysis for lab results
         const payload = {
+            symptoms: notes || 'Lab results analysis',
             patient_id: patient_id || 1,
-            lab_data: lab_results || [],
-            notes: notes || ''
+            current_data: {
+                lab_results: lab_results || []
+            }
         };
         
-        const response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnosis/analyze-lab-results`, {
+        const response = await fetch(`${AI_SERVICE_URL}/api/v1/comprehensive-analysis`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -170,12 +154,16 @@ exports.analyzeDrugInteractions = async (req, res) => {
     try {
         const { patient_id, medications } = req.body;
         
+        // Use comprehensive analysis for drug interactions
         const payload = {
+            symptoms: 'Drug interaction analysis',
             patient_id: patient_id || 1,
-            medications: medications || []
+            current_data: {
+                medications: medications || []
+            }
         };
         
-        const response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnosis/analyze-drug-interactions`, {
+        const response = await fetch(`${AI_SERVICE_URL}/api/v1/comprehensive-analysis`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -210,12 +198,11 @@ exports.analyzeSymptoms = async (req, res) => {
         const { patient_id, symptoms, notes } = req.body;
         
         const payload = {
-            patient_id: patient_id || 1,
-            symptoms: symptoms || [],
-            notes: notes || ''
+            symptoms: symptoms || notes || '',
+            patient_id: patient_id || 1
         };
         
-        const response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnosis/analyze-symptoms`, {
+        const response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnose`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -250,13 +237,15 @@ exports.analyzeTreatment = async (req, res) => {
         const { patient_id, diagnosis, symptoms, lab_results } = req.body;
         
         const payload = {
+            symptoms: symptoms || '',
             patient_id: patient_id || 1,
-            diagnosis: diagnosis || {},
-            symptoms: symptoms || [],
-            lab_results: lab_results || []
+            current_data: {
+                diagnosis: diagnosis || {},
+                lab_results: lab_results || []
+            }
         };
         
-        const response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnosis/analyze-treatment`, {
+        const response = await fetch(`${AI_SERVICE_URL}/api/v1/comprehensive-analysis`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -291,11 +280,14 @@ exports.analyzeImaging = async (req, res) => {
         const { patient_id, imaging_results } = req.body;
         
         const payload = {
+            symptoms: 'Imaging analysis',
             patient_id: patient_id || 1,
-            imaging_data: imaging_results || []
+            current_data: {
+                imaging_results: imaging_results || []
+            }
         };
         
-        const response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnosis/analyze-imaging`, {
+        const response = await fetch(`${AI_SERVICE_URL}/api/v1/comprehensive-analysis`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -330,15 +322,17 @@ exports.analyzeComprehensive = async (req, res) => {
         const { patient_id, notes, medications, lab_results, imaging_results, symptoms } = req.body;
         
         const payload = {
+            symptoms: symptoms || notes || '',
             patient_id: patient_id || 1,
-            notes: notes || '',
-            medications: medications || [],
-            lab_results: lab_results || [],
-            imaging_results: imaging_results || [],
-            symptoms: symptoms || []
+            patient_data: {
+                notes: notes || '',
+                medications: medications || [],
+                lab_results: lab_results || [],
+                imaging_results: imaging_results || []
+            }
         };
         
-        const response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnosis/analyze-comprehensive`, {
+        const response = await fetch(`${AI_SERVICE_URL}/api/v1/comprehensive-analysis`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -373,15 +367,17 @@ exports.analyzeRealTime = async (req, res) => {
         const { patient_id, notes, medications, lab_results, imaging_results, symptoms } = req.body;
         
         const payload = {
+            symptoms: symptoms || notes || '',
             patient_id: patient_id || 1,
-            notes: notes || '',
-            medications: medications || [],
-            lab_results: lab_results || [],
-            imaging_results: imaging_results || [],
-            symptoms: symptoms || []
+            patient_data: {
+                notes: notes || '',
+                medications: medications || [],
+                lab_results: lab_results || [],
+                imaging_results: imaging_results || []
+            }
         };
         
-        const response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnosis/analyze-real-time`, {
+        const response = await fetch(`${AI_SERVICE_URL}/api/v1/comprehensive-analysis`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
