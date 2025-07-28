@@ -7,14 +7,14 @@ echo "🚀 Starting build process..."
 echo "📦 Upgrading pip..."
 pip install --upgrade pip
 
-# Install Python dependencies using Render-specific requirements
-echo "📦 Installing Python dependencies..."
+# Install Python dependencies using only pre-compiled packages
+echo "📦 Installing Python dependencies (pre-compiled only)..."
 if [ -f "requirements-render.txt" ]; then
     echo "Using Render-specific requirements..."
-    pip install --no-cache-dir -r requirements-render.txt
+    pip install --no-cache-dir --only-binary=all -r requirements-render.txt
 else
     echo "Using standard requirements..."
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir --only-binary=all -r requirements.txt
 fi
 
 # Download NLTK data
@@ -50,7 +50,6 @@ mkdir -p logs
 # Set permissions
 echo "🔐 Setting permissions..."
 chmod +x start_enhanced_api.sh
-chmod +x start_with_auto_training.sh
 
 # Verify installation
 echo "🔍 Verifying installation..."
