@@ -14,6 +14,7 @@ COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
+RUN ln -s /usr/local/bin/uvicorn /usr/bin/uvicorn || true
 
 # Download NLTK data
 RUN python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk.download('wordnet')"
