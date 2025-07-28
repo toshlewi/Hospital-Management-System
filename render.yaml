@@ -10,6 +10,8 @@ services:
     envVars:
       - key: PORT
         value: 8000
+      - key: AUTO_TRAIN_ON_STARTUP
+        value: "true"
       - key: PUBMED_API_KEY
         sync: false
       - key: FDA_API_KEY

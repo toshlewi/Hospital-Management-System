@@ -99,16 +99,25 @@ async def startup_event():
         print(f"✅ Loaded AI model with {advanced_ai.accuracy:.2%} accuracy")
         print(f"🏥 Diseases in database: {len(advanced_ai.diseases_database)}")
         
-        # Initialize auto scheduler
-        await auto_scheduler.initialize()
-        print(f"🔄 Auto scheduler initialized with {auto_scheduler.update_count} previous updates")
+        # Check if auto-training is enabled (default: True)
+        auto_train = os.getenv("AUTO_TRAIN_ON_STARTUP", "true").lower() == "true"
         
-        # Start auto scheduler in background
+        if auto_train:
+            print("🚀 Auto-training enabled - starting training in background...")
+            # Start training in background
+            background_tasks = BackgroundTasks()
+            background_tasks.add_task(train_advanced_ai)
+            await background_tasks()
+        else:
+            print("⏸️ Auto-training disabled - skipping initial training")
+        
+        # Start the auto scheduler for daily updates
         scheduler_task = asyncio.create_task(auto_scheduler.start_scheduler())
-        print("🚀 Auto training scheduler started - will update daily at midnight")
+        print("📅 Auto-update scheduler started")
         
     except Exception as e:
-        print(f"⚠️ Could not load existing model: {e}")
+        print(f"❌ Error during startup: {e}")
+        # Continue anyway - the service should still be usable
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -120,16 +129,34 @@ async def shutdown_event():
 
 @app.get("/")
 async def root():
-    """API status and information"""
+    """Root endpoint with basic information"""
     return {
-        "message": "Enhanced Medical AI API with Auto-Training",
+        "message": "Enhanced Medical AI API",
         "version": "3.0.0",
-        "status": "running",
+        "status": "operational",
         "model_accuracy": f"{advanced_ai.accuracy:.2%}",
         "diseases_learned": len(advanced_ai.diseases_database),
-        "training_status": advanced_ai.training_status,
-        "auto_update_status": auto_scheduler.get_scheduler_status()
+        "auto_training": os.getenv("AUTO_TRAIN_ON_STARTUP", "true").lower() == "true"
     }
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring"""
+    try:
+        return {
+            "status": "healthy",
+            "model_loaded": advanced_ai.model is not None,
+            "model_accuracy": f"{advanced_ai.accuracy:.2%}",
+            "diseases_learned": len(advanced_ai.diseases_database),
+            "auto_training_enabled": os.getenv("AUTO_TRAIN_ON_STARTUP", "true").lower() == "true",
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
 
 @app.get("/api/v1/status")
 async def get_status():
