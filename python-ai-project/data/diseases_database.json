@@ -1,4 +1,104 @@
 {
+  "Gastroenteritis": {
+    "symptoms": ["vomiting", "diarrhea", "nausea", "abdominal cramps", "fever", "dehydration"],
+    "treatments": ["oral rehydration therapy", "rest", "bland diet", "antiemetics if needed"],
+    "lab_tests": ["Stool Culture", "Complete Blood Count (CBC)", "Electrolytes"],
+    "expected_lab_results": {
+      "Stool Culture": "May identify bacterial pathogens",
+      "Complete Blood Count (CBC)": "May show leukocytosis",
+      "Electrolytes": "May show dehydration-related abnormalities"
+    }
+  },
+  "Food Poisoning": {
+    "symptoms": ["vomiting", "diarrhea", "nausea", "abdominal pain", "fever", "chills"],
+    "treatments": ["oral rehydration", "rest", "bland diet", "antibiotics if bacterial"],
+    "lab_tests": ["Stool Culture", "Blood Culture", "Complete Blood Count (CBC)"],
+    "expected_lab_results": {
+      "Stool Culture": "May identify foodborne pathogens",
+      "Blood Culture": "May be positive in severe cases",
+      "Complete Blood Count (CBC)": "May show leukocytosis"
+    }
+  },
+  "Viral Gastroenteritis": {
+    "symptoms": ["vomiting", "diarrhea", "nausea", "abdominal cramps", "low-grade fever"],
+    "treatments": ["oral rehydration therapy", "rest", "bland diet", "symptomatic relief"],
+    "lab_tests": ["Stool Antigen Test", "Complete Blood Count (CBC)", "Electrolytes"],
+    "expected_lab_results": {
+      "Stool Antigen Test": "May be positive for rotavirus/norovirus",
+      "Complete Blood Count (CBC)": "Usually normal or mild leukocytosis",
+      "Electrolytes": "May show dehydration if severe"
+    }
+  },
+  "Bacterial Gastroenteritis": {
+    "symptoms": ["vomiting", "diarrhea", "abdominal cramps", "fever", "bloody stools"],
+    "treatments": ["antibiotics", "oral rehydration", "rest", "diet modification"],
+    "lab_tests": ["Stool Culture", "Stool Microscopy", "Complete Blood Count (CBC)"],
+    "expected_lab_results": {
+      "Stool Culture": "Positive for pathogenic bacteria",
+      "Stool Microscopy": "May show white blood cells, red blood cells",
+      "Complete Blood Count (CBC)": "Leukocytosis"
+    }
+  },
+  "Traveler's Diarrhea": {
+    "symptoms": ["diarrhea", "abdominal cramps", "nausea", "vomiting", "fever"],
+    "treatments": ["oral rehydration", "antidiarrheal medications", "antibiotics if severe"],
+    "lab_tests": ["Stool Culture", "Stool Antigen Test", "Complete Blood Count (CBC)"],
+    "expected_lab_results": {
+      "Stool Culture": "May identify E. coli, Salmonella, Shigella",
+      "Stool Antigen Test": "May be positive for specific pathogens",
+      "Complete Blood Count (CBC)": "May show mild leukocytosis"
+    }
+  },
+  "Irritable Bowel Syndrome": {
+    "symptoms": ["abdominal pain", "diarrhea", "constipation", "bloating", "nausea"],
+    "treatments": ["diet modification", "stress management", "medications for symptoms"],
+    "lab_tests": ["Complete Blood Count (CBC)", "Stool Studies", "Colonoscopy"],
+    "expected_lab_results": {
+      "Complete Blood Count (CBC)": "Normal",
+      "Stool Studies": "Normal",
+      "Colonoscopy": "Normal or mild inflammation"
+    }
+  },
+  "Inflammatory Bowel Disease": {
+    "symptoms": ["diarrhea", "abdominal pain", "weight loss", "fatigue", "rectal bleeding"],
+    "treatments": ["anti-inflammatory medications", "immunosuppressants", "surgery if needed"],
+    "lab_tests": ["Complete Blood Count (CBC)", "C-reactive Protein", "Colonoscopy", "Stool Calprotectin"],
+    "expected_lab_results": {
+      "Complete Blood Count (CBC)": "Anemia, leukocytosis",
+      "C-reactive Protein": "Elevated",
+      "Stool Calprotectin": "Elevated"
+    }
+  },
+  "Appendicitis": {
+    "symptoms": ["abdominal pain", "nausea", "vomiting", "loss of appetite", "fever"],
+    "treatments": ["surgical removal of appendix", "antibiotics", "pain management"],
+    "lab_tests": ["Complete Blood Count (CBC)", "C-reactive Protein", "Abdominal CT Scan"],
+    "expected_lab_results": {
+      "Complete Blood Count (CBC)": "Leukocytosis",
+      "C-reactive Protein": "Elevated",
+      "Abdominal CT Scan": "Enlarged appendix with inflammation"
+    }
+  },
+  "Peptic Ulcer Disease": {
+    "symptoms": ["abdominal pain", "nausea", "vomiting", "bloating", "loss of appetite"],
+    "treatments": ["proton pump inhibitors", "antibiotics for H. pylori", "lifestyle modification"],
+    "lab_tests": ["H. pylori Test", "Upper Endoscopy", "Complete Blood Count (CBC)"],
+    "expected_lab_results": {
+      "H. pylori Test": "May be positive",
+      "Upper Endoscopy": "Ulcer visible in stomach/duodenum",
+      "Complete Blood Count (CBC)": "May show anemia if bleeding"
+    }
+  },
+  "Cholecystitis": {
+    "symptoms": ["abdominal pain", "nausea", "vomiting", "fever", "right upper quadrant tenderness"],
+    "treatments": ["surgery (cholecystectomy)", "antibiotics", "pain management"],
+    "lab_tests": ["Complete Blood Count (CBC)", "Liver Function Tests", "Abdominal Ultrasound"],
+    "expected_lab_results": {
+      "Complete Blood Count (CBC)": "Leukocytosis",
+      "Liver Function Tests": "May show elevated bilirubin",
+      "Abdominal Ultrasound": "Gallbladder wall thickening, stones"
+    }
+  },
   "Diabetes Mellitus": {
     "symptoms": ["increased thirst", "frequent urination", "hunger", "fatigue", "blurred vision"],
     "treatments": ["insulin", "oral hypoglycemics", "diet modification", "exercise"],
