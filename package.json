@@ -10,7 +10,8 @@
     "eject": "react-scripts eject",
     "dev": "concurrently \"npm run start\" \"cd backend && npm run dev\" \"cd python-ai-project && python -m uvicorn enhanced_medical_api:app --reload\"",
     "install-all": "npm install && cd backend && npm install && cd ../python-ai-project && pip install -r requirements.txt",
-    "railway-build": "npm install && npm run build"
+    "railway-build": "npm install && npm run build",
+    "postinstall": "npm run build"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
