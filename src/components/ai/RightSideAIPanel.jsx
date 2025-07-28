@@ -86,14 +86,15 @@ const RightSideAIPanel = ({
       console.log('Notes:', notes);
       console.log('Patient ID:', patientId);
       
-      // Call the new Medical AI comprehensive analysis API
-      const apiUrl = process.env.REACT_APP_AI_SERVICE_URL 
-  ? `${process.env.REACT_APP_AI_SERVICE_URL}/api/v1/comprehensive-analysis`
-  : 'https://hospital-ai-service.onrender.com/api/v1/comprehensive-analysis';
+      // Call the backend API which will route to the AI service
+      const apiUrl = '/api/ai/analyze-comprehensive';
       const payload = {
-        symptoms: notes || JSON.stringify({ patientData, currentData, patientHistory }),
         patient_id: patientId || 1,
-        patient_data: patientData
+        notes: notes || JSON.stringify({ patientData, currentData, patientHistory }),
+        symptoms: notes || '',
+        medications: currentData?.medications || [],
+        lab_results: currentData?.lab_results || [],
+        imaging_results: currentData?.imaging_results || []
       };
       
       console.log('API URL:', apiUrl);
@@ -129,7 +130,7 @@ const RightSideAIPanel = ({
 
     } catch (error) {
       console.error('Analysis error:', error);
-      setError(`Failed to complete analysis: ${error.message}. Please check if the Medical AI API is running on https://hospital-ai-service.onrender.com`);
+      setError(`Failed to complete analysis: ${error.message}. Please check if the backend and AI services are running properly.`);
     } finally {
       setIsAnalyzing(false);
     }
