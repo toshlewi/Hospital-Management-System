@@ -4,6 +4,35 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const dbService = require('./services/database.js');
 
+// Memory management
+const v8 = require('v8');
+const os = require('os');
+
+// Set memory limits
+const maxHeapSize = 512; // 512MB max heap
+v8.setFlagsFromString(`--max-old-space-size=${maxHeapSize}`);
+
+// Memory monitoring
+function logMemoryUsage() {
+  const memUsage = process.memoryUsage();
+  const heapUsed = Math.round(memUsage.heapUsed / 1024 / 1024);
+  const heapTotal = Math.round(memUsage.heapTotal / 1024 / 1024);
+  const external = Math.round(memUsage.external / 1024 / 1024);
+  
+  console.log(`📊 Memory Usage: Heap ${heapUsed}MB/${heapTotal}MB, External: ${external}MB`);
+  
+  // Force garbage collection if memory usage is high
+  if (heapUsed > maxHeapSize * 0.8) {
+    console.log('🧹 High memory usage detected, forcing garbage collection...');
+    if (global.gc) {
+      global.gc();
+    }
+  }
+}
+
+// Log memory usage every 5 minutes
+setInterval(logMemoryUsage, 5 * 60 * 1000);
+
 const app = express();
 
 // Middleware
@@ -18,6 +47,7 @@ const allowedOrigins = [
   'https://hospital-backend-771y.onrender.com', // deployed backend (for service-to-service calls)
   'https://hospital-ai-service.onrender.com'    // deployed AI service (if backend calls AI directly)
 ];
+
 app.use(cors({
   origin: function (origin, callback) {
     // allow requests with no origin (like mobile apps, curl, etc.)
@@ -32,9 +62,12 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+// Limit request body size to prevent memory issues
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
+
 console.log('CORS middleware configured.');
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 
 // Test database connection
 dbService.testConnection()
@@ -66,10 +99,19 @@ app.get('/', (req, res) => {
 
 // Health check endpoint
 app.get('/health', (req, res) => {
+  const memUsage = process.memoryUsage();
+  const heapUsed = Math.round(memUsage.heapUsed / 1024 / 1024);
+  const heapTotal = Math.round(memUsage.heapTotal / 1024 / 1024);
+  
   res.json({ 
     status: 'healthy',
     message: 'Hospital Management System Backend is running',
     timestamp: new Date().toISOString(),
+    memory: {
+      heapUsed: `${heapUsed}MB`,
+      heapTotal: `${heapTotal}MB`,
+      maxHeap: `${maxHeapSize}MB`
+    },
     services: {
       database: 'connected',
       ai_service: process.env.AI_SERVICE_URL || 'http://localhost:8000'
@@ -93,8 +135,28 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
 // Set port and start server
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}.`);
+  console.log(`📊 Memory limit set to ${maxHeapSize}MB`);
+  logMemoryUsage();
+});
+
+// Handle server errors
+server.on('error', (err) => {
+  console.error('Server error:', err);
+  process.exit(1);
 }); 

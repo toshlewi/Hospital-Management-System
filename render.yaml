@@ -14,7 +14,7 @@ services:
       - key: REACT_APP_AI_SERVICE_URL
         value: https://hospital-ai-service.onrender.com
 
-  # Backend (Node.js)
+  # Backend (Node.js) - Memory Optimized
   - type: web
     name: hospital-backend
     env: node
@@ -22,11 +22,13 @@ services:
     branch: main
     rootDir: backend
     buildCommand: npm install
-    startCommand: node server.js
+    startCommand: node --max-old-space-size=512 --expose-gc server.js
     healthCheckPath: /health
     envVars:
       - key: PORT
         value: 3001
+      - key: NODE_ENV
+        value: production
       - key: AI_SERVICE_URL
         value: https://hospital-ai-service.onrender.com
       - key: SUPABASE_URL

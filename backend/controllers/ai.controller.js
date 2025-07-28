@@ -1,5 +1,16 @@
 // backend/controllers/ai.controller.js
 
+// Memory management for AI controller
+let fetchModule = null;
+
+// Lazy load fetch to reduce memory usage
+async function getFetch() {
+  if (!fetchModule) {
+    fetchModule = await import('node-fetch');
+  }
+  return fetchModule.default;
+}
+
 // Improved intent detection for general medical questions or keyword-based queries
 function isGeneralQuestion(text) {
     if (!text) return false;
@@ -57,9 +68,38 @@ function formatEnhancedResponse(aiResult) {
     };
 }
 
+// Helper function to make AI service calls with timeout and memory management
+async function callAIService(url, payload, timeout = 30000) {
+    const fetch = await getFetch();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            throw new Error(`AI service error: ${response.status} ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error('AI service request timed out');
+        }
+        throw error;
+    }
+}
+
 exports.diagnose = async (req, res) => {
-    // Proxy request to Python AI service
-    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
     const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
     
     try {
@@ -76,21 +116,7 @@ exports.diagnose = async (req, res) => {
             }
         };
         
-        const response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnose`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        
-        if (!response.ok) {
-            return res.status(response.status).json({ 
-                error: 'AI service error', 
-                status: response.status,
-                message: 'Diagnosis service unavailable'
-            });
-        }
-        
-        const result = await response.json();
+        const result = await callAIService(`${AI_SERVICE_URL}/api/v1/diagnose`, payload);
         const enhancedResult = formatEnhancedResponse(result);
         res.json({ ...enhancedResult, routed: 'diagnosis' });
     } catch (error) {
@@ -105,7 +131,6 @@ exports.diagnose = async (req, res) => {
 
 // Lab Test Analysis
 exports.analyzeLabResults = async (req, res) => {
-    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
     const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
     
     try {
@@ -120,21 +145,7 @@ exports.analyzeLabResults = async (req, res) => {
             }
         };
         
-        const response = await fetch(`${AI_SERVICE_URL}/api/v1/comprehensive-analysis`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        
-        if (!response.ok) {
-            return res.status(response.status).json({ 
-                error: 'AI service error', 
-                status: response.status,
-                message: 'Lab analysis service unavailable'
-            });
-        }
-        
-        const result = await response.json();
+        const result = await callAIService(`${AI_SERVICE_URL}/api/v1/comprehensive-analysis`, payload);
         res.json({ ...result, ai: true, timestamp: new Date().toISOString() });
     } catch (error) {
         console.error('Lab Analysis Error:', error);
@@ -148,7 +159,6 @@ exports.analyzeLabResults = async (req, res) => {
 
 // Drug Interaction Analysis
 exports.analyzeDrugInteractions = async (req, res) => {
-    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
     const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
     
     try {
@@ -163,21 +173,7 @@ exports.analyzeDrugInteractions = async (req, res) => {
             }
         };
         
-        const response = await fetch(`${AI_SERVICE_URL}/api/v1/comprehensive-analysis`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        
-        if (!response.ok) {
-            return res.status(response.status).json({ 
-                error: 'AI service error', 
-                status: response.status,
-                message: 'Drug interaction service unavailable'
-            });
-        }
-        
-        const result = await response.json();
+        const result = await callAIService(`${AI_SERVICE_URL}/api/v1/comprehensive-analysis`, payload);
         res.json({ ...result, ai: true, timestamp: new Date().toISOString() });
     } catch (error) {
         console.error('Drug Interaction Analysis Error:', error);
@@ -191,7 +187,6 @@ exports.analyzeDrugInteractions = async (req, res) => {
 
 // Symptom Analysis
 exports.analyzeSymptoms = async (req, res) => {
-    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
     const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
     
     try {
@@ -202,21 +197,7 @@ exports.analyzeSymptoms = async (req, res) => {
             patient_id: patient_id || 1
         };
         
-        const response = await fetch(`${AI_SERVICE_URL}/api/v1/diagnose`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        
-        if (!response.ok) {
-            return res.status(response.status).json({ 
-                error: 'AI service error', 
-                status: response.status,
-                message: 'Symptom analysis service unavailable'
-            });
-        }
-        
-        const result = await response.json();
+        const result = await callAIService(`${AI_SERVICE_URL}/api/v1/diagnose`, payload);
         res.json({ ...result, ai: true, timestamp: new Date().toISOString() });
     } catch (error) {
         console.error('Symptom Analysis Error:', error);
@@ -230,7 +211,6 @@ exports.analyzeSymptoms = async (req, res) => {
 
 // Treatment Analysis
 exports.analyzeTreatment = async (req, res) => {
-    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
     const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
     
     try {
@@ -245,21 +225,7 @@ exports.analyzeTreatment = async (req, res) => {
             }
         };
         
-        const response = await fetch(`${AI_SERVICE_URL}/api/v1/comprehensive-analysis`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        
-        if (!response.ok) {
-            return res.status(response.status).json({ 
-                error: 'AI service error', 
-                status: response.status,
-                message: 'Treatment analysis service unavailable'
-            });
-        }
-        
-        const result = await response.json();
+        const result = await callAIService(`${AI_SERVICE_URL}/api/v1/comprehensive-analysis`, payload);
         res.json({ ...result, ai: true, timestamp: new Date().toISOString() });
     } catch (error) {
         console.error('Treatment Analysis Error:', error);
@@ -273,7 +239,6 @@ exports.analyzeTreatment = async (req, res) => {
 
 // Imaging Analysis
 exports.analyzeImaging = async (req, res) => {
-    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
     const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
     
     try {
@@ -287,21 +252,7 @@ exports.analyzeImaging = async (req, res) => {
             }
         };
         
-        const response = await fetch(`${AI_SERVICE_URL}/api/v1/comprehensive-analysis`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        
-        if (!response.ok) {
-            return res.status(response.status).json({ 
-                error: 'AI service error', 
-                status: response.status,
-                message: 'Imaging analysis service unavailable'
-            });
-        }
-        
-        const result = await response.json();
+        const result = await callAIService(`${AI_SERVICE_URL}/api/v1/comprehensive-analysis`, payload);
         res.json({ ...result, ai: true, timestamp: new Date().toISOString() });
     } catch (error) {
         console.error('Imaging Analysis Error:', error);
@@ -315,7 +266,6 @@ exports.analyzeImaging = async (req, res) => {
 
 // Comprehensive Analysis
 exports.analyzeComprehensive = async (req, res) => {
-    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
     const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
     
     try {
@@ -332,21 +282,7 @@ exports.analyzeComprehensive = async (req, res) => {
             }
         };
         
-        const response = await fetch(`${AI_SERVICE_URL}/api/v1/comprehensive-analysis`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        
-        if (!response.ok) {
-            return res.status(response.status).json({ 
-                error: 'AI service error', 
-                status: response.status,
-                message: 'Comprehensive analysis service unavailable'
-            });
-        }
-        
-        const result = await response.json();
+        const result = await callAIService(`${AI_SERVICE_URL}/api/v1/comprehensive-analysis`, payload);
         res.json({ ...result, ai: true, timestamp: new Date().toISOString() });
     } catch (error) {
         console.error('Comprehensive Analysis Error:', error);
@@ -360,7 +296,6 @@ exports.analyzeComprehensive = async (req, res) => {
 
 // Real-time Analysis
 exports.analyzeRealTime = async (req, res) => {
-    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
     const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
     
     try {
@@ -377,21 +312,7 @@ exports.analyzeRealTime = async (req, res) => {
             }
         };
         
-        const response = await fetch(`${AI_SERVICE_URL}/api/v1/comprehensive-analysis`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        
-        if (!response.ok) {
-            return res.status(response.status).json({ 
-                error: 'AI service error', 
-                status: response.status,
-                message: 'Real-time analysis service unavailable'
-            });
-        }
-        
-        const result = await response.json();
+        const result = await callAIService(`${AI_SERVICE_URL}/api/v1/comprehensive-analysis`, payload);
         res.json({ ...result, ai: true, timestamp: new Date().toISOString() });
     } catch (error) {
         console.error('Real-time Analysis Error:', error);
