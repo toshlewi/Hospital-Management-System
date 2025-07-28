@@ -1,12 +1,12 @@
-# Core FastAPI dependencies - pre-compiled versions only
+# Core FastAPI dependencies - pre-compiled wheels only
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 aiohttp==3.9.1
 
-# Data processing - using only pre-compiled packages
-pandas==2.0.3
-numpy==1.24.3
-scikit-learn==1.3.0
+# Data processing - using only pre-compiled wheels for Python 3.13
+pandas==2.1.4
+numpy==1.26.2
+scikit-learn==1.3.2
 
 # Web scraping and parsing - pre-compiled
 requests==2.31.0

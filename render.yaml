@@ -38,14 +38,14 @@ services:
       - key: JWT_SECRET
         sync: false
 
-  # AI Service (Python FastAPI) - Full Enhanced Version with Auto-Training
+  # AI Service (Python FastAPI) - Minimal Dependencies
   - type: web
     name: hospital-ai-service
     env: python
     plan: free
     branch: main
     rootDir: python-ai-project
-    buildCommand: chmod +x build.sh && ./build.sh
+    buildCommand: pip install -r requirements-minimal.txt
     startCommand: uvicorn enhanced_medical_api:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /
     envVars:

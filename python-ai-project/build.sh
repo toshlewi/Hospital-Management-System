@@ -7,14 +7,22 @@ echo "🚀 Starting build process..."
 echo "📦 Upgrading pip..."
 pip install --upgrade pip
 
-# Install Python dependencies using only pre-compiled packages
-echo "📦 Installing Python dependencies (pre-compiled only)..."
+# Install Python dependencies using only pre-compiled packages with fallback
+echo "📦 Installing Python dependencies (pre-compiled wheels only)..."
 if [ -f "requirements-render.txt" ]; then
     echo "Using Render-specific requirements..."
-    pip install --no-cache-dir --only-binary=all -r requirements-render.txt
+    # Try with --only-binary=all first
+    if ! pip install --no-cache-dir --only-binary=all -r requirements-render.txt; then
+        echo "⚠️ Some packages failed with --only-binary=all, trying without..."
+        pip install --no-cache-dir -r requirements-render.txt
+    fi
 else
     echo "Using standard requirements..."
-    pip install --no-cache-dir --only-binary=all -r requirements.txt
+    # Try with --only-binary=all first
+    if ! pip install --no-cache-dir --only-binary=all -r requirements.txt; then
+        echo "⚠️ Some packages failed with --only-binary=all, trying without..."
+        pip install --no-cache-dir -r requirements.txt
+    fi
 fi
 
 # Download NLTK data
