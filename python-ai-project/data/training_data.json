@@ -1,0 +1,392 @@
+[
+  {
+    "symptoms": "Pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "chest pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "Pain pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "Pain pain chest pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "pain chest pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "increased hunger",
+    "disease": "Diabetes and",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "frequent urination",
+    "disease": "Diabetes and",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "blurred vision",
+    "disease": "Diabetes and",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "weight loss",
+    "disease": "Diabetes and",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "excessive thirst",
+    "disease": "Diabetes and",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "fatigue",
+    "disease": "Diabetes and",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "increased hunger frequent urination",
+    "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "increased hunger frequent urination blurred vision",
+    "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "increased hunger frequent urination blurred vision weight loss",
+    "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "frequent urination blurred vision",
+    "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "frequent urination blurred vision weight loss",
+    "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "frequent urination blurred vision weight loss excessive thirst",
+    "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "blurred vision weight loss",
+    "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "blurred vision weight loss excessive thirst",
+    "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "blurred vision weight loss excessive thirst fatigue",
+    "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "weight loss excessive thirst",
+    "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "weight loss excessive thirst fatigue",
+    "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "excessive thirst fatigue",
+    "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "Pain",
+    "disease": "Treatment and Diagnosis of",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "pain",
+    "disease": "Treatment and Diagnosis of",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "Pain pain",
+    "disease": "Treatment and Diagnosis of",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "Dizziness",
+    "disease": "dependent",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "pain",
+    "disease": "Time to Diagnosis and Treatment of",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "back pain",
+    "disease": "Time to Diagnosis and Treatment of",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "pain back pain",
+    "disease": "Time to Diagnosis and Treatment of",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "increased hunger",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "frequent urination",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "blurred vision",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "weight loss",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "excessive thirst",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "fatigue",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "increased hunger frequent urination",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "increased hunger frequent urination blurred vision",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "increased hunger frequent urination blurred vision weight loss",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "frequent urination blurred vision",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "frequent urination blurred vision weight loss",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "frequent urination blurred vision weight loss excessive thirst",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "blurred vision weight loss",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "blurred vision weight loss excessive thirst",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "blurred vision weight loss excessive thirst fatigue",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "weight loss excessive thirst",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "weight loss excessive thirst fatigue",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "excessive thirst fatigue",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "Headache",
+    "disease": "Secondary",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "constipation",
+    "disease": "Secondary",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "Headache constipation",
+    "disease": "Secondary",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "Pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "chest pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "Pain pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "Pain pain chest pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "pain chest pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "pain",
+    "disease": "Progress and Challenges in the Diagnosis and Treatment of Brain",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "Pain",
+    "disease": "Brief Overview of Prostate",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "Pain",
+    "disease": "Current State of Breast",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "pain",
+    "disease": "Advances in",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "pain",
+    "disease": "Gastric",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "abdominal pain",
+    "disease": "Gastric",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "pain abdominal pain",
+    "disease": "Gastric",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "bleeding",
+    "disease": "Guideline on Diagnosis and Management of Acute Bacterial",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "bleeding",
+    "disease": "Endocrine manifestations of Down",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "Vomiting",
+    "disease": "Substance Use",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "Nausea",
+    "disease": "Substance Use",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "Vomiting Nausea",
+    "disease": "Substance Use",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "pain",
+    "disease": "role beyond",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "muscle pain",
+    "disease": "role beyond",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "pain muscle pain",
+    "disease": "role beyond",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "Pain",
+    "disease": "Advances in Management of Bladder",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "Pain",
+    "disease": "Gynecological disorders in bladder pain",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "pain",
+    "disease": "Gynecological disorders in bladder pain",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "Pain pain",
+    "disease": "Gynecological disorders in bladder pain",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "fatigue",
+    "disease": "frequently underestimated",
+    "confidence": 0.8
+  }
+]
