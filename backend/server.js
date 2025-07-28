@@ -45,7 +45,9 @@ const allowedOrigins = [
   'http://127.0.0.1:5000',
   'https://hospital-frontend-5na8.onrender.com', // deployed frontend
   'https://hospital-backend-771y.onrender.com', // deployed backend (for service-to-service calls)
-  'https://hospital-ai-service.onrender.com'    // deployed AI service (if backend calls AI directly)
+  'https://hospital-ai-service.onrender.com',    // deployed AI service (if backend calls AI directly)
+  'https://hospital-frontend-production-b896.up.railway.app', // Railway frontend (if still using)
+  'https://hospital-backend-production-0e2e.up.railway.app'   // Railway backend (if still using)
 ];
 
 app.use(cors({

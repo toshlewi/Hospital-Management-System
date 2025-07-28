@@ -1,7 +1,10 @@
 import axios from 'axios';
 
-// Use relative path so the frontend proxy works correctly
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+// Use Render backend URL in production, fallback to proxy for local development
+const API_BASE_URL = process.env.REACT_APP_API_URL || 
+  (process.env.NODE_ENV === 'production' 
+    ? 'https://hospital-backend-771y.onrender.com/api' 
+    : '/api');
 
 const api = axios.create({
   baseURL: API_BASE_URL,
