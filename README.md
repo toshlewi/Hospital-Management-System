@@ -2,20 +2,26 @@
 
 A comprehensive hospital management system with AI-powered medical analysis, built with React, Node.js, and Python FastAPI.
 
+## 📋 **Project Presentation**
+
+**🎯 Pitch Deck:** [View Presentation](https://www.canva.com/design/DAGsys5pfFo/TY1YGaU0WphaBJCMexpXIA/edit?utm_content=DAGsys5pfFo&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
+
+**🎥 Project Demo Video:** [Watch Video](https://drive.google.com/drive/folders/12RwmxxgN78jPZzNgciScD1UrC1_-3PNu)
+
 ## 🌐 **Live Demo**
 
-**Frontend:** https://hospital-frontend-production-b896.up.railway.app
-**Backend:** https://hospital-backend-production-0e2e.up.railway.app
-**AI Service:** https://hospital-ai-service-production.up.railway.app
+**Frontend:** https://hospital-frontend-shye.onrender.com
+**Backend:** https://hospital-backend-g0oi.onrender.com
+**AI Service:** https://hospital-ai-service.onrender.com
 
 ## 🚀 **Quick Start**
 
-### **Local Development**
+### **Clone and Setup**
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd Hospital-Management-System-1
+   git clone https://github.com/toshlewi/Hospital-Management-System.git
+   cd Hospital-Management-System
    ```
 
 2. **Install dependencies**
@@ -36,9 +42,22 @@ A comprehensive hospital management system with AI-powered medical analysis, bui
    npm run dev
    ```
 
-### **Railway Deployment**
+## 🤖 **AI Features & Usage**
 
-For production deployment on Railway, see [RAILWAY_DEPLOYMENT_CONFIG.md](./RAILWAY_DEPLOYMENT_CONFIG.md)
+### **What You Can Ask the AI:**
+- **Symptom Analysis:** "I have a cough and fever"
+- **Differential Diagnosis:** "Patient presents with chest pain"
+- **Lab Test Recommendations:** "What tests for diabetes screening?"
+- **Treatment Plans:** "Treatment for hypertension"
+- **Drug Interactions:** "Check interactions between aspirin and warfarin"
+
+### **AI Training Status:**
+- ✅ **20 diseases** currently trained and available
+- ✅ **Auto-training** enabled for continuous learning
+- ✅ **Real-time analysis** working perfectly
+- 🔄 **Additional training** can be performed for more diseases
+
+**Note:** The AI is fully functional with the current training data. Additional diseases can be added to expand the knowledge base.
 
 ## 🏗️ **Architecture**
 
@@ -118,28 +137,16 @@ For complete environment setup, see [ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.m
 
 ## 🚀 **Deployment**
 
-### **Railway (Recommended)**
+### **Render (Current Deployment)**
 
-1. **Deploy Backend**
-   ```bash
-   # Create Railway project for backend
-   # Set directory to: backend/
-   # Add environment variables
-   ```
+The project is currently deployed on Render with the following services:
+- **Frontend:** React app with optimized build
+- **Backend:** Node.js API with Supabase integration
+- **AI Service:** Python FastAPI with ML models
 
-2. **Deploy AI Service**
-   ```bash
-   # Create Railway project for AI service
-   # Set directory to: python-ai-project/
-   # Add environment variables
-   ```
+### **Railway Deployment**
 
-3. **Deploy Frontend**
-   ```bash
-   # Create Railway project for frontend
-   # Set directory to: / (root)
-   # Add environment variables
-   ```
+For production deployment on Railway, see [RAILWAY_DEPLOYMENT_CONFIG.md](./RAILWAY_DEPLOYMENT_CONFIG.md)
 
 ### **Docker**
 
@@ -155,7 +162,7 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
 ## 📁 **Project Structure**
 
 ```
-Hospital-Management-System-1/
+Hospital-Management-System/
 ├── src/                    # React frontend
 │   ├── components/         # React components
 │   ├── pages/             # Page components
