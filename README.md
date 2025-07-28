@@ -4,7 +4,9 @@ A comprehensive hospital management system with AI-powered medical analysis, bui
 
 ## 🌐 **Live Demo**
 
-**Frontend:** https://hospital-frontend-5na8.onrender.com
+**Frontend:** https://hospital-frontend-production-b896.up.railway.app
+**Backend:** https://hospital-backend-production-0e2e.up.railway.app
+**AI Service:** https://hospital-ai-service-production.up.railway.app
 
 ## 🚀 **Quick Start**
 

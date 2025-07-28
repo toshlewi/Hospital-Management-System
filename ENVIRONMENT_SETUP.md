@@ -1,8 +1,4 @@
-# 🔧 Environment Variables Setup for Railway Deployment
-
-## 🎯 **Environment Variables Required for Hospital Management System**
-
-This guide shows you how to set up all necessary environment variables for your Railway deployment.
+# 🚀 Railway Environment Variables Setup Guide
 
 ## 📋 **Environment Variables by Service**
 
@@ -23,11 +19,11 @@ PORT=3001
 # Security
 JWT_SECRET=HPnFyDVK+z82DeWxLPTGBDvfCDBUdjsrIrQQeJU9HI+dCy2y+QX+0TBo2AKtV479KnfhbgniDBujDUeNeLxtKA==
 
-# CORS
-FRONTEND_URL=https://hospital-frontend-production-xxxx.up.railway.app
+# CORS - UPDATED WITH ACTUAL RAILWAY URLS
+FRONTEND_URL=https://hospital-frontend-production-b896.up.railway.app
 
-# AI Service
-AI_SERVICE_URL=https://hospital-ai-production-xxxx.up.railway.app
+# AI Service - UPDATED WITH ACTUAL RAILWAY URL
+AI_SERVICE_URL=https://hospital-ai-service-production.up.railway.app
 ```
 
 ### **2. AI Service Environment Variables**
@@ -50,83 +46,118 @@ Set these in your Railway frontend service dashboard:
 
 ```env
 # React Environment Variables (must start with REACT_APP_)
-REACT_APP_API_URL=https://hospital-backend-production-xxxx.up.railway.app
-REACT_APP_AI_SERVICE_URL=https://hospital-ai-production-xxxx.up.railway.app
+REACT_APP_API_URL=https://hospital-backend-production-0e2e.up.railway.app
+REACT_APP_AI_SERVICE_URL=https://hospital-ai-service-production.up.railway.app
 
 # Application Configuration
 NODE_ENV=production
 PORT=3000
 ```
 
-## 🚀 **How to Set Environment Variables in Railway**
+## 🔧 **Railway Service URLs**
 
-### **Step 1: Access Railway Dashboard**
-1. Go to https://railway.app
-2. Select your project
-3. Click on each service (backend, AI, frontend)
+### **✅ Deployed Services:**
+- **Frontend:** https://hospital-frontend-production-b896.up.railway.app
+- **Backend:** https://hospital-backend-production-0e2e.up.railway.app  
+- **AI Service:** https://hospital-ai-service-production.up.railway.app
 
-### **Step 2: Add Environment Variables**
-1. Click on the service
-2. Go to "Variables" tab
-3. Click "New Variable"
-4. Add each variable from the lists above
+## 🚀 **Quick Setup Commands**
 
-### **Step 3: Update URLs After Deployment**
-After deploying each service, update the URLs:
-- Replace `hospital-backend-production-xxxx` with your actual backend URL
-- Replace `hospital-ai-production-xxxx` with your actual AI service URL
-- Replace `hospital-frontend-production-xxxx` with your actual frontend URL
+### **Backend Service:**
+```bash
+# In Railway backend service dashboard, set these environment variables:
+SUPABASE_URL=https://cmcaobehivmrgyugwbxz.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtY2FvYmVoaXZtcmd5dWd3Ynh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3MzIzNTYsImV4cCI6MjA2NzMwODM1Nn0.wxPWpDeCbPMXTCyo__mHhmrLrX8396IPtZ3S9xQn8UM
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtY2FvYmVoaXZtcmd5dWd3Ynh6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MTczMjM1NiwiZXhwIjoyMDY3MzA4MzU2fQ.WqBgdHz5v5PQ4OK4afNT1zuxyGz3BX-J55qklRF49dM
+NODE_ENV=production
+PORT=3001
+JWT_SECRET=HPnFyDVK+z82DeWxLPTGBDvfCDBUdjsrIrQQeJU9HI+dCy2y+QX+0TBo2AKtV479KnfhbgniDBujDUeNeLxtKA==
+FRONTEND_URL=https://hospital-frontend-production-b896.up.railway.app
+AI_SERVICE_URL=https://hospital-ai-service-production.up.railway.app
+```
 
-## 🔧 **Your Supabase Configuration**
+### **AI Service:**
+```bash
+# In Railway AI service dashboard, set these environment variables:
+PUBMED_API_KEY=27feebcf45a02d89cf3d56590f31507de309
+FDA_API_KEY=ppTi25A8MrDcqskZCWeL0DbvJGhEf34yhEMIGkbq
+NODE_ENV=production
+PORT=8000
+```
 
-Your Supabase project is already set up with:
-- **Project URL:** `https://cmcaobehivmrgyugwbxz.supabase.co`
-- **Anon Key:** `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtY2FvYmVoaXZtcmd5dWd3Ynh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3MzIzNTYsImV4cCI6MjA2NzMwODM1Nn0.wxPWpDeCbPMXTCyo__mHhmrLrX8396IPtZ3S9xQn8UM`
-- **Service Role Key:** `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtY2FvYmVoaXZtcmd5dWd3Ynh6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MTczMjM1NiwiZXhwIjoyMDY3MzA4MzU2fQ.WqBgdHz5v5PQ4OK4afNT1zuxyGz3BX-J55qklRF49dM`
+### **Frontend Service:**
+```bash
+# In Railway frontend service dashboard, set these environment variables:
+REACT_APP_API_URL=https://hospital-backend-production-0e2e.up.railway.app
+REACT_APP_AI_SERVICE_URL=https://hospital-ai-service-production.up.railway.app
+NODE_ENV=production
+PORT=3000
+```
 
-## 🔍 **Verification Checklist**
+## 🔍 **Verification Steps**
 
-After setting up environment variables:
+### **1. Test Backend Health:**
+```bash
+curl https://hospital-backend-production-0e2e.up.railway.app/health
+```
 
-- [ ] Backend service has all required variables
-- [ ] AI service has API keys configured
-- [ ] Frontend service has API URLs configured
-- [ ] All URLs are updated with actual Railway URLs
-- [ ] Supabase credentials are correct
-- [ ] JWT secret is secure and unique
-- [ ] All services can communicate with each other
+### **2. Test AI Service Health:**
+```bash
+curl https://hospital-ai-service-production.up.railway.app/
+```
 
-## 🚨 **Important Notes**
+### **3. Test Frontend:**
+```bash
+curl https://hospital-frontend-production-b896.up.railway.app/
+```
 
-1. **Never commit `.env` files** to version control
-2. **Use strong JWT secrets** in production
-3. **Update URLs** after each service deployment
-4. **Test connections** between services
-5. **Monitor logs** for environment variable errors
+### **4. Test Service Communication:**
+```bash
+# Test backend API
+curl https://hospital-backend-production-0e2e.up.railway.app/api/health
 
-## 🔄 **Deployment Order**
+# Test AI service
+curl https://hospital-ai-service-production.up.railway.app/health
+```
 
-1. **Deploy Backend** first
-2. **Deploy AI Service** second
-3. **Deploy Frontend** last
-4. **Update URLs** in environment variables
-5. **Test all integrations**
+## 🚨 **Troubleshooting**
 
-## 📞 **Troubleshooting**
+### **Common Issues:**
 
-If you see environment variable errors:
+1. **CORS Errors:**
+   - Ensure `FRONTEND_URL` in backend matches exactly
+   - Check that all URLs are using HTTPS
 
-1. Check Railway dashboard for missing variables
-2. Verify variable names are correct
-3. Ensure URLs are updated with actual Railway URLs
-4. Check service logs for specific error messages
-5. Verify Supabase credentials are working
+2. **Service Communication:**
+   - Verify all environment variables are set correctly
+   - Check Railway logs for connection errors
 
-## 🎯 **Example URLs After Deployment**
+3. **Database Connection:**
+   - Verify Supabase credentials are correct
+   - Check if database is accessible from Railway
 
-Your services will be available at URLs like:
-- **Frontend:** `https://hospital-frontend-production-abc123.up.railway.app`
-- **Backend:** `https://hospital-backend-production-def456.up.railway.app`
-- **AI Service:** `https://hospital-ai-production-ghi789.up.railway.app`
+4. **AI Service Issues:**
+   - Verify PubMed and FDA API keys are valid
+   - Check if AI service can access external APIs
 
-Update your environment variables with these actual URLs. 
+## ✅ **Success Indicators**
+
+- ✅ All services respond to health checks
+- ✅ Frontend loads without errors
+- ✅ Backend API endpoints work
+- ✅ AI service can process requests
+- ✅ Database operations work
+- ✅ Services can communicate with each other
+
+## 📞 **Support**
+
+If you encounter issues:
+1. Check Railway logs for each service
+2. Verify environment variables are set correctly
+3. Test individual service health endpoints
+4. Check CORS configuration in backend
+5. Verify API keys are valid and accessible
+
+---
+
+**🎉 Your Hospital Management System is now fully deployed and configured!** 
