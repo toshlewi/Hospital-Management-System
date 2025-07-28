@@ -15,8 +15,11 @@ RUN npm install --no-audit --no-fund --prefer-offline
 # Copy source code
 COPY . .
 
+# Create .env file if it doesn't exist (for Railway)
+RUN touch .env
+
 # Expose port
 EXPOSE 3001
 
 # Start the backend server
-CMD ["node", "--max-old-space-size=512", "--expose-gc", "server.js"] 
+CMD ["npm", "start"] 
