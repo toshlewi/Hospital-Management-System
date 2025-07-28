@@ -1,11 +1,11 @@
 services:
-  # Frontend (React)
+  # Frontend (React) - Static Build
   - type: web
     name: hospital-frontend
     env: static
     plan: free
     branch: main
-    rootDir: src
+    rootDir: .
     buildCommand: npm install && npm run build
     staticPublishPath: ./build
     envVars:
