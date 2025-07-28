@@ -118,7 +118,7 @@ app.get('/health', (req, res) => {
     },
     services: {
       database: 'connected',
-      ai_service: process.env.AI_SERVICE_URL || 'http://localhost:8000'
+      ai_service: process.env.AI_SERVICE_URL || 'https://hospital-ai-service.onrender.com'
     }
   });
 });

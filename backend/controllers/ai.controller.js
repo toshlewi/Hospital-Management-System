@@ -100,7 +100,7 @@ async function callAIService(url, payload, timeout = 30000) {
 }
 
 exports.diagnose = async (req, res) => {
-    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'https://hospital-ai-service.onrender.com';
     
     try {
         const { note_text, test_results, doctor_notes, patient_id, symptoms } = req.body;
@@ -131,7 +131,7 @@ exports.diagnose = async (req, res) => {
 
 // Lab Test Analysis
 exports.analyzeLabResults = async (req, res) => {
-    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'https://hospital-ai-service.onrender.com';
     
     try {
         const { patient_id, lab_results, notes } = req.body;
@@ -159,7 +159,7 @@ exports.analyzeLabResults = async (req, res) => {
 
 // Drug Interaction Analysis
 exports.analyzeDrugInteractions = async (req, res) => {
-    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'https://hospital-ai-service.onrender.com';
     
     try {
         const { patient_id, medications } = req.body;
@@ -187,7 +187,7 @@ exports.analyzeDrugInteractions = async (req, res) => {
 
 // Symptom Analysis
 exports.analyzeSymptoms = async (req, res) => {
-    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'https://hospital-ai-service.onrender.com';
     
     try {
         const { patient_id, symptoms, notes } = req.body;
@@ -211,7 +211,7 @@ exports.analyzeSymptoms = async (req, res) => {
 
 // Treatment Analysis
 exports.analyzeTreatment = async (req, res) => {
-    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'https://hospital-ai-service.onrender.com';
     
     try {
         const { patient_id, diagnosis, symptoms, lab_results } = req.body;
@@ -239,7 +239,7 @@ exports.analyzeTreatment = async (req, res) => {
 
 // Imaging Analysis
 exports.analyzeImaging = async (req, res) => {
-    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'https://hospital-ai-service.onrender.com';
     
     try {
         const { patient_id, imaging_results } = req.body;
@@ -266,7 +266,7 @@ exports.analyzeImaging = async (req, res) => {
 
 // Comprehensive Analysis
 exports.analyzeComprehensive = async (req, res) => {
-    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'https://hospital-ai-service.onrender.com';
     
     try {
         const { patient_id, notes, medications, lab_results, imaging_results, symptoms } = req.body;
@@ -296,7 +296,7 @@ exports.analyzeComprehensive = async (req, res) => {
 
 // Real-time Analysis
 exports.analyzeRealTime = async (req, res) => {
-    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'https://hospital-ai-service.onrender.com';
     
     try {
         const { patient_id, notes, medications, lab_results, imaging_results, symptoms } = req.body;
