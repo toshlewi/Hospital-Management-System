@@ -1,0 +1,1000 @@
+{
+  "Common Cold": {
+    "symptoms": [
+      "cough",
+      "runny nose",
+      "sore throat",
+      "sneezing",
+      "mild fever"
+    ],
+    "treatments": [
+      "rest",
+      "fluids",
+      "paracetamol",
+      "decongestants"
+    ],
+    "medications": [
+      "paracetamol",
+      "ibuprofen",
+      "pseudoephedrine"
+    ],
+    "side_effects": [
+      "drowsiness (decongestants)",
+      "stomach upset (NSAIDs)",
+      "allergic reactions"
+    ]
+  },
+  "Influenza": {
+    "symptoms": [
+      "fever",
+      "chills",
+      "muscle aches",
+      "cough",
+      "congestion",
+      "runny nose",
+      "fatigue"
+    ],
+    "treatments": [
+      "rest",
+      "fluids",
+      "antiviral medications",
+      "paracetamol"
+    ],
+    "medications": [
+      "oseltamivir",
+      "zanamivir",
+      "paracetamol"
+    ],
+    "side_effects": [
+      "nausea (oseltamivir)",
+      "headache",
+      "allergic reactions"
+    ]
+  },
+  "Gastroenteritis": {
+    "symptoms": [
+      "vomiting",
+      "diarrhea",
+      "abdominal pain",
+      "nausea",
+      "fever"
+    ],
+    "treatments": [
+      "oral rehydration",
+      "rest",
+      "antidiarrheal medications (if needed)",
+      "antipyretics"
+    ],
+    "medications": [
+      "loperamide",
+      "paracetamol"
+    ],
+    "side_effects": [
+      "constipation (loperamide)",
+      "liver toxicity (paracetamol)"
+    ]
+  },
+  "Pneumonia": {
+    "symptoms": [
+      "cough",
+      "fever",
+      "shortness of breath",
+      "chest pain",
+      "fatigue"
+    ],
+    "treatments": [
+      "antibiotics",
+      "rest",
+      "fluids",
+      "oxygen therapy (if severe)"
+    ],
+    "medications": [
+      "amoxicillin",
+      "azithromycin"
+    ],
+    "side_effects": [
+      "diarrhea (antibiotics)",
+      "allergic reactions"
+    ]
+  },
+  "Diabetes Mellitus": {
+    "symptoms": [
+      "increased thirst",
+      "frequent urination",
+      "hunger",
+      "fatigue",
+      "blurred vision"
+    ],
+    "treatments": [
+      "insulin",
+      "oral hypoglycemics",
+      "diet modification",
+      "exercise"
+    ],
+    "medications": [
+      "insulin",
+      "metformin",
+      "glipizide"
+    ],
+    "side_effects": [
+      "hypoglycemia (insulin)",
+      "GI upset (metformin)",
+      "weight gain (glipizide)"
+    ]
+  },
+  "Hypertension": {
+    "symptoms": [
+      "headache",
+      "dizziness",
+      "blurred vision",
+      "chest pain",
+      "nosebleeds"
+    ],
+    "treatments": [
+      "lifestyle modification",
+      "antihypertensive medications"
+    ],
+    "medications": [
+      "lisinopril",
+      "amlodipine",
+      "hydrochlorothiazide"
+    ],
+    "side_effects": [
+      "cough (lisinopril)",
+      "ankle swelling (amlodipine)",
+      "electrolyte imbalance (HCTZ)"
+    ]
+  },
+  "Asthma": {
+    "symptoms": [
+      "wheezing",
+      "shortness of breath",
+      "chest tightness",
+      "cough"
+    ],
+    "treatments": [
+      "inhaled bronchodilators",
+      "inhaled corticosteroids",
+      "avoid triggers"
+    ],
+    "medications": [
+      "albuterol",
+      "fluticasone"
+    ],
+    "side_effects": [
+      "tremor (albuterol)",
+      "oral thrush (fluticasone)"
+    ]
+  },
+  "Chronic Obstructive Pulmonary Disease": {
+    "symptoms": [
+      "chronic cough",
+      "sputum production",
+      "shortness of breath",
+      "wheezing"
+    ],
+    "treatments": [
+      "smoking cessation",
+      "bronchodilators",
+      "inhaled steroids",
+      "oxygen therapy"
+    ],
+    "medications": [
+      "tiotropium",
+      "salmeterol",
+      "prednisone"
+    ],
+    "side_effects": [
+      "dry mouth (tiotropium)",
+      "increased infection risk (steroids)"
+    ]
+  },
+  "Tuberculosis": {
+    "symptoms": [
+      "persistent cough",
+      "weight loss",
+      "night sweats",
+      "fever",
+      "hemoptysis"
+    ],
+    "treatments": [
+      "antitubercular therapy"
+    ],
+    "medications": [
+      "isoniazid",
+      "rifampin",
+      "ethambutol",
+      "pyrazinamide"
+    ],
+    "side_effects": [
+      "hepatotoxicity (isoniazid, rifampin, pyrazinamide)",
+      "optic neuritis (ethambutol)"
+    ]
+  },
+  "Malaria": {
+    "symptoms": [
+      "fever",
+      "chills",
+      "sweating",
+      "headache",
+      "nausea",
+      "vomiting"
+    ],
+    "treatments": [
+      "antimalarial medications"
+    ],
+    "medications": [
+      "artemether-lumefantrine",
+      "chloroquine"
+    ],
+    "side_effects": [
+      "GI upset",
+      "pruritus (chloroquine)"
+    ]
+  },
+  "HIV/AIDS": {
+    "symptoms": [
+      "weight loss",
+      "chronic diarrhea",
+      "fever",
+      "night sweats",
+      "recurrent infections"
+    ],
+    "treatments": [
+      "antiretroviral therapy (ART)",
+      "prophylaxis for opportunistic infections"
+    ],
+    "medications": [
+      "tenofovir",
+      "efavirenz",
+      "lamivudine"
+    ],
+    "side_effects": [
+      "renal toxicity (tenofovir)",
+      "neuropsychiatric effects (efavirenz)"
+    ]
+  },
+  "Hepatitis B": {
+    "symptoms": [
+      "fatigue",
+      "jaundice",
+      "abdominal pain",
+      "dark urine",
+      "nausea"
+    ],
+    "treatments": [
+      "antiviral medications",
+      "supportive care"
+    ],
+    "medications": [
+      "entecavir",
+      "tenofovir"
+    ],
+    "side_effects": [
+      "lactic acidosis",
+      "renal toxicity"
+    ]
+  },
+  "Dengue Fever": {
+    "symptoms": [
+      "high fever",
+      "severe headache",
+      "pain behind eyes",
+      "joint pain",
+      "rash"
+    ],
+    "treatments": [
+      "supportive care",
+      "fluids",
+      "acetaminophen"
+    ],
+    "medications": [
+      "acetaminophen"
+    ],
+    "side_effects": [
+      "liver toxicity (overdose)"
+    ]
+  },
+  "Typhoid Fever": {
+    "symptoms": [
+      "prolonged fever",
+      "abdominal pain",
+      "constipation or diarrhea",
+      "headache",
+      "rash"
+    ],
+    "treatments": [
+      "antibiotics",
+      "fluids",
+      "rest"
+    ],
+    "medications": [
+      "ciprofloxacin",
+      "ceftriaxone"
+    ],
+    "side_effects": [
+      "tendon rupture (ciprofloxacin)",
+      "allergic reactions"
+    ]
+  },
+  "Peptic Ulcer Disease": {
+    "symptoms": [
+      "epigastric pain",
+      "nausea",
+      "bloating",
+      "heartburn",
+      "vomiting"
+    ],
+    "treatments": [
+      "proton pump inhibitors",
+      "antibiotics for H. pylori",
+      "antacids"
+    ],
+    "medications": [
+      "omeprazole",
+      "amoxicillin",
+      "clarithromycin"
+    ],
+    "side_effects": [
+      "GI upset",
+      "allergic reactions"
+    ]
+  },
+  "Urinary Tract Infection": {
+    "symptoms": [
+      "burning urination",
+      "frequent urination",
+      "lower abdominal pain",
+      "cloudy urine"
+    ],
+    "treatments": [
+      "antibiotics",
+      "hydration"
+    ],
+    "medications": [
+      "nitrofurantoin",
+      "ciprofloxacin"
+    ],
+    "side_effects": [
+      "GI upset",
+      "allergic reactions"
+    ]
+  },
+  "Rheumatoid Arthritis": {
+    "symptoms": [
+      "joint pain",
+      "morning stiffness",
+      "swelling",
+      "fatigue",
+      "weight loss"
+    ],
+    "treatments": [
+      "disease-modifying antirheumatic drugs (DMARDs)",
+      "NSAIDs",
+      "physical therapy"
+    ],
+    "medications": [
+      "methotrexate",
+      "sulfasalazine",
+      "ibuprofen"
+    ],
+    "side_effects": [
+      "liver toxicity (methotrexate)",
+      "GI upset (NSAIDs)"
+    ]
+  },
+  "Osteoarthritis": {
+    "symptoms": [
+      "joint pain",
+      "stiffness",
+      "swelling",
+      "reduced range of motion"
+    ],
+    "treatments": [
+      "NSAIDs",
+      "physical therapy",
+      "weight loss"
+    ],
+    "medications": [
+      "ibuprofen",
+      "acetaminophen"
+    ],
+    "side_effects": [
+      "GI upset (NSAIDs)",
+      "liver toxicity (acetaminophen)"
+    ]
+  },
+  "Migraine": {
+    "symptoms": [
+      "throbbing headache",
+      "nausea",
+      "sensitivity to light",
+      "visual aura"
+    ],
+    "treatments": [
+      "triptans",
+      "NSAIDs",
+      "rest in dark room"
+    ],
+    "medications": [
+      "sumatriptan",
+      "ibuprofen"
+    ],
+    "side_effects": [
+      "chest tightness (sumatriptan)",
+      "GI upset (NSAIDs)"
+    ]
+  },
+  "Epilepsy": {
+    "symptoms": [
+      "recurrent seizures",
+      "loss of consciousness",
+      "confusion",
+      "muscle twitching"
+    ],
+    "treatments": [
+      "antiepileptic drugs",
+      "lifestyle modification"
+    ],
+    "medications": [
+      "valproic acid",
+      "carbamazepine"
+    ],
+    "side_effects": [
+      "liver toxicity (valproic acid)",
+      "drowsiness (carbamazepine)"
+    ]
+  },
+  "Diagnosis and treatment of the cardiovascular consequences of Fabry": {
+    "name": "Diagnosis and treatment of the cardiovascular consequences of Fabry",
+    "symptoms": [],
+    "treatments": [
+      "treatment",
+      "Therapy",
+      "therapy"
+    ],
+    "lab_tests": [
+      "biopsy",
+      "hemoglobin"
+    ],
+    "drug_interactions": [],
+    "risk_factors": [],
+    "severity": "moderate",
+    "pubmed_articles": [
+      {
+        "uid": "38486361",
+        "pubdate": "2024 Apr 21",
+        "epubdate": "",
+        "source": "Eur Heart J",
+        "authors": [
+          {
+            "name": "Pieroni M",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Namdar M",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Olivotto I",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Desnick RJ",
+            "authtype": "Author",
+            "clusterid": ""
+          }
+        ],
+        "lastauthor": "Desnick RJ",
+        "title": "Anderson-Fabry disease management: role of the cardiologist.",
+        "sorttitle": "anderson fabry disease management role of the cardiologist",
+        "volume": "45",
+        "issue": "16",
+        "pages": "1395-1409",
+        "lang": [
+          "eng"
+        ],
+        "nlmuniqueid": "8006263",
+        "issn": "0195-668X",
+        "essn": "1522-9645",
+        "pubtype": [
+          "Review",
+          "Journal Article"
+        ],
+        "recordstatus": "PubMed - indexed for MEDLINE",
+        "pubstatus": "4",
+        "articleids": [
+          {
+            "idtype": "pubmed",
+            "idtypen": 1,
+            "value": "38486361"
+          },
+          {
+            "idtype": "doi",
+            "idtypen": 3,
+            "value": "10.1093/eurheartj/ehae148"
+          },
+          {
+            "idtype": "pii",
+            "idtypen": 4,
+            "value": "7629175"
+          }
+        ],
+        "history": [
+          {
+            "pubstatus": "received",
+            "date": "2023/09/03 00:00"
+          },
+          {
+            "pubstatus": "revised",
+            "date": "2024/02/04 00:00"
+          },
+          {
+            "pubstatus": "accepted",
+            "date": "2024/02/27 00:00"
+          },
+          {
+            "pubstatus": "medline",
+            "date": "2024/04/22 06:43"
+          },
+          {
+            "pubstatus": "pubmed",
+            "date": "2024/03/15 06:44"
+          },
+          {
+            "pubstatus": "entrez",
+            "date": "2024/03/15 01:13"
+          }
+        ],
+        "references": [],
+        "attributes": [
+          "Has Abstract"
+        ],
+        "pmcrefcount": "",
+        "fulljournalname": "European heart journal",
+        "elocationid": "doi: 10.1093/eurheartj/ehae148",
+        "doctype": "citation",
+        "srccontriblist": [],
+        "booktitle": "",
+        "medium": "",
+        "edition": "",
+        "publisherlocation": "",
+        "publishername": "",
+        "srcdate": "",
+        "reportnumber": "",
+        "availablefromurl": "",
+        "locationlabel": "",
+        "doccontriblist": [],
+        "docdate": "",
+        "bookname": "",
+        "chapter": "",
+        "sortpubdate": "2024/04/21 00:00",
+        "sortfirstauthor": "Pieroni M",
+        "vernaculartitle": ""
+      },
+      {
+        "uid": "29878206",
+        "pubdate": "2019 Jan 1",
+        "epubdate": "",
+        "source": "QJM",
+        "authors": [
+          {
+            "name": "Baig S",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Vijapurapu R",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Alharbi F",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Nordin S",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Kozor R",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Moon J",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Bembi B",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Geberhiwot T",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Steeds RP",
+            "authtype": "Author",
+            "clusterid": ""
+          }
+        ],
+        "lastauthor": "Steeds RP",
+        "title": "Diagnosis and treatment of the cardiovascular consequences of Fabry disease.",
+        "sorttitle": "diagnosis and treatment of the cardiovascular consequences of fabry disease",
+        "volume": "112",
+        "issue": "1",
+        "pages": "3-9",
+        "lang": [
+          "eng"
+        ],
+        "nlmuniqueid": "9438285",
+        "issn": "",
+        "essn": "1460-2393",
+        "pubtype": [
+          "Journal Article",
+          "Review"
+        ],
+        "recordstatus": "PubMed - indexed for MEDLINE",
+        "pubstatus": "4",
+        "articleids": [
+          {
+            "idtype": "pubmed",
+            "idtypen": 1,
+            "value": "29878206"
+          },
+          {
+            "idtype": "doi",
+            "idtypen": 3,
+            "value": "10.1093/qjmed/hcy120"
+          },
+          {
+            "idtype": "pii",
+            "idtypen": 4,
+            "value": "5033833"
+          }
+        ],
+        "history": [
+          {
+            "pubstatus": "pubmed",
+            "date": "2018/06/08 06:00"
+          },
+          {
+            "pubstatus": "medline",
+            "date": "2019/01/15 06:00"
+          },
+          {
+            "pubstatus": "entrez",
+            "date": "2018/06/08 06:00"
+          }
+        ],
+        "references": [],
+        "attributes": [
+          "Has Abstract"
+        ],
+        "pmcrefcount": "",
+        "fulljournalname": "QJM : monthly journal of the Association of Physicians",
+        "elocationid": "doi: 10.1093/qjmed/hcy120",
+        "doctype": "citation",
+        "srccontriblist": [],
+        "booktitle": "",
+        "medium": "",
+        "edition": "",
+        "publisherlocation": "",
+        "publishername": "",
+        "srcdate": "",
+        "reportnumber": "",
+        "availablefromurl": "",
+        "locationlabel": "",
+        "doccontriblist": [],
+        "docdate": "",
+        "bookname": "",
+        "chapter": "",
+        "sortpubdate": "2019/01/01 00:00",
+        "sortfirstauthor": "Baig S",
+        "vernaculartitle": ""
+      },
+      {
+        "uid": "36582184",
+        "pubdate": "2023 Feb 21",
+        "epubdate": "",
+        "source": "Eur Heart J",
+        "authors": [
+          {
+            "name": "Olivotto I",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Udelson JE",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Pieroni M",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Rapezzi C",
+            "authtype": "Author",
+            "clusterid": ""
+          }
+        ],
+        "lastauthor": "Rapezzi C",
+        "title": "Genetic causes of heart failure with preserved ejection fraction: emerging pharmacological treatments.",
+        "sorttitle": "genetic causes of heart failure with preserved ejection fraction emerging pharmacological treatments",
+        "volume": "44",
+        "issue": "8",
+        "pages": "656-667",
+        "lang": [
+          "eng"
+        ],
+        "nlmuniqueid": "8006263",
+        "issn": "0195-668X",
+        "essn": "1522-9645",
+        "pubtype": [
+          "Review",
+          "Journal Article"
+        ],
+        "recordstatus": "PubMed - indexed for MEDLINE",
+        "pubstatus": "4",
+        "articleids": [
+          {
+            "idtype": "pubmed",
+            "idtypen": 1,
+            "value": "36582184"
+          },
+          {
+            "idtype": "doi",
+            "idtypen": 3,
+            "value": "10.1093/eurheartj/ehac764"
+          },
+          {
+            "idtype": "pii",
+            "idtypen": 4,
+            "value": "6965406"
+          }
+        ],
+        "history": [
+          {
+            "pubstatus": "received",
+            "date": "2022/05/31 00:00"
+          },
+          {
+            "pubstatus": "revised",
+            "date": "2022/11/13 00:00"
+          },
+          {
+            "pubstatus": "accepted",
+            "date": "2022/11/26 00:00"
+          },
+          {
+            "pubstatus": "pubmed",
+            "date": "2022/12/31 06:00"
+          },
+          {
+            "pubstatus": "medline",
+            "date": "2023/02/25 06:00"
+          },
+          {
+            "pubstatus": "entrez",
+            "date": "2022/12/30 02:13"
+          }
+        ],
+        "references": [],
+        "attributes": [
+          "Has Abstract"
+        ],
+        "pmcrefcount": "",
+        "fulljournalname": "European heart journal",
+        "elocationid": "doi: 10.1093/eurheartj/ehac764",
+        "doctype": "citation",
+        "srccontriblist": [],
+        "booktitle": "",
+        "medium": "",
+        "edition": "",
+        "publisherlocation": "",
+        "publishername": "",
+        "srcdate": "",
+        "reportnumber": "",
+        "availablefromurl": "",
+        "locationlabel": "",
+        "doccontriblist": [],
+        "docdate": "",
+        "bookname": "",
+        "chapter": "",
+        "sortpubdate": "2023/02/21 00:00",
+        "sortfirstauthor": "Olivotto I",
+        "vernaculartitle": ""
+      },
+      {
+        "uid": "34647542",
+        "pubdate": "2021 Oct",
+        "epubdate": "",
+        "source": "Recenti Prog Med",
+        "authors": [
+          {
+            "name": "Nistic\u00f2 R",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Pisani A",
+            "authtype": "Author",
+            "clusterid": ""
+          }
+        ],
+        "lastauthor": "Pisani A",
+        "title": "[The treatment for Fabry disease: focus on agalsidase alpha and beta].",
+        "sorttitle": "the treatment for fabry disease focus on agalsidase alpha and beta",
+        "volume": "112",
+        "issue": "10",
+        "pages": "75e-84e",
+        "lang": [
+          "ita"
+        ],
+        "nlmuniqueid": "0401271",
+        "issn": "0034-1193",
+        "essn": "2038-1840",
+        "pubtype": [
+          "Journal Article"
+        ],
+        "recordstatus": "PubMed - indexed for MEDLINE",
+        "pubstatus": "4",
+        "articleids": [
+          {
+            "idtype": "pubmed",
+            "idtypen": 1,
+            "value": "34647542"
+          },
+          {
+            "idtype": "doi",
+            "idtypen": 3,
+            "value": "10.1701/3679.36652"
+          }
+        ],
+        "history": [
+          {
+            "pubstatus": "entrez",
+            "date": "2021/10/14 08:39"
+          },
+          {
+            "pubstatus": "pubmed",
+            "date": "2021/10/15 06:00"
+          },
+          {
+            "pubstatus": "medline",
+            "date": "2022/04/14 06:00"
+          }
+        ],
+        "references": [],
+        "attributes": [
+          "Has Abstract"
+        ],
+        "pmcrefcount": "",
+        "fulljournalname": "Recenti progressi in medicina",
+        "elocationid": "doi: 10.1701/3679.36652",
+        "doctype": "citation",
+        "srccontriblist": [],
+        "booktitle": "",
+        "medium": "",
+        "edition": "",
+        "publisherlocation": "",
+        "publishername": "",
+        "srcdate": "",
+        "reportnumber": "",
+        "availablefromurl": "",
+        "locationlabel": "",
+        "doccontriblist": [],
+        "docdate": "",
+        "bookname": "",
+        "chapter": "",
+        "sortpubdate": "2021/10/01 00:00",
+        "sortfirstauthor": "Nistic\u00f2 R",
+        "vernaculartitle": "Terapia della malattia di Fabry: focus su agalsidasi alfa e agalsidasi beta."
+      },
+      {
+        "uid": "39699757",
+        "pubdate": "2025 Mar",
+        "epubdate": "2024 Dec 19",
+        "source": "J Nephrol",
+        "authors": [
+          {
+            "name": "Mannan F",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Chinnadurai R",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Wiltshire R",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Hansel J",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Stepien KM",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Sharma R",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Wilcox G",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "McCarron E",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Kalra PA",
+            "authtype": "Author",
+            "clusterid": ""
+          },
+          {
+            "name": "Jovanovic A",
+            "authtype": "Author",
+            "clusterid": ""
+          }
+        ],
+        "lastauthor": "Jovanovic A",
+        "title": "Epidemiology and early predictors of Fabry nephropathy: evaluation of long-term outcomes from a national Fabry centre.",
+        "sorttitle": "epidemiology and early predictors of fabry nephropathy evaluation of long term outcomes from a national fabry centre",
+        "volume": "38",
+        "issue": "2",
+        "pages": "579-587",
+        "lang": [
+          "eng"
+        ],
+        "nlmuniqueid": "9012268",
+        "issn": "1121-8428",
+        "essn": "1724-6059",
+        "pubtype": [
+          "Journal Article"
+        ],
+        "recordstatus": "PubMed - indexed for MEDLINE",
+        "pubstatus": "256",
+        "articleids": [
+          {
+            "idtype": "pubmed",
+            "idtypen": 1,
+            "value": "39699757"
+          },
+          {
+            "idtype": "pmc",
+            "idtypen": 8,
+            "value": "PMC11961510"
+          },
+          {
+            "idtype": "pmcid",
+            "idtypen": 5,
+            "value": "pmc-id: PMC11961510;"
+          },
+          {
+            "idtype": "doi",
+            "idtypen": 3,
+            "value": "10.1007/s40620-024-02170-9"
+          },
+          {

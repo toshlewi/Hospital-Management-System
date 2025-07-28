@@ -1,5 +1,10 @@
 [
   {
+    "symptoms": "chest pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.8
+  },
+  {
     "symptoms": "Pain",
     "disease": "Emerging Concepts in the Diagnosis and Treatment of",
     "confidence": 0.8
@@ -10,9 +15,14 @@
     "confidence": 0.8
   },
   {
-    "symptoms": "chest pain",
+    "symptoms": "chest pain Pain",
     "disease": "Emerging Concepts in the Diagnosis and Treatment of",
-    "confidence": 0.8
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "chest pain Pain pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.9
   },
   {
     "symptoms": "Pain pain",
@@ -20,17 +30,7 @@
     "confidence": 0.9
   },
   {
-    "symptoms": "Pain pain chest pain",
-    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "pain chest pain",
-    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "increased hunger",
+    "symptoms": "fatigue",
     "disease": "Diabetes and",
     "confidence": 0.8
   },
@@ -40,12 +40,12 @@
     "confidence": 0.8
   },
   {
-    "symptoms": "blurred vision",
+    "symptoms": "weight loss",
     "disease": "Diabetes and",
     "confidence": 0.8
   },
   {
-    "symptoms": "weight loss",
+    "symptoms": "blurred vision",
     "disease": "Diabetes and",
     "confidence": 0.8
   },
@@ -55,68 +55,173 @@
     "confidence": 0.8
   },
   {
-    "symptoms": "fatigue",
+    "symptoms": "increased hunger",
     "disease": "Diabetes and",
     "confidence": 0.8
   },
   {
-    "symptoms": "increased hunger frequent urination",
+    "symptoms": "fatigue frequent urination",
     "disease": "Diabetes and",
     "confidence": 0.9
   },
   {
-    "symptoms": "increased hunger frequent urination blurred vision",
+    "symptoms": "fatigue frequent urination weight loss",
     "disease": "Diabetes and",
     "confidence": 0.9
   },
   {
-    "symptoms": "increased hunger frequent urination blurred vision weight loss",
+    "symptoms": "fatigue frequent urination weight loss blurred vision",
     "disease": "Diabetes and",
     "confidence": 0.9
   },
   {
-    "symptoms": "frequent urination blurred vision",
+    "symptoms": "frequent urination weight loss",
     "disease": "Diabetes and",
     "confidence": 0.9
   },
   {
-    "symptoms": "frequent urination blurred vision weight loss",
+    "symptoms": "frequent urination weight loss blurred vision",
     "disease": "Diabetes and",
     "confidence": 0.9
   },
   {
-    "symptoms": "frequent urination blurred vision weight loss excessive thirst",
+    "symptoms": "frequent urination weight loss blurred vision excessive thirst",
     "disease": "Diabetes and",
     "confidence": 0.9
   },
   {
-    "symptoms": "blurred vision weight loss",
+    "symptoms": "weight loss blurred vision",
     "disease": "Diabetes and",
     "confidence": 0.9
   },
   {
-    "symptoms": "blurred vision weight loss excessive thirst",
+    "symptoms": "weight loss blurred vision excessive thirst",
     "disease": "Diabetes and",
     "confidence": 0.9
   },
   {
-    "symptoms": "blurred vision weight loss excessive thirst fatigue",
+    "symptoms": "weight loss blurred vision excessive thirst increased hunger",
     "disease": "Diabetes and",
     "confidence": 0.9
   },
   {
-    "symptoms": "weight loss excessive thirst",
+    "symptoms": "blurred vision excessive thirst",
     "disease": "Diabetes and",
     "confidence": 0.9
   },
   {
-    "symptoms": "weight loss excessive thirst fatigue",
+    "symptoms": "blurred vision excessive thirst increased hunger",
     "disease": "Diabetes and",
     "confidence": 0.9
   },
   {
-    "symptoms": "excessive thirst fatigue",
+    "symptoms": "excessive thirst increased hunger",
     "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "fatigue",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "frequent urination",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "weight loss",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "blurred vision",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "excessive thirst",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "increased hunger",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "fatigue frequent urination",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "fatigue frequent urination weight loss",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "fatigue frequent urination weight loss blurred vision",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "frequent urination weight loss",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "frequent urination weight loss blurred vision",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "frequent urination weight loss blurred vision excessive thirst",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "weight loss blurred vision",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "weight loss blurred vision excessive thirst",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "weight loss blurred vision excessive thirst increased hunger",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "blurred vision excessive thirst",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "blurred vision excessive thirst increased hunger",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "excessive thirst increased hunger",
+    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "back pain",
+    "disease": "Time to Diagnosis and Treatment of",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "pain",
+    "disease": "Time to Diagnosis and Treatment of",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "back pain pain",
+    "disease": "Time to Diagnosis and Treatment of",
     "confidence": 0.9
   },
   {
@@ -140,111 +245,6 @@
     "confidence": 0.8
   },
   {
-    "symptoms": "pain",
-    "disease": "Time to Diagnosis and Treatment of",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "back pain",
-    "disease": "Time to Diagnosis and Treatment of",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "pain back pain",
-    "disease": "Time to Diagnosis and Treatment of",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "increased hunger",
-    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "frequent urination",
-    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "blurred vision",
-    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "weight loss",
-    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "excessive thirst",
-    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "fatigue",
-    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "increased hunger frequent urination",
-    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "increased hunger frequent urination blurred vision",
-    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "increased hunger frequent urination blurred vision weight loss",
-    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "frequent urination blurred vision",
-    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "frequent urination blurred vision weight loss",
-    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "frequent urination blurred vision weight loss excessive thirst",
-    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "blurred vision weight loss",
-    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "blurred vision weight loss excessive thirst",
-    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "blurred vision weight loss excessive thirst fatigue",
-    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "weight loss excessive thirst",
-    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "weight loss excessive thirst fatigue",
-    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "excessive thirst fatigue",
-    "disease": "Status Quo and Research Progress in Diagnosis and Treatment of Patients With Diabetes Mellitus and Chronic Kidney",
-    "confidence": 0.9
-  },
-  {
     "symptoms": "Headache",
     "disease": "Secondary",
     "confidence": 0.8
@@ -260,54 +260,34 @@
     "confidence": 0.9
   },
   {
-    "symptoms": "Pain",
-    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "pain",
-    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
-    "confidence": 0.8
-  },
-  {
     "symptoms": "chest pain",
     "disease": "Emerging Concepts in the Diagnosis and Treatment of",
     "confidence": 0.8
   },
   {
+    "symptoms": "Pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "chest pain Pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "chest pain Pain pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.9
+  },
+  {
     "symptoms": "Pain pain",
     "disease": "Emerging Concepts in the Diagnosis and Treatment of",
     "confidence": 0.9
-  },
-  {
-    "symptoms": "Pain pain chest pain",
-    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "pain chest pain",
-    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "pain",
-    "disease": "Progress and Challenges in the Diagnosis and Treatment of Brain",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "Pain",
-    "disease": "Brief Overview of Prostate",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "Pain",
-    "disease": "Current State of Breast",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "pain",
-    "disease": "Advances in",
-    "confidence": 0.8
   },
   {
     "symptoms": "pain",
@@ -323,6 +303,26 @@
     "symptoms": "pain abdominal pain",
     "disease": "Gastric",
     "confidence": 0.9
+  },
+  {
+    "symptoms": "Pain",
+    "disease": "Brief Overview of Prostate",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "pain",
+    "disease": "Progress and Challenges in the Diagnosis and Treatment of Brain",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "Pain",
+    "disease": "Current State of Breast",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "pain",
+    "disease": "Advances in",
+    "confidence": 0.8
   },
   {
     "symptoms": "bleeding",

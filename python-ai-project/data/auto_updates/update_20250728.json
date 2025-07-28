@@ -1,0 +1,26 @@
+{
+  "update_id": 1,
+  "start_time": "2025-07-28T13:03:22.455883",
+  "end_time": "2025-07-28T13:11:33.076462",
+  "duration_seconds": 490.620603,
+  "results": {
+    "pubmed": {
+      "status": "success",
+      "data_count": 17,
+      "timestamp": "2025-07-28T13:03:28.933474"
+    },
+    "fda": {
+      "status": "success",
+      "data_count": 4,
+      "timestamp": "2025-07-28T13:03:35.894519"
+    },
+    "who": {
+      "status": "success",
+      "data_count": 3,
+      "timestamp": "2025-07-28T13:03:37.245175"
+    }
+  },
+  "ai_accuracy_before": 0.0,
+  "ai_accuracy_after": 0.4117647058823529,
+  "diseases_count": 121
+}

@@ -15,6 +15,13 @@ from datetime import datetime
 import re
 from dotenv import load_dotenv
 
+# Machine Learning imports
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.metrics import accuracy_score, classification_report
+
 # Load environment variables
 load_dotenv()
 
@@ -73,7 +80,15 @@ class AdvancedMedicalAI:
                     self.diseases_database = json.load(f)
                 logger.info(f"📚 Loaded {len(self.diseases_database)} existing diseases")
                 
-            if os.path.exists("models/medical_ai_model.pkl"):
+            # Try to load the manual diseases model first
+            if os.path.exists("models/manual_diseases_model.pkl"):
+                with open("models/manual_diseases_model.pkl", "rb") as f:
+                    model_data = pickle.load(f)
+                    self.vectorizer = model_data['vectorizer']
+                    self.classifier = model_data['classifier']
+                    self.accuracy = model_data.get('accuracy', 0.0)
+                logger.info(f"🤖 Loaded manual diseases model with {self.accuracy:.2%} accuracy")
+            elif os.path.exists("models/medical_ai_model.pkl"):
                 with open("models/medical_ai_model.pkl", "rb") as f:
                     model_data = pickle.load(f)
                     self.vectorizer = model_data['vectorizer']
@@ -607,20 +622,15 @@ class AdvancedMedicalAI:
                     disease_name = classes[idx]
                     confidence = probabilities[idx]
                     
-                    # Get disease data
+                    # Get disease data from database
                     disease_data = self.diseases_database.get(disease_name, {})
-                    
-                    # Generate lab tests if not available
-                    lab_tests = disease_data.get('lab_tests', [])
-                    if not lab_tests:
-                        lab_tests = self.generate_lab_tests_for_symptoms(symptoms, disease_name)
                     
                     results.append({
                         'disease': disease_name,
                         'confidence': confidence,
                         'symptoms': disease_data.get('symptoms', []),
                         'treatments': disease_data.get('treatments', []),
-                        'lab_tests': lab_tests,
+                        'lab_tests': disease_data.get('lab_tests', []),
                         'drug_interactions': disease_data.get('drug_interactions', []),
                         'severity': disease_data.get('severity', 'moderate')
                     })

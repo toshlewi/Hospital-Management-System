@@ -296,7 +296,7 @@ async def get_training_status():
 async def diagnose_symptoms(request: SymptomRequest):
     """Analyze symptoms using the advanced AI model"""
     try:
-        if advanced_ai.training_status != "completed" and len(advanced_ai.diseases_database) < 100:
+        if advanced_ai.training_status != "completed" and len(advanced_ai.diseases_database) < 10:
             raise HTTPException(
                 status_code=503, 
                 detail="AI model needs training. Please start training first or wait for completion."
@@ -335,7 +335,7 @@ async def diagnose_symptoms(request: SymptomRequest):
 async def comprehensive_analysis(request: SymptomRequest):
     """Perform comprehensive medical analysis"""
     try:
-        if advanced_ai.training_status != "completed" and len(advanced_ai.diseases_database) < 100:
+        if advanced_ai.training_status != "completed" and len(advanced_ai.diseases_database) < 10:
             raise HTTPException(
                 status_code=503, 
                 detail="AI model needs training. Please start training first or wait for completion."

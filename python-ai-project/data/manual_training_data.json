@@ -1,0 +1,374 @@
+[
+  {
+    "symptoms": "increased thirst",
+    "disease": "Diabetes Mellitus"
+  },
+  {
+    "symptoms": "frequent urination",
+    "disease": "Diabetes Mellitus"
+  },
+  {
+    "symptoms": "hunger",
+    "disease": "Diabetes Mellitus"
+  },
+  {
+    "symptoms": "fatigue",
+    "disease": "Diabetes Mellitus"
+  },
+  {
+    "symptoms": "blurred vision",
+    "disease": "Diabetes Mellitus"
+  },
+  {
+    "symptoms": "increased thirst frequent urination",
+    "disease": "Diabetes Mellitus"
+  },
+  {
+    "symptoms": "increased thirst frequent urination hunger",
+    "disease": "Diabetes Mellitus"
+  },
+  {
+    "symptoms": "frequent urination hunger",
+    "disease": "Diabetes Mellitus"
+  },
+  {
+    "symptoms": "frequent urination hunger fatigue",
+    "disease": "Diabetes Mellitus"
+  },
+  {
+    "symptoms": "hunger fatigue",
+    "disease": "Diabetes Mellitus"
+  },
+  {
+    "symptoms": "hunger fatigue blurred vision",
+    "disease": "Diabetes Mellitus"
+  },
+  {
+    "symptoms": "fatigue blurred vision",
+    "disease": "Diabetes Mellitus"
+  },
+  {
+    "symptoms": "headache",
+    "disease": "Hypertension"
+  },
+  {
+    "symptoms": "dizziness",
+    "disease": "Hypertension"
+  },
+  {
+    "symptoms": "blurred vision",
+    "disease": "Hypertension"
+  },
+  {
+    "symptoms": "chest pain",
+    "disease": "Hypertension"
+  },
+  {
+    "symptoms": "nosebleeds",
+    "disease": "Hypertension"
+  },
+  {
+    "symptoms": "headache dizziness",
+    "disease": "Hypertension"
+  },
+  {
+    "symptoms": "headache dizziness blurred vision",
+    "disease": "Hypertension"
+  },
+  {
+    "symptoms": "dizziness blurred vision",
+    "disease": "Hypertension"
+  },
+  {
+    "symptoms": "dizziness blurred vision chest pain",
+    "disease": "Hypertension"
+  },
+  {
+    "symptoms": "blurred vision chest pain",
+    "disease": "Hypertension"
+  },
+  {
+    "symptoms": "blurred vision chest pain nosebleeds",
+    "disease": "Hypertension"
+  },
+  {
+    "symptoms": "chest pain nosebleeds",
+    "disease": "Hypertension"
+  },
+  {
+    "symptoms": "fever",
+    "disease": "Malaria"
+  },
+  {
+    "symptoms": "chills",
+    "disease": "Malaria"
+  },
+  {
+    "symptoms": "sweating",
+    "disease": "Malaria"
+  },
+  {
+    "symptoms": "headache",
+    "disease": "Malaria"
+  },
+  {
+    "symptoms": "nausea",
+    "disease": "Malaria"
+  },
+  {
+    "symptoms": "vomiting",
+    "disease": "Malaria"
+  },
+  {
+    "symptoms": "fever chills",
+    "disease": "Malaria"
+  },
+  {
+    "symptoms": "fever chills sweating",
+    "disease": "Malaria"
+  },
+  {
+    "symptoms": "chills sweating",
+    "disease": "Malaria"
+  },
+  {
+    "symptoms": "chills sweating headache",
+    "disease": "Malaria"
+  },
+  {
+    "symptoms": "sweating headache",
+    "disease": "Malaria"
+  },
+  {
+    "symptoms": "sweating headache nausea",
+    "disease": "Malaria"
+  },
+  {
+    "symptoms": "headache nausea",
+    "disease": "Malaria"
+  },
+  {
+    "symptoms": "headache nausea vomiting",
+    "disease": "Malaria"
+  },
+  {
+    "symptoms": "nausea vomiting",
+    "disease": "Malaria"
+  },
+  {
+    "symptoms": "weight loss",
+    "disease": "HIV/AIDS"
+  },
+  {
+    "symptoms": "chronic diarrhea",
+    "disease": "HIV/AIDS"
+  },
+  {
+    "symptoms": "fever",
+    "disease": "HIV/AIDS"
+  },
+  {
+    "symptoms": "night sweats",
+    "disease": "HIV/AIDS"
+  },
+  {
+    "symptoms": "recurrent infections",
+    "disease": "HIV/AIDS"
+  },
+  {
+    "symptoms": "weight loss chronic diarrhea",
+    "disease": "HIV/AIDS"
+  },
+  {
+    "symptoms": "weight loss chronic diarrhea fever",
+    "disease": "HIV/AIDS"
+  },
+  {
+    "symptoms": "chronic diarrhea fever",
+    "disease": "HIV/AIDS"
+  },
+  {
+    "symptoms": "chronic diarrhea fever night sweats",
+    "disease": "HIV/AIDS"
+  },
+  {
+    "symptoms": "fever night sweats",
+    "disease": "HIV/AIDS"
+  },
+  {
+    "symptoms": "fever night sweats recurrent infections",
+    "disease": "HIV/AIDS"
+  },
+  {
+    "symptoms": "night sweats recurrent infections",
+    "disease": "HIV/AIDS"
+  },
+  {
+    "symptoms": "persistent cough",
+    "disease": "Tuberculosis"
+  },
+  {
+    "symptoms": "weight loss",
+    "disease": "Tuberculosis"
+  },
+  {
+    "symptoms": "night sweats",
+    "disease": "Tuberculosis"
+  },
+  {
+    "symptoms": "fever",
+    "disease": "Tuberculosis"
+  },
+  {
+    "symptoms": "hemoptysis",
+    "disease": "Tuberculosis"
+  },
+  {
+    "symptoms": "persistent cough weight loss",
+    "disease": "Tuberculosis"
+  },
+  {
+    "symptoms": "persistent cough weight loss night sweats",
+    "disease": "Tuberculosis"
+  },
+  {
+    "symptoms": "weight loss night sweats",
+    "disease": "Tuberculosis"
+  },
+  {
+    "symptoms": "weight loss night sweats fever",
+    "disease": "Tuberculosis"
+  },
+  {
+    "symptoms": "night sweats fever",
+    "disease": "Tuberculosis"
+  },
+  {
+    "symptoms": "night sweats fever hemoptysis",
+    "disease": "Tuberculosis"
+  },
+  {
+    "symptoms": "fever hemoptysis",
+    "disease": "Tuberculosis"
+  },
+  {
+    "symptoms": "cough",
+    "disease": "Pneumonia"
+  },
+  {
+    "symptoms": "fever",
+    "disease": "Pneumonia"
+  },
+  {
+    "symptoms": "shortness of breath",
+    "disease": "Pneumonia"
+  },
+  {
+    "symptoms": "chest pain",
+    "disease": "Pneumonia"
+  },
+  {
+    "symptoms": "fatigue",
+    "disease": "Pneumonia"
+  },
+  {
+    "symptoms": "cough fever",
+    "disease": "Pneumonia"
+  },
+  {
+    "symptoms": "cough fever shortness of breath",
+    "disease": "Pneumonia"
+  },
+  {
+    "symptoms": "fever shortness of breath",
+    "disease": "Pneumonia"
+  },
+  {
+    "symptoms": "fever shortness of breath chest pain",
+    "disease": "Pneumonia"
+  },
+  {
+    "symptoms": "shortness of breath chest pain",
+    "disease": "Pneumonia"
+  },
+  {
+    "symptoms": "shortness of breath chest pain fatigue",
+    "disease": "Pneumonia"
+  },
+  {
+    "symptoms": "chest pain fatigue",
+    "disease": "Pneumonia"
+  },
+  {
+    "symptoms": "wheezing",
+    "disease": "Asthma"
+  },
+  {
+    "symptoms": "shortness of breath",
+    "disease": "Asthma"
+  },
+  {
+    "symptoms": "chest tightness",
+    "disease": "Asthma"
+  },
+  {
+    "symptoms": "cough",
+    "disease": "Asthma"
+  },
+  {
+    "symptoms": "wheezing shortness of breath",
+    "disease": "Asthma"
+  },
+  {
+    "symptoms": "wheezing shortness of breath chest tightness",
+    "disease": "Asthma"
+  },
+  {
+    "symptoms": "shortness of breath chest tightness",
+    "disease": "Asthma"
+  },
+  {
+    "symptoms": "shortness of breath chest tightness cough",
+    "disease": "Asthma"
+  },
+  {
+    "symptoms": "chest tightness cough",
+    "disease": "Asthma"
+  },
+  {
+    "symptoms": "recurrent seizures",
+    "disease": "Epilepsy"
+  },
+  {
+    "symptoms": "loss of consciousness",
+    "disease": "Epilepsy"
+  },
+  {
+    "symptoms": "confusion",
+    "disease": "Epilepsy"
+  },
+  {
+    "symptoms": "muscle twitching",
+    "disease": "Epilepsy"
+  },
+  {
+    "symptoms": "recurrent seizures loss of consciousness",
+    "disease": "Epilepsy"
+  },
+  {
+    "symptoms": "recurrent seizures loss of consciousness confusion",
+    "disease": "Epilepsy"
+  },
+  {
+    "symptoms": "loss of consciousness confusion",
+    "disease": "Epilepsy"
+  },
+  {
+    "symptoms": "loss of consciousness confusion muscle twitching",
+    "disease": "Epilepsy"
+  },
+  {
+    "symptoms": "confusion muscle twitching",
+    "disease": "Epilepsy"
+  }
+]
