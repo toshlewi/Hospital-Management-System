@@ -10,8 +10,7 @@
     "eject": "react-scripts eject",
     "dev": "concurrently \"npm run start\" \"cd backend && npm run dev\" \"cd python-ai-project && python -m uvicorn enhanced_medical_api:app --reload\"",
     "install-all": "npm install && cd backend && npm install && cd ../python-ai-project && pip install -r requirements.txt",
-    "railway-build": "npm install && npm run build",
-    "postinstall": "npm run build"
+    "railway-build": "npm install && npm run build"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
@@ -24,12 +23,15 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.6.2",
+    "lucide-react": "^0.294.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^8.1.3",
     "react-router-dom": "^6.20.1",
     "react-scripts": "5.0.1",
     "recharts": "^2.8.0",
+    "styled-components": "^6.1.1",
+    "use-debounce": "^10.0.0",
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {

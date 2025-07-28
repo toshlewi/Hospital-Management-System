@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm install"
+buildCommand = "npm install --no-audit --no-fund --prefer-offline"
 
 [deploy]
 startCommand = "npm run build && npx serve -s build -l $PORT"

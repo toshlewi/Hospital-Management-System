@@ -1,0 +1,14 @@
+# NIXPACKS Configuration for Hospital Management System Frontend
+# Forces npm install instead of npm ci
+
+[phases.setup]
+nixPkgs = ["nodejs", "npm"]
+
+[phases.install]
+cmds = ["npm install --no-audit --no-fund --prefer-offline"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npx serve -s build -l $PORT" 
