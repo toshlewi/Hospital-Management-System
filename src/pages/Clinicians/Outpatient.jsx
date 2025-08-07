@@ -51,63 +51,24 @@ import {
   FormHelperText,
   Tabs,
   Tab,
-  TextareaAutosize,
-  Divider,
-  Stepper,
-  Step,
-  StepLabel,
-  StepContent,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Badge,
-  ListItemIcon,
-  ListItemSecondaryAction
 } from '@mui/material';
 import {
   Search as SearchIcon,
   Add as AddIcon,
-  Edit as EditIcon,
   Visibility as ViewIcon,
   Payment as PaymentIcon,
-  Receipt as ReceiptIcon,
-  MedicalServices as MedicalIcon,
-  Person as PersonIcon,
-  ExpandMore as ExpandMoreIcon,
-  CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon,
-  Error as ErrorIcon,
   LocalHospital as HospitalIcon,
-  Medication as MedicationIcon,
-  Notes as NotesIcon,
   Science as LabIcon,
   Image as ImagingIcon,
-  Save as SaveIcon,
-  Send as SendIcon,
-  History as HistoryIcon,
-  Description as DescriptionIcon,
-  Close as CloseIcon,
-  Check as CheckIcon,
-  Cancel as CancelIcon,
-  Info as InfoIcon
+  CheckCircle as CheckCircleIcon,
+  Error as ErrorIcon,
+  Person as PersonIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import { patientAPI } from '../../services/api';
 import pharmacyService from '../../services/pharmacyService';
 import RightSideAIPanel from '../../components/ai/RightSideAIPanel';
 
-
-const COMMON_LAB_TESTS = [
-  "Full Blood Count",
-  "Malaria Test",
-  "Blood Sugar",
-  "Urinalysis",
-  "Liver Function Test",
-  "Renal Function Test",
-  "HIV Test",
-  "Typhoid Test",
-  "COVID-19 PCR",
-  "Blood Grouping"
-];
 
 const Outpatient = ({ onPatientSelect }) => {
   // State for patient management
@@ -122,7 +83,6 @@ const Outpatient = ({ onPatientSelect }) => {
   const [billingStatus, setBillingStatus] = useState(null);
 
   // State for medical notes
-  const [medicalNote, setMedicalNote] = useState('');
   const [medicalNotes, setMedicalNotes] = useState([]);
   const [addingNote, setAddingNote] = useState(false);
   const [medicalNoteDialog, setMedicalNoteDialog] = useState(false);
@@ -185,20 +145,6 @@ const Outpatient = ({ onPatientSelect }) => {
 
 
 
-  const calculateAge = (dateOfBirth) => {
-    if (!dateOfBirth) return 0;
-    const today = new Date();
-    const birthDate = new Date(dateOfBirth);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
-  };
-
-
-
   const loadPatients = async () => {
     setLoading(true);
     try {
@@ -231,15 +177,6 @@ const Outpatient = ({ onPatientSelect }) => {
     } catch (error) {
       console.error('Error loading patient details:', error);
       showSnackbar('Error loading patient details', 'error');
-    }
-  };
-
-  const loadAvailableDrugs = async () => {
-    try {
-      const drugs = await pharmacyService.getAllDrugs();
-      setAvailableDrugs(drugs);
-    } catch (error) {
-      console.error('Error loading drugs:', error);
     }
   };
 
@@ -278,27 +215,6 @@ const Outpatient = ({ onPatientSelect }) => {
   };
 
   // Medical Notes Functions
-  const handleAddMedicalNote = async () => {
-    if (!medicalNote.trim()) return;
-    
-    setAddingNote(true);
-    try {
-      const newNote = await patientAPI.addMedicalNote(selectedPatient.patient_id, {
-        note_text: medicalNote,
-        doctor_id: 1, // In real app, get from auth
-        note_type: 'consultation'
-      });
-      setMedicalNotes([newNote, ...medicalNotes]);
-      setMedicalNote('');
-      showSnackbar('Medical note added successfully');
-    } catch (error) {
-      console.error('Error adding medical note:', error);
-      showSnackbar('Error adding medical note', 'error');
-    } finally {
-      setAddingNote(false);
-    }
-  };
-
   // Lab Order Functions
   const handleSubmitLabOrder = async () => {
     if (!labOrder.test_name.trim()) return;
@@ -458,7 +374,7 @@ const Outpatient = ({ onPatientSelect }) => {
   return (
     <Container maxWidth="xl" sx={{ py: 4, minHeight: '100vh' }}>
       <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-        <MedicalIcon sx={{ mr: 2, color: 'primary.main' }} />
+        <HospitalIcon sx={{ mr: 2, color: 'primary.main' }} />
         Outpatient Clinic - Clinician Portal
       </Typography>
 
@@ -603,6 +519,7 @@ const Outpatient = ({ onPatientSelect }) => {
               <Grid item xs={12} md={8}>
                 <Box>
                   <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 2 }}>
+                    <Tab label="Full History" />
                     <Tab label="Basic Info" />
                     <Tab label="Medical Notes" />
                     <Tab label="Lab Orders" />
@@ -614,6 +531,120 @@ const Outpatient = ({ onPatientSelect }) => {
                   </Tabs>
                   {/* Tab content here */}
                   {activeTab === 0 && (
+                    <Box>
+                      <Typography variant="h6" gutterBottom>Full Patient History</Typography>
+                      {/* Medical Notes Section */}
+                      <Typography variant="subtitle1" sx={{ mt: 2 }}>Medical Notes</Typography>
+                      {medicalNotes.length > 0 ? (
+                        <List>
+                          {medicalNotes.map((note, idx) => (
+                            <Card key={idx} sx={{ mb: 2 }}>
+                              <CardContent>
+                                <Typography variant="body2" color="primary" fontWeight="bold">
+                                  {note.note_type || 'Medical Note'}
+                                </Typography>
+                                <Typography variant="body1">{note.note_text || note.notes}</Typography>
+                                {note.diagnosis && (
+                                  <Typography variant="body2" color="text.secondary"><strong>Diagnosis:</strong> {note.diagnosis}</Typography>
+                                )}
+                                {note.advice && (
+                                  <Typography variant="body2" color="text.secondary"><strong>Advice:</strong> {note.advice}</Typography>
+                                )}
+                                <Typography variant="caption" color="text.secondary">{note.created_at ? formatDate(note.created_at) : 'N/A'}</Typography>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </List>
+                      ) : (
+                        <Alert severity="info">No medical notes available</Alert>
+                      )}
+                      {/* Prescriptions Section */}
+                      <Typography variant="subtitle1" sx={{ mt: 4 }}>Prescriptions</Typography>
+                      {prescriptions.length > 0 ? (
+                        <List>
+                          {prescriptions.map((prescription, idx) => (
+                            <Card key={idx} sx={{ mb: 2 }}>
+                              <CardContent>
+                                <Typography variant="body2" color="primary" fontWeight="bold">
+                                  {prescription.medications || prescription.medication_name}
+                                </Typography>
+                                <Typography variant="body2">Dosage: {prescription.dosage} | Frequency: {prescription.frequency}</Typography>
+                                <Typography variant="body2">Duration: {prescription.duration} | Quantity: {prescription.quantity}</Typography>
+                                {prescription.instructions && (
+                                  <Typography variant="body2">Instructions: {prescription.instructions}</Typography>
+                                )}
+                                <Typography variant="caption" color="text.secondary">{prescription.prescribed_date ? formatDate(prescription.prescribed_date) : ''}</Typography>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </List>
+                      ) : (
+                        <Alert severity="info">No prescriptions for this patient.</Alert>
+                      )}
+                      {/* Lab Orders & Results Section */}
+                      <Typography variant="subtitle1" sx={{ mt: 4 }}>Lab Orders & Results</Typography>
+                      {labOrders.length > 0 ? (
+                        <List>
+                          {labOrders.map((order, idx) => (
+                            <Card key={idx} sx={{ mb: 2 }}>
+                              <CardContent>
+                                <Typography variant="body2" color="primary" fontWeight="bold">{order.test_name}</Typography>
+                                <Typography variant="body2">Ordered by: {order.requesting_physician} | Priority: {order.priority}</Typography>
+                                <Typography variant="body2">Status: {order.status}</Typography>
+                                {order.result && (
+                                  <Box sx={{ mt: 2, p: 2, bgcolor: 'white', borderRadius: 1, border: '1px solid #e0e0e0' }}>
+                                    <Typography variant="subtitle2" gutterBottom color="primary">Results:</Typography>
+                                    <Typography variant="body2">{order.result}</Typography>
+                                  </Box>
+                                )}
+                                {order.clinical_notes && (
+                                  <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>Notes: {order.clinical_notes}</Typography>
+                                )}
+                                <Typography variant="caption" color="text.secondary">{order.ordered_at ? formatDate(order.ordered_at) : ''}</Typography>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </List>
+                      ) : (
+                        <Alert severity="info">No lab orders available</Alert>
+                      )}
+                      {/* Imaging Orders & Results Section */}
+                      <Typography variant="subtitle1" sx={{ mt: 4 }}>Imaging Orders & Results</Typography>
+                      {imagingOrders.length > 0 ? (
+                        <List>
+                          {imagingOrders.map((order, idx) => (
+                            <Card key={idx} sx={{ mb: 2 }}>
+                              <CardContent>
+                                <Typography variant="body2" color="primary" fontWeight="bold">{order.imaging_type} - {order.body_part}</Typography>
+                                <Typography variant="body2">Status: {order.status}</Typography>
+                                {order.result && (
+                                  <Box sx={{ mt: 2, p: 2, bgcolor: 'white', borderRadius: 1, border: '1px solid #e0e0e0' }}>
+                                    <Typography variant="subtitle2" gutterBottom color="primary">Radiologist Report:</Typography>
+                                    <Typography variant="body2">{order.result}</Typography>
+                                  </Box>
+                                )}
+                                {order.clinical_notes && (
+                                  <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>Clinical Notes: {order.clinical_notes}</Typography>
+                                )}
+                                {order.differential_diagnosis && (
+                                  <Box sx={{ mt: 2, p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
+                                    <Typography variant="subtitle2" gutterBottom color="warning.dark">Differential Diagnosis:</Typography>
+                                    <Typography variant="body2">{order.differential_diagnosis}</Typography>
+                                  </Box>
+                                )}
+                                <Typography variant="caption" color="text.secondary">{order.ordered_at ? formatDate(order.ordered_at) : ''}</Typography>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </List>
+                      ) : (
+                        <Alert severity="info">No imaging orders available</Alert>
+                      )}
+                    </Box>
+                  )}
+
+                  {/* Basic Info Tab */}
+                  {activeTab === 1 && (
                     <Grid container spacing={2}>
                       <Grid item xs={12} md={6}>
                         <Card variant="outlined">
@@ -685,7 +716,7 @@ const Outpatient = ({ onPatientSelect }) => {
                   )}
 
                   {/* Medical Notes Tab */}
-                  {activeTab === 1 && (
+                  {activeTab === 2 && (
                     <Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                         <Typography variant="h6">Medical Notes</Typography>
@@ -753,7 +784,7 @@ const Outpatient = ({ onPatientSelect }) => {
                   )}
 
                   {/* Lab Orders Tab */}
-                  {activeTab === 2 && (
+                  {activeTab === 3 && (
                     <Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                         <Typography variant="h6">Lab Orders</Typography>
@@ -790,7 +821,7 @@ const Outpatient = ({ onPatientSelect }) => {
                   )}
 
                   {/* Prescriptions Tab */}
-                  {activeTab === 3 && (
+                  {activeTab === 4 && (
                     <Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                         <Typography variant="h6">Prescriptions</Typography>
@@ -925,7 +956,7 @@ const Outpatient = ({ onPatientSelect }) => {
                   )}
 
                   {/* Imaging Tab */}
-                  {activeTab === 4 && (
+                  {activeTab === 5 && (
                     <Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                         <Typography variant="h6">Imaging Orders</Typography>
@@ -972,7 +1003,7 @@ const Outpatient = ({ onPatientSelect }) => {
                   )}
 
                   {/* Test Results Tab */}
-                  {activeTab === 5 && (
+                  {activeTab === 6 && (
                     <Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                         <Typography variant="h6">Test Results</Typography>
@@ -1147,7 +1178,7 @@ const Outpatient = ({ onPatientSelect }) => {
 
 
                   {/* Billing Tab */}
-                  {activeTab === 7 && billingStatus && (
+                  {activeTab === 8 && billingStatus && (
                     <Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                         <Typography variant="h6">Billing Information</Typography>
@@ -1205,7 +1236,7 @@ const Outpatient = ({ onPatientSelect }) => {
                   )}
 
                   {/* AI Diagnosis Tab */}
-                  {activeTab === 8 && (
+                  {activeTab === 9 && (
                     <Box>
                       <Typography variant="h6" gutterBottom>
                         AI Diagnosis Assistant

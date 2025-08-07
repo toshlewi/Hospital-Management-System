@@ -14,6 +14,8 @@ A comprehensive hospital management system with AI-powered medical analysis, bui
 **Backend:** https://hospital-backend-g0oi.onrender.com
 **AI Service:** https://hospital-ai-service.onrender.com
 
+**⚠️ Note:** The project is hosted on [Render](https://render.com/) in three separate services (Frontend, Backend, AI Service). Because these are on the free Render plan, the services may spin down when idle and take up to a minute to load when first accessed. Please be patient if the site takes time to load.
+
 ## 🚀 **Quick Start**
 
 ### **Clone and Setup**
