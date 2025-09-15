@@ -1,0 +1,216 @@
+{
+    "Common Cold": {
+      "symptoms": ["cough", "runny nose", "sore throat", "sneezing", "mild fever"],
+      "lab_tests": [],
+      "imaging_tests": [],
+      "treatments": [
+        "Paracetamol 500 mg orally every 6-8 hours as needed (max 4 g/day)",
+        "Ibuprofen 400 mg orally every 8 hours with food",
+        "Pseudoephedrine 60 mg orally every 6 hours",
+        "Rest and oral fluids"
+      ],
+      "severity": "mild"
+    },
+    "Influenza": {
+      "symptoms": ["fever", "chills", "myalgia", "cough", "fatigue", "headache"],
+      "lab_tests": ["Rapid influenza antigen test"],
+      "imaging_tests": [],
+      "treatments": [
+        "Oseltamivir 75 mg orally twice daily for 5 days (if <48h)",
+        "Paracetamol 500 mg orally every 6-8 hours as needed",
+        "Fluids and rest"
+      ],
+      "severity": "moderate"
+    },
+    "Gastroenteritis": {
+      "symptoms": ["vomiting", "diarrhea", "abdominal pain", "nausea", "fever"],
+      "lab_tests": ["Electrolytes", "Stool culture (if severe/prolonged)", "CBC"],
+      "imaging_tests": [],
+      "treatments": [
+        "Oral rehydration solution 200-400 mL after each loose stool",
+        "Ondansetron 4-8 mg orally every 8 hours as needed",
+        "Loperamide 4 mg initially then 2 mg after each loose stool (max 16 mg/day)"
+      ],
+      "severity": "moderate"
+    },
+    "Urinary Tract Infection": {
+      "symptoms": ["burning urination", "frequency", "urgency", "lower abdominal pain", "cloudy urine"],
+      "lab_tests": ["Urinalysis", "Urine culture"],
+      "imaging_tests": ["Renal ultrasound (if complicated)"],
+      "treatments": [
+        "Nitrofurantoin 100 mg orally twice daily for 5 days",
+        "Trimethoprim-sulfamethoxazole 160/800 mg orally twice daily for 3 days"
+      ],
+      "severity": "moderate"
+    },
+    "Arthritis": {
+      "symptoms": ["joint pain", "stiffness", "swelling", "reduced range of motion"],
+      "lab_tests": ["ESR", "CRP"],
+      "imaging_tests": ["X-ray of affected joint"],
+      "treatments": [
+        "Ibuprofen 400 mg orally every 8 hours with food",
+        "Physical therapy"
+      ],
+      "severity": "moderate"
+    },
+    "Osteoarthritis": {
+      "symptoms": ["joint pain", "stiffness", "crepitus", "limited mobility"],
+      "lab_tests": [],
+      "imaging_tests": ["X-ray affected joints"],
+      "treatments": [
+        "Paracetamol 500 mg orally every 6-8 hours",
+        "Topical NSAIDs applied to affected joints 3-4 times daily"
+      ],
+      "severity": "moderate"
+    },
+    "Rheumatoid Arthritis": {
+      "symptoms": ["symmetrical joint pain", "morning stiffness > 1 hour", "swelling", "fatigue"],
+      "lab_tests": ["RF", "Anti-CCP", "ESR", "CRP"],
+      "imaging_tests": ["Hand and wrist X-ray"],
+      "treatments": [
+        "Methotrexate 15-25 mg orally once weekly + Folic acid 1 mg daily",
+        "NSAIDs as needed with gastroprotection"
+      ],
+      "severity": "moderate"
+    },
+    "Asthma": {
+      "symptoms": ["wheezing", "shortness of breath", "chest tightness", "cough"],
+      "lab_tests": ["Peak flow/FEV1"],
+      "imaging_tests": ["Chest X-ray (if atypical)"],
+      "treatments": [
+        "Salbutamol (Albuterol) inhaler 2 puffs every 4-6 hours as needed",
+        "Fluticasone inhaler 100-250 mcg twice daily"
+      ],
+      "severity": "moderate"
+    },
+    "Migraine": {
+      "symptoms": ["throbbing headache", "nausea", "photophobia", "phonophobia", "aura"],
+      "lab_tests": [],
+      "imaging_tests": ["Head CT/MRI if red flags"],
+      "treatments": [
+        "Sumatriptan 50-100 mg orally at onset; may repeat after 2 hours (max 200 mg/day)",
+        "Ibuprofen 400-600 mg orally at onset"
+      ],
+      "severity": "moderate"
+    },
+    "Anemia": {
+      "symptoms": ["fatigue", "pallor", "shortness of breath", "dizziness"],
+      "lab_tests": ["CBC", "Ferritin", "Iron studies"],
+      "imaging_tests": [],
+      "treatments": [
+        "Ferrous sulfate 325 mg orally once to twice daily with vitamin C"
+      ],
+      "severity": "moderate"
+    },
+    "Hepatitis B": {
+      "symptoms": ["fatigue", "jaundice", "abdominal pain", "nausea"],
+      "lab_tests": ["HBsAg", "HBV DNA", "ALT/AST"],
+      "imaging_tests": ["Abdominal ultrasound"],
+      "treatments": [
+        "Entecavir 0.5 mg orally once daily",
+        "Tenofovir disoproxil fumarate 300 mg orally once daily"
+      ],
+      "severity": "moderate"
+    },
+    "Peptic Ulcer Disease": {
+      "symptoms": ["epigastric pain", "nausea", "bloating", "heartburn"],
+      "lab_tests": ["H. pylori stool antigen", "CBC"],
+      "imaging_tests": ["Upper endoscopy if indicated"],
+      "treatments": [
+        "Omeprazole 20 mg orally twice daily",
+        "Amoxicillin 1 g orally twice daily + Clarithromycin 500 mg orally twice daily (14 days)"
+      ],
+      "severity": "moderate"
+    },
+    "Otitis Media": {
+      "symptoms": ["ear pain", "fever", "hearing loss", "ear fullness"],
+      "lab_tests": [],
+      "imaging_tests": ["Otoscopy"],
+      "treatments": [
+        "Amoxicillin 500 mg orally three times daily for 5-7 days",
+        "Analgesics as needed"
+      ],
+      "severity": "moderate"
+    },
+    "Dermatitis": {
+      "symptoms": ["itchy rash", "erythema", "dry skin", "swelling"],
+      "lab_tests": [],
+      "imaging_tests": [],
+      "treatments": [
+        "Hydrocortisone 1% cream thin layer twice daily for 7-14 days",
+        "Emollients multiple times daily"
+      ],
+      "severity": "mild"
+    },
+    "Diabetes Mellitus": {
+      "symptoms": ["frequent urination", "excessive thirst", "weight loss", "fatigue", "blurred vision"],
+      "lab_tests": ["Fasting blood glucose", "HbA1c", "Oral glucose tolerance test"],
+      "imaging_tests": [],
+      "treatments": [
+        "Metformin 500 mg orally twice daily with meals (titrate to 1 g BID)",
+        "Insulin per sliding scale as indicated",
+        "Diet modification and exercise"
+      ],
+      "severity": "moderate"
+    },
+    "Hypertension": {
+      "symptoms": ["headache", "dizziness", "vision problems", "chest pain"],
+      "lab_tests": ["Serum Creatinine", "Electrolytes", "Lipid profile"],
+      "imaging_tests": ["ECG", "Echocardiogram if indicated"],
+      "treatments": [
+        "Amlodipine 5 mg orally once daily",
+        "Lisinopril 10 mg orally once daily"
+      ],
+      "severity": "moderate"
+    },
+    "Malaria": {
+      "symptoms": ["fever", "chills", "sweats", "headache", "nausea"],
+      "lab_tests": ["Malaria rapid test", "Blood smear"],
+      "imaging_tests": [],
+      "treatments": [
+        "Artemether-lumefantrine 80/480 mg orally twice daily for 3 days",
+        "Supportive care"
+      ],
+      "severity": "moderate"
+    },
+    "Pneumonia": {
+      "symptoms": ["cough", "fever", "shortness of breath", "chest pain", "fatigue"],
+      "lab_tests": ["CBC", "CRP"],
+      "imaging_tests": ["Chest X-ray"],
+      "treatments": [
+        "Amoxicillin 1 g orally three times daily for 5-7 days",
+        "Azithromycin 500 mg on day 1 then 250 mg daily days 2-5"
+      ],
+      "severity": "moderate"
+    },
+    "Tuberculosis": {
+      "symptoms": ["chronic cough", "weight loss", "night sweats", "fever", "hemoptysis"],
+      "lab_tests": ["Sputum AFB smear", "GeneXpert MTB/RIF"],
+      "imaging_tests": ["Chest X-ray"],
+      "treatments": [
+        "Isoniazid 300 mg + Rifampin 600 mg + Pyrazinamide 1.5-2 g + Ethambutol 800-1200 mg daily",
+        "Directly observed therapy per guidelines"
+      ],
+      "severity": "severe"
+    },
+    "Typhoid Fever": {
+      "symptoms": ["prolonged fever", "abdominal pain", "constipation or diarrhea", "headache", "rash"],
+      "lab_tests": ["Blood culture"],
+      "imaging_tests": [],
+      "treatments": [
+        "Ceftriaxone 1-2 g IV once daily for 7-14 days",
+        "Azithromycin 1 g orally once then 500 mg daily for 6 days"
+      ],
+      "severity": "moderate"
+    },
+    "Amoebiasis": {
+      "symptoms": ["bloody diarrhea", "abdominal pain", "fever", "tenesmus"],
+      "lab_tests": ["Stool microscopy/antigen for Entamoeba histolytica"],
+      "imaging_tests": ["Ultrasound if liver abscess suspected"],
+      "treatments": [
+        "Metronidazole 750 mg orally three times daily for 5-10 days",
+        "Paromomycin 500 mg orally three times daily for 7 days"
+      ],
+      "severity": "moderate"
+    }
+  }

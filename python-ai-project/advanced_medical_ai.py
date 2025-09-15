@@ -747,6 +747,7 @@ class AdvancedMedicalAI:
                     (['fever', 'chills', 'sweat', 'mosquito'], 'Malaria'),
                     (['cough', 'fever', 'chest pain', 'breath'], 'Pneumonia'),
                     (['burning urination', 'urinary', 'cloudy urine'], 'Urinary Tract Infection'),
+                    (['vomiting', 'diarrhea', 'diarrhoea', 'abdominal pain', 'stomach pain', 'nausea'], 'Gastroenteritis'),
                 ]
                 chosen = None
                 for keys, name in simple_map:
