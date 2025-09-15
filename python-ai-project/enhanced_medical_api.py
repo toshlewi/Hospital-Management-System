@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
-Enhanced Medical AI API with Advanced Training
-Integrates with PubMed and FDA APIs for 95%+ accuracy
-Now includes automatic daily updates and training
+Enhanced Medical AI API with Curated Mode
+Uses curated dataset for deterministic 20-disease diagnoses
 """
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
@@ -14,13 +13,12 @@ import json
 from datetime import datetime
 import os
 
-# Import the advanced AI system and auto scheduler
+# Import the advanced AI system
 from advanced_medical_ai import AdvancedMedicalAI
-from auto_training_scheduler import AutoTrainingScheduler
 
 app = FastAPI(
     title="Enhanced Medical AI API",
-    description="Advanced Medical AI with 95%+ accuracy using PubMed, FDA, and WHO data with automatic daily updates",
+    description="Advanced Medical AI with curated dataset for 20 diseases with deterministic diagnoses",
     version="3.0.0"
 )
 
@@ -32,7 +30,7 @@ app.add_middleware(
         "http://localhost:3001", 
         "http://localhost:3002",
         "https://hospital-frontend-5na8.onrender.com",
-        "https://hospital-backend.onrender.com"
+        "https://hospital-backend-g0oi.onrender.com"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -73,25 +71,14 @@ class TrainingStatusResponse(BaseModel):
     training_progress: str
     estimated_completion: Optional[str] = None
 
-class AutoUpdateStatusResponse(BaseModel):
-    is_running: bool
-    last_update: Optional[str]
-    update_count: int
-    next_update: Optional[str]
-    ai_accuracy: float
-    diseases_count: int
-    data_sources: Dict[str, Dict[str, str]]
-
-# Initialize the advanced AI system and auto scheduler
+# Initialize the advanced AI system
 advanced_ai = AdvancedMedicalAI()
-auto_scheduler = AutoTrainingScheduler()
 training_task = None
-scheduler_task = None
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize the advanced AI system and auto scheduler on startup"""
-    global advanced_ai, auto_scheduler, scheduler_task
+    """Initialize the advanced AI system on startup"""
+    global advanced_ai
     
     try:
         # Load existing model if available
@@ -99,10 +86,13 @@ async def startup_event():
         print(f"✅ Loaded AI model with {advanced_ai.accuracy:.2%} accuracy")
         print(f"🏥 Diseases in database: {len(advanced_ai.diseases_database)}")
         
-        # Check if auto-training is enabled (default: True)
-        auto_train = os.getenv("AUTO_TRAIN_ON_STARTUP", "false").lower() == "true"
+        # Check if curated mode is enabled
+        use_curated = os.getenv("USE_CURATED", "false").lower() == "true"
+        auto_train = (os.getenv("AUTO_TRAIN_ON_STARTUP", "false").lower() == "true") and not use_curated
         
-        if auto_train:
+        if use_curated:
+            print("🎯 Curated mode enabled - using deterministic dataset")
+        elif auto_train:
             print("🚀 Auto-training enabled - starting training in background...")
             # Start training in background
             background_tasks = BackgroundTasks()
@@ -111,9 +101,7 @@ async def startup_event():
         else:
             print("⏸️ Auto-training disabled - skipping initial training")
         
-        # Start the auto scheduler for daily updates
-        scheduler_task = asyncio.create_task(auto_scheduler.start_scheduler())
-        print("📅 Auto-update scheduler started")
+        print("📅 Auto-update scheduler disabled (curated mode)")
         
     except Exception as e:
         print(f"❌ Error during startup: {e}")
@@ -122,33 +110,35 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup on shutdown"""
-    global scheduler_task
-    if scheduler_task:
-        await auto_scheduler.stop_scheduler()
-        scheduler_task.cancel()
+    # Nothing to stop now that scheduler is removed
+    pass
 
 @app.get("/")
 async def root():
     """Root endpoint with basic information"""
+    use_curated = os.getenv("USE_CURATED", "false").lower() == "true"
     return {
         "message": "Enhanced Medical AI API",
         "version": "3.0.0",
         "status": "operational",
         "model_accuracy": f"{advanced_ai.accuracy:.2%}",
         "diseases_learned": len(advanced_ai.diseases_database),
-        "auto_training": os.getenv("AUTO_TRAIN_ON_STARTUP", "false").lower() == "true"
+        "curated_mode": use_curated,
+        "auto_training": (os.getenv("AUTO_TRAIN_ON_STARTUP", "false").lower() == "true") and not use_curated
     }
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint for monitoring"""
     try:
+        use_curated = os.getenv("USE_CURATED", "false").lower() == "true"
         return {
             "status": "healthy",
-            "model_loaded": advanced_ai.model is not None,
+            "model_loaded": advanced_ai.classifier is not None,
             "model_accuracy": f"{advanced_ai.accuracy:.2%}",
             "diseases_learned": len(advanced_ai.diseases_database),
-            "auto_training_enabled": os.getenv("AUTO_TRAIN_ON_STARTUP", "false").lower() == "true",
+            "curated_mode": use_curated,
+            "auto_training_enabled": (os.getenv("AUTO_TRAIN_ON_STARTUP", "false").lower() == "true") and not use_curated,
             "timestamp": datetime.now().isoformat()
         }
     except Exception as e:
@@ -167,97 +157,23 @@ async def get_status():
         "training_data_count": len(advanced_ai.training_data),
         "training_status": advanced_ai.training_status,
         "last_updated": datetime.now().isoformat(),
-        "auto_update_status": auto_scheduler.get_scheduler_status()
+        "curated_mode": os.getenv("USE_CURATED", "false").lower() == "true"
     }
-
-@app.get("/api/v1/auto-update-status", response_model=AutoUpdateStatusResponse)
-async def get_auto_update_status():
-    """Get auto-update scheduler status"""
-    return auto_scheduler.get_scheduler_status()
-
-@app.post("/api/v1/start-auto-updates")
-async def start_auto_updates():
-    """Start automatic daily updates"""
-    global scheduler_task
-    
-    if scheduler_task and not scheduler_task.done():
-        return {
-            "status": "already_running",
-            "message": "Auto-update scheduler is already running"
-        }
-    
-    try:
-        scheduler_task = asyncio.create_task(auto_scheduler.start_scheduler())
-        return {
-            "status": "started",
-            "message": "Auto-update scheduler started successfully",
-            "next_update": "00:00 (midnight)",
-            "update_frequency": "daily"
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to start auto-updates: {str(e)}")
-
-@app.post("/api/v1/stop-auto-updates")
-async def stop_auto_updates():
-    """Stop automatic daily updates"""
-    global scheduler_task
-    
-    try:
-        await auto_scheduler.stop_scheduler()
-        if scheduler_task:
-            scheduler_task.cancel()
-        return {
-            "status": "stopped",
-            "message": "Auto-update scheduler stopped successfully"
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to stop auto-updates: {str(e)}")
-
-@app.post("/api/v1/trigger-manual-update")
-async def trigger_manual_update(background_tasks: BackgroundTasks):
-    """Trigger a manual update from all data sources"""
-    try:
-        # Add manual update to background tasks
-        background_tasks.add_task(auto_scheduler.perform_daily_update)
-        
-        return {
-            "status": "triggered",
-            "message": "Manual update triggered successfully",
-            "update_sources": ["PubMed", "FDA", "WHO"],
-            "estimated_duration": "5-10 minutes"
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to trigger manual update: {str(e)}")
-
-@app.get("/api/v1/update-history")
-async def get_update_history():
-    """Get history of auto-updates"""
-    try:
-        update_files = []
-        auto_updates_dir = "data/auto_updates"
-        
-        if os.path.exists(auto_updates_dir):
-            for file in os.listdir(auto_updates_dir):
-                if file.startswith("update_") and file.endswith(".json"):
-                    file_path = os.path.join(auto_updates_dir, file)
-                    with open(file_path, "r") as f:
-                        update_data = json.load(f)
-                        update_files.append(update_data)
-        
-        # Sort by update ID
-        update_files.sort(key=lambda x: x.get('update_id', 0), reverse=True)
-        
-        return {
-            "total_updates": len(update_files),
-            "updates": update_files[:10]  # Return last 10 updates
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get update history: {str(e)}")
 
 @app.post("/api/v1/start-training", response_model=TrainingStatusResponse)
 async def start_training(background_tasks: BackgroundTasks):
     """Start the advanced AI training process"""
     global training_task
+    
+    use_curated = os.getenv("USE_CURATED", "false").lower() == "true"
+    if use_curated:
+        return TrainingStatusResponse(
+            status="curated_mode",
+            diseases_collected=len(advanced_ai.diseases_database),
+            training_data_count=len(advanced_ai.training_data),
+            model_accuracy=advanced_ai.accuracy,
+            training_progress="Curated mode - no training needed"
+        )
     
     if training_task and not training_task.done():
         return TrainingStatusResponse(
@@ -296,6 +212,16 @@ async def get_training_status():
     """Get current training status"""
     global training_task
     
+    use_curated = os.getenv("USE_CURATED", "false").lower() == "true"
+    if use_curated:
+        return TrainingStatusResponse(
+            status="curated_mode",
+            diseases_collected=len(advanced_ai.diseases_database),
+            training_data_count=len(advanced_ai.training_data),
+            model_accuracy=advanced_ai.accuracy,
+            training_progress="Curated mode - deterministic diagnoses"
+        )
+    
     status = advanced_ai.training_status
     progress = "Not started"
     
@@ -323,7 +249,9 @@ async def get_training_status():
 async def diagnose_symptoms(request: SymptomRequest):
     """Analyze symptoms using the advanced AI model"""
     try:
-        if advanced_ai.training_status != "completed" and len(advanced_ai.diseases_database) < 10:
+        use_curated = os.getenv("USE_CURATED", "false").lower() == "true"
+        
+        if not use_curated and advanced_ai.training_status != "completed" and len(advanced_ai.diseases_database) < 10:
             raise HTTPException(
                 status_code=503, 
                 detail="AI model needs training. Please start training first or wait for completion."
@@ -362,7 +290,9 @@ async def diagnose_symptoms(request: SymptomRequest):
 async def comprehensive_analysis(request: SymptomRequest):
     """Perform comprehensive medical analysis"""
     try:
-        if advanced_ai.training_status != "completed" and len(advanced_ai.diseases_database) < 10:
+        use_curated = os.getenv("USE_CURATED", "false").lower() == "true"
+        
+        if not use_curated and advanced_ai.training_status != "completed" and len(advanced_ai.diseases_database) < 10:
             raise HTTPException(
                 status_code=503, 
                 detail="AI model needs training. Please start training first or wait for completion."
@@ -425,6 +355,7 @@ async def get_disease_info(disease_name: str):
 @app.get("/api/v1/statistics")
 async def get_statistics():
     """Get comprehensive system statistics"""
+    use_curated = os.getenv("USE_CURATED", "false").lower() == "true"
     return {
         "ai_model": {
             "accuracy": advanced_ai.accuracy,
@@ -432,15 +363,15 @@ async def get_statistics():
             "training_data_count": len(advanced_ai.training_data),
             "training_status": advanced_ai.training_status
         },
-        "auto_updates": auto_scheduler.get_scheduler_status(),
+        "curated_mode": use_curated,
         "system_info": {
             "version": "3.0.0",
             "last_updated": datetime.now().isoformat(),
-            "data_sources": ["PubMed", "FDA", "WHO"],
-            "update_frequency": "Daily at midnight"
+            "data_sources": ["Curated Dataset"] if use_curated else ["PubMed", "FDA", "WHO"],
+            "update_frequency": "Static" if use_curated else "Manual"
         }
     }
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="0.0.0.0", port=8000)
