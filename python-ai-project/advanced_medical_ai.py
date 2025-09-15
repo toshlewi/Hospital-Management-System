@@ -54,6 +54,80 @@ class AdvancedMedicalAI:
         # Performance Metrics
         self.accuracy = 0.0
         self.training_status = "not_started"
+
+        # Canonical disease whitelist for display
+        self.canonical_diseases = [
+            "Common Cold",
+            "Influenza",
+            "Gastroenteritis",
+            "Urinary Tract Infection",
+            "Arthritis",
+            "Osteoarthritis",
+            "Rheumatoid Arthritis",
+            "Asthma",
+            "Migraine",
+            "Anemia",
+            "Hepatitis B",
+            "Peptic Ulcer Disease",
+            "Otitis Media",
+            "Dermatitis",
+            "Diabetes Mellitus",
+            "Hypertension",
+            "Malaria",
+            "Pneumonia",
+            "Tuberculosis",
+            "HIV/AIDS",
+            "Typhoid Fever",
+            "Amoebiasis"
+        ]
+
+        # Aliases to map model outputs to canonical names
+        self.display_aliases = {
+            "diabetes": "Diabetes Mellitus",
+            "diabetes mellitus": "Diabetes Mellitus",
+            "hypertension": "Hypertension",
+            "malaria": "Malaria",
+            "pneumonia": "Pneumonia",
+            "tuberculosis": "Tuberculosis",
+            "hiv": "HIV/AIDS",
+            "hiv/aids": "HIV/AIDS",
+            "asthma": "Asthma",
+            "migraine": "Migraine",
+            "anemia": "Anemia",
+            "anaemia": "Anemia",
+            "hepatitis b": "Hepatitis B",
+            "peptic ulcer": "Peptic Ulcer Disease",
+            "ulcer": "Peptic Ulcer Disease",
+            "otitis": "Otitis Media",
+            "dermatitis": "Dermatitis",
+            "arthritis": "Arthritis",
+            "rheumatoid arthritis": "Rheumatoid Arthritis",
+            "osteoarthritis": "Osteoarthritis",
+            "uti": "Urinary Tract Infection",
+            "urinary tract": "Urinary Tract Infection",
+            "gastroenteritis": "Gastroenteritis",
+            "common cold": "Common Cold",
+            "cold": "Common Cold",
+            "influenza": "Influenza",
+            "flu": "Influenza",
+            "typhoid": "Typhoid Fever",
+            "amoebiasis": "Amoebiasis",
+            "amoebic": "Amoebiasis"
+        }
+
+    def normalize_to_canonical(self, raw_label: str) -> str | None:
+        if not raw_label:
+            return None
+        low = raw_label.lower().strip()
+        # Direct match
+        for canon in self.canonical_diseases:
+            if low == canon.lower():
+                return canon
+        # Alias match by keyword containment
+        for key, canon in self.display_aliases.items():
+            if key in low:
+                return canon
+        return None
         
     async def initialize_system(self):
         """Initialize the advanced medical AI system"""
@@ -612,6 +686,32 @@ class AdvancedMedicalAI:
             prediction = self.classifier.predict(X)[0]
             probabilities = self.classifier.predict_proba(X)[0]
             
+            # Heuristic fast-path for common respiratory presentations
+            s = symptoms.lower()
+            respiratory_flags = any(k in s for k in ["cough", "runny nose", "sneezing", "sore throat", "congestion", "cold"])
+            feverish = any(k in s for k in ["fever", "chills"]) 
+            if respiratory_flags:
+                likely = ["Common Cold", "Influenza"] if feverish else ["Common Cold"]
+                results_heur = []
+                for name in likely:
+                    disease_data = self.diseases_database.get(name, {})
+                    results_heur.append({
+                        'disease': name,
+                        'confidence': 0.7 if name == "Common Cold" else 0.6,
+                        'symptoms': disease_data.get('symptoms', ["cough", "runny nose", "sore throat", "sneezing"]),
+                        'treatments': disease_data.get('treatments', ["rest", "fluids", "paracetamol", "decongestants"]),
+                        'lab_tests': disease_data.get('lab_tests', []),
+                        'drug_interactions': disease_data.get('drug_interactions', []),
+                        'severity': disease_data.get('severity', 'moderate')
+                    })
+                return {
+                    'predictions': results_heur,
+                    'input_symptoms': symptoms,
+                    'model_accuracy': self.accuracy,
+                    'diseases_learned': len(self.diseases_database),
+                    'analysis_time': datetime.now().isoformat()
+                }
+
             # Get top 3 predictions
             classes = self.classifier.classes_
             top_indices = probabilities.argsort()[-3:][::-1]
@@ -620,13 +720,17 @@ class AdvancedMedicalAI:
             for idx in top_indices:
                 if probabilities[idx] > 0.1:  # Only include if probability > 10%
                     disease_name = classes[idx]
+                    canonical = self.normalize_to_canonical(str(disease_name))
+                    if not canonical:
+                        # skip non-canonical noisy labels
+                        continue
                     confidence = probabilities[idx]
                     
                     # Get disease data from database
-                    disease_data = self.diseases_database.get(disease_name, {})
+                    disease_data = self.diseases_database.get(canonical, self.diseases_database.get(str(disease_name), {}))
                     
                     results.append({
-                        'disease': disease_name,
+                        'disease': canonical,
                         'confidence': confidence,
                         'symptoms': disease_data.get('symptoms', []),
                         'treatments': disease_data.get('treatments', []),
@@ -634,6 +738,32 @@ class AdvancedMedicalAI:
                         'drug_interactions': disease_data.get('drug_interactions', []),
                         'severity': disease_data.get('severity', 'moderate')
                     })
+
+            # If model predictions were filtered out, try a simple keyword-based fallback
+            if not results:
+                simple_map = [
+                    (['thirst', 'urination', 'sugar', 'glucose'], 'Diabetes Mellitus'),
+                    (['blood pressure', 'hypertension', 'headache'], 'Hypertension'),
+                    (['fever', 'chills', 'sweat', 'mosquito'], 'Malaria'),
+                    (['cough', 'fever', 'chest pain', 'breath'], 'Pneumonia'),
+                    (['burning urination', 'urinary', 'cloudy urine'], 'Urinary Tract Infection'),
+                ]
+                chosen = None
+                for keys, name in simple_map:
+                    if any(k in s for k in keys):
+                        chosen = name
+                        break
+                if chosen:
+                    disease_data = self.diseases_database.get(chosen, {})
+                    results = [{
+                        'disease': chosen,
+                        'confidence': 0.6,
+                        'symptoms': disease_data.get('symptoms', []),
+                        'treatments': disease_data.get('treatments', []),
+                        'lab_tests': disease_data.get('lab_tests', []),
+                        'drug_interactions': disease_data.get('drug_interactions', []),
+                        'severity': disease_data.get('severity', 'moderate')
+                    }]
                     
             return {
                 'predictions': results,

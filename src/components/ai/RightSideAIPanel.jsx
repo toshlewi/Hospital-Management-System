@@ -422,28 +422,7 @@ const RightSideAIPanel = ({
                     </Box>
                   )}
 
-                  {/* Raw Data Toggle */}
-                  <Box sx={{ mt: 2 }}>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={() => setShowRawData(!showRawData)}
-                      startIcon={showRawData ? <ExpandLess /> : <ExpandMore />}
-                    >
-                      {showRawData ? 'Hide' : 'Show'} Raw Data
-                    </Button>
-                    
-                    <Collapse in={showRawData}>
-                      <Paper sx={{ p: 2, mt: 1, backgroundColor: 'grey.100' }}>
-                        <Typography variant="subtitle2" gutterBottom>
-                          Raw API Response:
-                        </Typography>
-                        <pre style={{ fontSize: '0.8rem', overflow: 'auto', maxHeight: '200px' }}>
-                          {JSON.stringify(analysisResults, null, 2)}
-                        </pre>
-                      </Paper>
-                    </Collapse>
-                  </Box>
+                  {/* Raw data view removed for end-user presentation clarity */}
                 </Box>
               ) : (
                 <Box sx={{ textAlign: 'center', py: 4 }}>

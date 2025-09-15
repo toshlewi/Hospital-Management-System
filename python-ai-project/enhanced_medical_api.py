@@ -100,7 +100,7 @@ async def startup_event():
         print(f"🏥 Diseases in database: {len(advanced_ai.diseases_database)}")
         
         # Check if auto-training is enabled (default: True)
-        auto_train = os.getenv("AUTO_TRAIN_ON_STARTUP", "true").lower() == "true"
+        auto_train = os.getenv("AUTO_TRAIN_ON_STARTUP", "false").lower() == "true"
         
         if auto_train:
             print("🚀 Auto-training enabled - starting training in background...")
@@ -136,7 +136,7 @@ async def root():
         "status": "operational",
         "model_accuracy": f"{advanced_ai.accuracy:.2%}",
         "diseases_learned": len(advanced_ai.diseases_database),
-        "auto_training": os.getenv("AUTO_TRAIN_ON_STARTUP", "true").lower() == "true"
+        "auto_training": os.getenv("AUTO_TRAIN_ON_STARTUP", "false").lower() == "true"
     }
 
 @app.get("/health")
@@ -148,7 +148,7 @@ async def health_check():
             "model_loaded": advanced_ai.model is not None,
             "model_accuracy": f"{advanced_ai.accuracy:.2%}",
             "diseases_learned": len(advanced_ai.diseases_database),
-            "auto_training_enabled": os.getenv("AUTO_TRAIN_ON_STARTUP", "true").lower() == "true",
+            "auto_training_enabled": os.getenv("AUTO_TRAIN_ON_STARTUP", "false").lower() == "true",
             "timestamp": datetime.now().isoformat()
         }
     except Exception as e:

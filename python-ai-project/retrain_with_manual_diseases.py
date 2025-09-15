@@ -20,10 +20,29 @@ logger = logging.getLogger(__name__)
 def retrain_with_manual_diseases():
     """Retrain the AI model with only the 20 manual diseases"""
     
-    # Define the manual diseases (using exact names from database)
+    # Define the manual diseases (using common canonical names)
+    # Expand to 20+ high-priority diseases requested
     manual_diseases = [
-        "Diabetes Mellitus", "Hypertension", "Malaria", "HIV/AIDS", "Tuberculosis",
-        "Pneumonia", "Asthma", "Epilepsy"
+        "Common Cold",
+        "Diabetes Mellitus",
+        "Hypertension",
+        "Malaria",
+        "HIV/AIDS",
+        "Tuberculosis",
+        "Pneumonia",
+        "Typhoid Fever",
+        "Amoebiasis",
+        "Arthritis",
+        "Influenza",
+        "Gastroenteritis",
+        "Urinary Tract Infection",
+        "Asthma",
+        "Migraine",
+        "Anemia",
+        "Hepatitis B",
+        "Peptic Ulcer Disease",
+        "Otitis Media",
+        "Dermatitis"
     ]
     
     logger.info("🔄 Retraining AI with manual diseases only...")
@@ -36,15 +55,103 @@ def retrain_with_manual_diseases():
     except Exception as e:
         logger.error(f"❌ Error loading diseases database: {e}")
         return
+
+    # Load sample fallback (to fill missing diseases during training only)
+    sample_fallback = {}
+    try:
+        with open("diseases_database_sample.json", "r") as f:
+            sample_fallback = json.load(f)
+        logger.info(f"📎 Loaded sample fallback with {len(sample_fallback)} entries")
+    except Exception:
+        logger.warning("⚠️ Sample fallback not available; proceeding without it")
     
-    # Filter to only manual diseases
+    # Aliases to improve matching to database keys
+    alias_map = {
+        "Common Cold": [
+            "Upper Respiratory Tract Infection",
+            "Viral Upper Respiratory Infection",
+            "Acute Nasopharyngitis"
+        ],
+        "Typhoid Fever": [
+            "Enteric Fever",
+            "Salmonella Typhi Infection"
+        ],
+        "Amoebiasis": [
+            "Amebiasis",
+            "Amoebic Dysentery",
+            "Entamoeba Histolytica Infection"
+        ],
+        "Urinary Tract Infection": [
+            "UTI",
+            "Acute Cystitis",
+            "Pyelonephritis"
+        ],
+        "Arthritis": [
+            "Rheumatoid Arthritis",
+            "Osteoarthritis"
+        ],
+        "Influenza": [
+            "Flu",
+            "Influenza Virus Infection"
+        ],
+        "Anemia": [
+            "Iron Deficiency Anemia",
+            "Anemia (General)"
+        ],
+        "Hepatitis B": [
+            "Chronic Hepatitis B",
+            "Acute Hepatitis B"
+        ],
+        "Otitis Media": [
+            "Acute Otitis Media",
+            "Middle Ear Infection"
+        ],
+        "Dermatitis": [
+            "Atopic Dermatitis",
+            "Contact Dermatitis",
+            "Eczema"
+        ]
+    }
+
+    # Helper to find best key match in database with forgiving matching
+    def find_db_key(name: str):
+        canonical = name.strip().lower()
+        # direct match
+        if canonical in diseases_database:
+            return canonical
+        # try case-insensitive exact by iterating
+        for key in diseases_database.keys():
+            if key.lower() == canonical:
+                return key
+        # try alias list
+        for alias in alias_map.get(name, []):
+            alias_lower = alias.lower()
+            if alias_lower in diseases_database:
+                return alias_lower
+            for key in diseases_database.keys():
+                if key.lower() == alias_lower:
+                    return key
+        # try contains/alias heuristics
+        for key in diseases_database.keys():
+            low = key.lower()
+            if any(tok in low for tok in [canonical, canonical.replace('/', ' '), canonical.replace('fever',''), canonical.replace('disease','').strip()]):
+                return key
+        return None
+
+    # Filter to only manual diseases using robust matching
     manual_diseases_data = {}
     for disease_name in manual_diseases:
-        if disease_name in diseases_database:
-            manual_diseases_data[disease_name] = diseases_database[disease_name]
-            logger.info(f"✅ Found manual disease: {disease_name}")
+        key = find_db_key(disease_name)
+        if key and key in diseases_database:
+            manual_diseases_data[disease_name] = diseases_database[key]
+            logger.info(f"✅ Using disease: {disease_name} <- db key '{key}'")
         else:
-            logger.warning(f"⚠️ Manual disease not found: {disease_name}")
+            # Fallback to sample if present
+            if disease_name in sample_fallback:
+                manual_diseases_data[disease_name] = sample_fallback[disease_name]
+                logger.info(f"🧩 Using sample fallback for: {disease_name}")
+            else:
+                logger.warning(f"⚠️ Manual disease not found in database: {disease_name}")
     
     logger.info(f"📋 Using {len(manual_diseases_data)} manual diseases for training")
     
@@ -72,7 +179,7 @@ def retrain_with_manual_diseases():
     
     logger.info(f"📊 Generated {len(training_data)} training examples")
     
-    if len(training_data) < 10:
+    if len(training_data) < 50:
         logger.error("❌ Insufficient training data")
         return
     
@@ -103,7 +210,7 @@ def retrain_with_manual_diseases():
         )
     
     # Train model
-    classifier = RandomForestClassifier(n_estimators=100, random_state=42)
+    classifier = RandomForestClassifier(n_estimators=300, max_depth=None, random_state=42, n_jobs=-1)
     classifier.fit(X_train, y_train)
     
     # Evaluate

@@ -1,5 +1,15 @@
 [
   {
+    "symptoms": "Weight Loss",
+    "disease": "Diagnosis and treatment of obstructive sleep apnea and its impact on cardiovascular",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "Pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.8
+  },
+  {
     "symptoms": "pain",
     "disease": "Emerging Concepts in the Diagnosis and Treatment of",
     "confidence": 0.8
@@ -10,43 +20,18 @@
     "confidence": 0.8
   },
   {
-    "symptoms": "Pain",
+    "symptoms": "Pain pain",
     "disease": "Emerging Concepts in the Diagnosis and Treatment of",
-    "confidence": 0.8
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "Pain pain chest pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.9
   },
   {
     "symptoms": "pain chest pain",
     "disease": "Emerging Concepts in the Diagnosis and Treatment of",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "pain chest pain Pain",
-    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "chest pain Pain",
-    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "Weight Loss",
-    "disease": "Diagnosis and treatment of obstructive sleep apnea and its impact on cardiovascular",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "pain",
-    "disease": "Treatment and Diagnosis of",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "Pain",
-    "disease": "Treatment and Diagnosis of",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "pain Pain",
-    "disease": "Treatment and Diagnosis of",
     "confidence": 0.9
   },
   {
@@ -55,99 +40,34 @@
     "confidence": 0.8
   },
   {
-    "symptoms": "increased hunger",
-    "disease": "Diabetes and",
+    "symptoms": "back pain",
+    "disease": "Time to Diagnosis and Treatment of",
     "confidence": 0.8
-  },
-  {
-    "symptoms": "blurred vision",
-    "disease": "Diabetes and",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "fatigue",
-    "disease": "Diabetes and",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "frequent urination",
-    "disease": "Diabetes and",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "excessive thirst",
-    "disease": "Diabetes and",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "weight loss",
-    "disease": "Diabetes and",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "increased hunger blurred vision",
-    "disease": "Diabetes and",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "increased hunger blurred vision fatigue",
-    "disease": "Diabetes and",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "increased hunger blurred vision fatigue frequent urination",
-    "disease": "Diabetes and",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "blurred vision fatigue",
-    "disease": "Diabetes and",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "blurred vision fatigue frequent urination",
-    "disease": "Diabetes and",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "blurred vision fatigue frequent urination excessive thirst",
-    "disease": "Diabetes and",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "fatigue frequent urination",
-    "disease": "Diabetes and",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "fatigue frequent urination excessive thirst",
-    "disease": "Diabetes and",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "fatigue frequent urination excessive thirst weight loss",
-    "disease": "Diabetes and",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "frequent urination excessive thirst",
-    "disease": "Diabetes and",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "frequent urination excessive thirst weight loss",
-    "disease": "Diabetes and",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "excessive thirst weight loss",
-    "disease": "Diabetes and",
-    "confidence": 0.9
   },
   {
     "symptoms": "pain",
-    "disease": "and treatment of",
+    "disease": "Time to Diagnosis and Treatment of",
     "confidence": 0.8
+  },
+  {
+    "symptoms": "back pain pain",
+    "disease": "Time to Diagnosis and Treatment of",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "Pain",
+    "disease": "Treatment and Diagnosis of",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "pain",
+    "disease": "Treatment and Diagnosis of",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "Pain pain",
+    "disease": "Treatment and Diagnosis of",
+    "confidence": 0.9
   },
   {
     "symptoms": "pain",
@@ -155,12 +75,22 @@
     "confidence": 0.8
   },
   {
-    "symptoms": "increased hunger",
+    "symptoms": "weight loss",
     "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
     "confidence": 0.8
   },
   {
     "symptoms": "blurred vision",
+    "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "increased hunger",
+    "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "excessive thirst",
     "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
     "confidence": 0.8
   },
@@ -175,42 +105,57 @@
     "confidence": 0.8
   },
   {
-    "symptoms": "excessive thirst",
-    "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "weight loss",
-    "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "increased hunger blurred vision",
+    "symptoms": "weight loss blurred vision",
     "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
     "confidence": 0.9
   },
   {
-    "symptoms": "increased hunger blurred vision fatigue",
+    "symptoms": "weight loss blurred vision increased hunger",
     "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
     "confidence": 0.9
   },
   {
-    "symptoms": "increased hunger blurred vision fatigue frequent urination",
+    "symptoms": "weight loss blurred vision increased hunger excessive thirst",
     "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
     "confidence": 0.9
   },
   {
-    "symptoms": "blurred vision fatigue",
+    "symptoms": "blurred vision increased hunger",
     "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
     "confidence": 0.9
   },
   {
-    "symptoms": "blurred vision fatigue frequent urination",
+    "symptoms": "blurred vision increased hunger excessive thirst",
     "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
     "confidence": 0.9
   },
   {
-    "symptoms": "blurred vision fatigue frequent urination excessive thirst",
+    "symptoms": "blurred vision increased hunger excessive thirst fatigue",
+    "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "increased hunger excessive thirst",
+    "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "increased hunger excessive thirst fatigue",
+    "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "increased hunger excessive thirst fatigue frequent urination",
+    "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "excessive thirst fatigue",
+    "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "excessive thirst fatigue frequent urination",
     "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
     "confidence": 0.9
   },
@@ -220,74 +165,104 @@
     "confidence": 0.9
   },
   {
-    "symptoms": "fatigue frequent urination excessive thirst",
-    "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
+    "symptoms": "weight loss",
+    "disease": "Diabetes and",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "blurred vision",
+    "disease": "Diabetes and",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "increased hunger",
+    "disease": "Diabetes and",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "excessive thirst",
+    "disease": "Diabetes and",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "fatigue",
+    "disease": "Diabetes and",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "frequent urination",
+    "disease": "Diabetes and",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "weight loss blurred vision",
+    "disease": "Diabetes and",
     "confidence": 0.9
   },
   {
-    "symptoms": "fatigue frequent urination excessive thirst weight loss",
-    "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
+    "symptoms": "weight loss blurred vision increased hunger",
+    "disease": "Diabetes and",
     "confidence": 0.9
   },
   {
-    "symptoms": "frequent urination excessive thirst",
-    "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
+    "symptoms": "weight loss blurred vision increased hunger excessive thirst",
+    "disease": "Diabetes and",
     "confidence": 0.9
   },
   {
-    "symptoms": "frequent urination excessive thirst weight loss",
-    "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
+    "symptoms": "blurred vision increased hunger",
+    "disease": "Diabetes and",
     "confidence": 0.9
   },
   {
-    "symptoms": "excessive thirst weight loss",
-    "disease": "Diabetes Mellitus and Noncardiac Atherosclerotic Vascular",
+    "symptoms": "blurred vision increased hunger excessive thirst",
+    "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "blurred vision increased hunger excessive thirst fatigue",
+    "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "increased hunger excessive thirst",
+    "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "increased hunger excessive thirst fatigue",
+    "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "increased hunger excessive thirst fatigue frequent urination",
+    "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "excessive thirst fatigue",
+    "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "excessive thirst fatigue frequent urination",
+    "disease": "Diabetes and",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "fatigue frequent urination",
+    "disease": "Diabetes and",
     "confidence": 0.9
   },
   {
     "symptoms": "pain",
-    "disease": "Time to Diagnosis and Treatment of",
+    "disease": "Diagnosis and treatment of",
     "confidence": 0.8
   },
   {
-    "symptoms": "back pain",
-    "disease": "Time to Diagnosis and Treatment of",
+    "symptoms": "Cough",
+    "disease": "KATRD Guideline for the Diagnosis and Treatment of Pulmonary",
     "confidence": 0.8
-  },
-  {
-    "symptoms": "pain back pain",
-    "disease": "Time to Diagnosis and Treatment of",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "pain",
-    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "chest pain",
-    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "Pain",
-    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "pain chest pain",
-    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "pain chest pain Pain",
-    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
-    "confidence": 0.9
-  },
-  {
-    "symptoms": "chest pain Pain",
-    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
-    "confidence": 0.9
   },
   {
     "symptoms": "constipation",
@@ -305,48 +280,48 @@
     "confidence": 0.9
   },
   {
-    "symptoms": "Cough",
-    "disease": "KATRD Guideline for the Diagnosis and Treatment of Pulmonary",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "pain",
-    "disease": "Diagnosis and treatment of",
-    "confidence": 0.8
-  },
-  {
     "symptoms": "fatigue",
     "disease": "renin",
     "confidence": 0.8
   },
   {
-    "symptoms": "pain",
-    "disease": "Progress and Challenges in the Diagnosis and Treatment of Brain",
-    "confidence": 0.8
-  },
-  {
     "symptoms": "Pain",
-    "disease": "Brief Overview of Prostate",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "abdominal pain",
-    "disease": "Gastric",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
     "confidence": 0.8
   },
   {
     "symptoms": "pain",
-    "disease": "Gastric",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
     "confidence": 0.8
   },
   {
-    "symptoms": "abdominal pain pain",
-    "disease": "Gastric",
+    "symptoms": "chest pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "Pain pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "Pain pain chest pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "pain chest pain",
+    "disease": "Emerging Concepts in the Diagnosis and Treatment of",
     "confidence": 0.9
   },
   {
     "symptoms": "pain",
     "disease": "Guidelines for the diagnosis and treatment of pancreatic",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "pain",
+    "disease": "Progress and Challenges in the Diagnosis and Treatment of Brain",
     "confidence": 0.8
   },
   {
@@ -362,6 +337,21 @@
   {
     "symptoms": "nausea vomiting",
     "disease": "Management of",
+    "confidence": 0.9
+  },
+  {
+    "symptoms": "fatigue",
+    "disease": "Tryptophan metabolism in health and",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "Fatigue",
+    "disease": "Tryptophan metabolism in health and",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "fatigue Fatigue",
+    "disease": "Tryptophan metabolism in health and",
     "confidence": 0.9
   },
   {
@@ -390,8 +380,8 @@
     "confidence": 0.8
   },
   {
-    "symptoms": "pain",
-    "disease": "role beyond",
+    "symptoms": "Pain",
+    "disease": "Substance Use",
     "confidence": 0.8
   },
   {
@@ -400,18 +390,18 @@
     "confidence": 0.8
   },
   {
-    "symptoms": "pain muscle pain",
+    "symptoms": "pain",
+    "disease": "role beyond",
+    "confidence": 0.8
+  },
+  {
+    "symptoms": "muscle pain pain",
     "disease": "role beyond",
     "confidence": 0.9
   },
   {
     "symptoms": "Pain",
-    "disease": "Advances in Management of Bladder",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "fatigue",
-    "disease": "frequently underestimated",
+    "disease": "Gynecological disorders in bladder pain",
     "confidence": 0.8
   },
   {
@@ -420,13 +410,13 @@
     "confidence": 0.8
   },
   {
-    "symptoms": "Pain",
-    "disease": "Gynecological disorders in bladder pain",
-    "confidence": 0.8
-  },
-  {
-    "symptoms": "pain Pain",
+    "symptoms": "Pain pain",
     "disease": "Gynecological disorders in bladder pain",
     "confidence": 0.9
+  },
+  {
+    "symptoms": "fatigue",
+    "disease": "frequently underestimated",
+    "confidence": 0.8
   }
 ]
